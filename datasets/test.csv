@@ -1,0 +1,6 @@
+id,fulltext,label
+0,'Dit is een voorbeeld instance die positief is...',positief
+1,'Dit is een voorbeeld instance die negatief is.',negatief
+2,'Een negatieve instance?',negatief
+3,'Positiever kan haast niet!',positief
+4,'En natuurlijk om het multi-class te maken een neutrale instance.',neutral

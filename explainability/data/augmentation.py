@@ -1,0 +1,156 @@
+import numpy as np
+import math
+import itertools
+
+from uuid import UUID, uuid4
+from typing import Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional
+
+from instancelib.instances.text import TextInstance
+from instancelib.typehints.typevars import VT
+
+
+class LocalTokenPertubator:
+    def __init__(self, 
+                 detokenizer: Callable[[Iterable[str]], str]):
+        """Perturb a single instance into neighborhood samples.
+
+        Args:
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+        """
+        self.detokenizer = detokenizer
+
+    @staticmethod
+    def binary_inactive(inactive, length):
+        res = np.ones(length, dtype=int)
+        inactive = [res for res in inactive]
+        res[inactive] = 0
+        return res
+
+    def perturb(tokenized_instance: Iterable[str], *args, **kwargs) -> Sequence[Iterable[str]]:
+        raise NotImplementedError
+
+    def __call__(self, instance: TextInstance[Any, VT], *args, **kwargs):
+        """Apply perturbations to an instance to generate neighborhood data.
+
+        Args:
+            instance (TextInstance[Any, VT]): Tokenized instance to perturb.
+
+        Yields:
+            Iterator[Sequence[TextInstance[UUID, VT]]]: Neighborhood data instances.
+        """
+        assert hasattr(instance, 'tokenized'), 'Tokenize your instance before applying a perturbation'
+
+        for new_instance, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
+            new_data = self.detokenizer(new_instance)
+            new_id = uuid4() # TODO This has to be improved. 
+            # Current Provider architecture does not have functionality for **unique** new 
+            # id generation. Or KT should be equal to UUID
+            # (For Active Learning we did not need to create new Instances)
+            t = TextInstance[UUID, VT](new_id, new_data, map_to_original, new_data, new_instance)
+            t.tokenized = new_instance
+            yield t
+
+
+class TokenReplacement(LocalTokenPertubator):
+    def __init__(self,
+                 detokenizer: Callable[[Iterable[str]], str], 
+                 replacement: Optional[str] = 'UNKWRDZ',
+                 seed: int = 0):
+        """[summary]
+
+        Args:
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+            replacement (Optional[str], optional): Replacement string, or set to None
+                if you want to delete the word entirely. Defaults to 'UNKWRDZ'.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+        """
+        super().__init__(detokenizer=detokenizer)
+        self.replacement = replacement
+        self._seed = seed
+
+    def _replace(self,
+                 tokenized_instance: Iterable[str],
+                 keep: Iterable[int]):
+        """[summary]
+
+        Args:
+            tokenized_instance (Iterable[str]): Tokenized instance.
+            keep (Iterable[int]): Binary indicator whether to keep (1) or replace (0) a token.
+
+        Returns:
+            [type]: [description]
+        """
+        if not self.replacement or self.replacement is None:
+            return [token for token, i in zip(tokenized_instance, keep) if i == 1]
+        return [self.replacement if i == 0 else token for token, i in zip(tokenized_instance, keep)]
+
+    def perturb(self,
+                tokenized_instance: Iterable[str],
+                n_samples: int = 50,
+                sequential: bool = True,
+                contiguous: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
+        """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
+        which is assumed not to be part of the original tokens.
+
+        Args:
+            tokenized_instance (Iterable[str]): [description]
+            n_samples (int, optional): Number of samples to return. Defaults to 50.
+            sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, etc.). Defaults to True.
+            contiguous (bool, optional): Whether to remove contiguous sequences of tokens (n-grams). Defaults to False.
+
+        Yields:
+            Iterator[Sequence[Iterable[str], Iterable[int]]]: [description]
+        """
+        instance_len = sum(1 for _ in tokenized_instance)
+        rand = np.random.RandomState(self._seed)
+
+        def get_inactive(inactive_range):
+            inactive = TokenReplacement.binary_inactive(inactive_range, instance_len)
+            return self._replace(tokenized_instance, inactive), inactive
+
+        if sequential:
+            if contiguous:  # n-grams of length size, up to n_samples
+                for size in range(1, instance_len + 1):
+                    n_contiguous = instance_len - size
+                    if n_contiguous <= n_samples:
+                        n_samples -= n_contiguous
+                        for start in range(instance_len - size + 1):
+                            yield get_inactive(range(start, start + size))
+                    else:
+                        for start in rand.choice(instance_len - size + 1, replace=False):
+                            yield get_inactive(range(start, start + size))
+                        break
+            else:  # used by SHAP
+                for size in range(1, instance_len + 1):
+                    n_choose_k = math.comb(instance_len, size)
+                    if n_choose_k <= n_samples:  # make all combinations of length size
+                        n_samples -= n_choose_k
+                        for disable in itertools.combinations(range(instance_len), size):
+                            yield get_inactive(disable)
+                    else:  # fill up remainder with random samples of length size
+                        for _ in range(n_samples):
+                            yield get_inactive(rand.choice(instance_len, size, replace=False))
+                        break
+        else:
+            sample = rand.randint(1, instance_len + 1, n_samples - 1)
+
+            for size in sample:
+                if contiguous: # use n-grams
+                    start = rand.choice(instance_len - size + 1, replace=False)
+                    inactive = TokenReplacement.binary_inactive(range(start, start + size), instance_len)
+                else: # used by LIME, https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
+                    inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False), instance_len)
+                yield self._replace(tokenized_instance, inactive), inactive
+
+
+class LeaveOut(TokenReplacement):
+    def __init__(self,
+                 detokenizer: Callable[[Iterable[str]], str], 
+                 seed: int = 0):
+        """Leave tokens out of the tokenized sequence.
+
+        Args:
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+        """
+        super().__init__(detokenizer=detokenizer, replacement=None, seed=seed)
