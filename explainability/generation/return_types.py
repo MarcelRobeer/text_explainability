@@ -1,4 +1,7 @@
-"""TO-DO: add rule-based explanations."""
+"""TO-DO:
+- add rule-based explanations
+- add named label support
+"""
 
 import numpy as np
 

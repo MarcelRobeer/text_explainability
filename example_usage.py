@@ -23,8 +23,9 @@ p.fit([t.data for t in train.bulk_get_all()],
 # %% Imports
 from explainability.model import SklearnModel
 from explainability.local_explanation import LIME, LocalTree
+from explainability.global_explanation import TokenFrequency
 from explainability.data.augmentation import TokenReplacement, LeaveOut
-from explainability.utils import default_detokenizer, default_tokenizer
+from explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
 
 # %% Wrap sklearn model
 model = SklearnModel(p)
@@ -54,3 +55,12 @@ explainer(sample, model)
 
 # %% Local tree explainer for `sample` on `model` (non-weighted neighborhood data)
 LocalTree()(sample, model, weigh_samples=False)
+
+# %% Global word frequency explanation on ground-truth labels
+tf = TokenFrequency(instanceprovider)
+tf(labelprovider=labelprovider, explain_model=False, k=10)
+
+# %% Global word frequency explanation on model predictions
+tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
+
+
