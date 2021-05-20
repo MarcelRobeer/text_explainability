@@ -24,7 +24,7 @@ class TokenFrequency(GlobalExplanation):
                  k: Optional[int] = None,
                  filter_words: List[str] = ['de', 'het', 'een'],
                  tokenizer: Callable = default_tokenizer,
-                 **count_vectorizer_kwargs) -> Dict[Tuple[str, int]]:
+                 **count_vectorizer_kwargs) -> Dict[str, List[Tuple[str, int]]]:
         """Show the top-k number of tokens for each ground-truth or predicted label.
 
         Args:
@@ -36,7 +36,7 @@ class TokenFrequency(GlobalExplanation):
             tokenizer (Callable, optional): [description]. Defaults to default_tokenizer.
 
         Returns:
-            Dict[Tuple[str, int]]: Each label with corresponding top words and their frequency
+            Dict[str, List[Tuple[str, int]]]: Each label with corresponding top words and their frequency
         """
         if explain_model:
             assert model is not None, 'Provide a model to explain its predictions, or set `explain_predictions` to False'
