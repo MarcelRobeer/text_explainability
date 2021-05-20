@@ -3,7 +3,7 @@ import math
 import itertools
 
 from uuid import UUID, uuid4
-from typing import Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional
+from typing import (Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional, List, Union)
 
 from instancelib.instances.text import TextInstance
 from instancelib.typehints.typevars import VT
@@ -54,13 +54,13 @@ class LocalTokenPertubator:
 class TokenReplacement(LocalTokenPertubator):
     def __init__(self,
                  detokenizer: Callable[[Iterable[str]], str], 
-                 replacement: Optional[str] = 'UNKWRDZ',
+                 replacement: Optional[Union[str, List[str]]] = 'UNKWRDZ',
                  seed: int = 0):
         """[summary]
 
         Args:
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
-            replacement (Optional[str], optional): Replacement string, or set to None
+            replacement (Optional[Union[str, List[str]]], optional): Replacement string, or set to None
                 if you want to delete the word entirely. Defaults to 'UNKWRDZ'.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
@@ -82,6 +82,11 @@ class TokenReplacement(LocalTokenPertubator):
         """
         if not self.replacement or self.replacement is None:
             return [token for token, i in zip(tokenized_instance, keep) if i == 1]
+        if isinstance(self.replacement, list):
+            instance_len = sum(1 for _ in tokenized_instance)
+            replacement_len = len(self.replacement)
+            assert replacement_len >= instance_len, f'Too few replacements in `self.replacement`, got {replacement_len} and expected {instance_len}'
+            return [self.replacement[i] if j == 0 else token for i, (token, j) in enumerate(zip(tokenized_instance, keep))]
         return [self.replacement if i == 0 else token for token, i in zip(tokenized_instance, keep)]
 
     def perturb(self,

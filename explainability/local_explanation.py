@@ -1,3 +1,9 @@
+"""TO-DO:
+- Implement Anchors
+- Implement SHAP
+- Implement Foil Trees
+"""
+
 import numpy as np
 
 from instancelib import TextBucketProvider, DataPointProvider, TextEnvironment
@@ -10,6 +16,7 @@ from explainability.data.augmentation import LocalTokenPertubator, TokenReplacem
 from explainability.data.weights import pairwise_distances, exponential_kernel
 from explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
 from explainability.generation.feature_selection import FeatureSelector
+from explainability.generation.return_types import FeatureAttribution
 from explainability.utils import default_detokenizer
 
 
@@ -115,8 +122,7 @@ class LIME(LocalExplanation, WeightedExplanation):
         self.local_model.alpha_reset()
         self.local_model.fit(perturbed[:, used_features], y, weights=weights)
 
-        ## TO-DO Generalize beyond classification
-        return provider, used_features, [(self.local_model.feature_importances[label], self.local_model.intercept[label]) for label in labels]
+        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels)#[(self.local_model.feature_importances[label], self.local_model.intercept[label]) for label in labels]
 
 
 class KernelSHAP(LocalExplanation):
