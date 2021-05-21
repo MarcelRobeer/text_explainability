@@ -18,13 +18,15 @@ from explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
 from explainability.generation.feature_selection import FeatureSelector
 from explainability.generation.return_types import FeatureAttribution
 from explainability.utils import default_detokenizer
+from explainability.default import Readable
 
 
-class LocalExplanation:
+class LocalExplanation(Readable):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):
+        super().__init__()
         self.dataset = dataset
         if augmenter is None:
             augmenter = TokenReplacement(detokenizer=default_detokenizer)

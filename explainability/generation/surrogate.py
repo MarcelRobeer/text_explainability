@@ -1,8 +1,11 @@
 from sklearn.base import clone
 
+from explainability.default import Readable
 
-class BaseSurrogate:
+
+class BaseSurrogate(Readable):
     def __init__(self, model):
+        super().__init__()
         self._model = clone(model)
 
     def fit(self, X, y, weights=None):

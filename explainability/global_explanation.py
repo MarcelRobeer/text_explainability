@@ -11,12 +11,14 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
 from explainability.utils import default_detokenizer, default_tokenizer
+from explainability.default import Readable
 
 
-class GlobalExplanation:
+class GlobalExplanation(Readable):
     def __init__(self,
                  dataset: TextEnvironment,
                  seed: int = 0):
+        super().__init__()
         self.dataset = dataset
         self._seed = 0
 

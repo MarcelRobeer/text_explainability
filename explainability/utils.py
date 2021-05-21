@@ -2,6 +2,7 @@ import re
 import string
 from typing import Sequence, Iterable
 
+
 def default_tokenizer(input: str) -> Sequence[str]:
     """Simple regex tokenizer."""
     return re.findall(r"\w+|[^\w\s]+", input)

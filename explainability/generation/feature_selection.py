@@ -8,9 +8,12 @@ from typing import Optional
 from sklearn.linear_model import LassoLarsIC, Lasso, lars_path
 
 from explainability.generation.surrogate import LinearSurrogate
+from explainability.default import Readable
 
-class FeatureSelector:
+
+class FeatureSelector(Readable):
     def __init__(self, model: Optional[LinearSurrogate] = None):
+        super().__init__()
         self.model = model
         if self.model is not None:
             self.model.alpha_zero()

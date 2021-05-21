@@ -14,8 +14,10 @@ from typing import (Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional
 from instancelib.instances.text import TextInstance
 from instancelib.typehints.typevars import VT
 
+from explainability.default import Readable
 
-class LocalTokenPertubator:
+
+class LocalTokenPertubator(Readable):
     def __init__(self, 
                  detokenizer: Callable[[Iterable[str]], str]):
         """Perturb a single instance into neighborhood samples.
@@ -23,6 +25,7 @@ class LocalTokenPertubator:
         Args:
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
         """
+        super().__init__()
         self.detokenizer = detokenizer
 
     @staticmethod
