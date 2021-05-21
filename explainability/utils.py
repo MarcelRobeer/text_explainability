@@ -19,4 +19,4 @@ def default_detokenizer(input: Iterable[str]) -> str:
     return out.replace(" ` ", " '").strip()
 
 
-PUNCTUATION = list(string.punctuation)
+PUNCTUATION = list(string.punctuation) + ['...']

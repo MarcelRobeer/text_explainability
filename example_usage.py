@@ -23,7 +23,7 @@ p.fit([t.data for t in train.bulk_get_all()],
 # %% Imports
 from explainability.model import SklearnModel
 from explainability.local_explanation import LIME, LocalTree
-from explainability.global_explanation import TokenFrequency
+from explainability.global_explanation import TokenFrequency, TokenInformation
 from explainability.data.augmentation import TokenReplacement, LeaveOut
 from explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
 
@@ -63,4 +63,9 @@ tf(labelprovider=labelprovider, explain_model=False, k=10)
 # %% Global word frequency explanation on model predictions
 tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
 
+# %% Token information for dataset
+ti = TokenInformation(instanceprovider)
+ti(labelprovider=labelprovider, explain_model=False, k=50)
 
+# %% Token information for model
+ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
