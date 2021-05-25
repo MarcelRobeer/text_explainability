@@ -29,7 +29,7 @@ class LocalTokenPertubator(Readable):
         self.detokenizer = detokenizer
 
     @staticmethod
-    def binary_inactive(inactive, length):
+    def binary_inactive(inactive, length) -> np.ndarray:
         res = np.ones(length, dtype=int)
         inactive = [res for res in inactive]
         res[inactive] = 0
@@ -102,7 +102,8 @@ class TokenReplacement(LocalTokenPertubator):
                 tokenized_instance: Iterable[str],
                 n_samples: int = 50,
                 sequential: bool = True,
-                contiguous: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
+                contiguous: bool = False,
+                add_background_instance: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
         which is assumed not to be part of the original tokens.
 
@@ -111,6 +112,7 @@ class TokenReplacement(LocalTokenPertubator):
             n_samples (int, optional): Number of samples to return. Defaults to 50.
             sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, etc.). Defaults to True.
             contiguous (bool, optional): Whether to remove contiguous sequences of tokens (n-grams). Defaults to False.
+            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. Defaults to False.
 
         Yields:
             Iterator[Sequence[Iterable[str], Iterable[int]]]: [description]
@@ -155,6 +157,10 @@ class TokenReplacement(LocalTokenPertubator):
                 else: # used by LIME, https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
                     inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False), instance_len)
                 yield self._replace(tokenized_instance, inactive), inactive
+        
+        if add_background_instance:
+            inactive = np.zeros(instance_len)
+            yield self._replace(tokenized_instance, inactive), inactive
 
 
 class LeaveOut(TokenReplacement):

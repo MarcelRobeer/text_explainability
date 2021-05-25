@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 
-from typing import (Tuple, FrozenSet, Sequence, Callable, List, Union)
+from typing import (Optional, Tuple, FrozenSet, Sequence, Callable, List, Union)
 
 from instancelib.utils import SaveableInnerModel
 from instancelib.instances import Instance, InstanceProvider
@@ -16,7 +16,10 @@ InstanceType = Union[str, Sequence[str], Instance, InstanceProvider]
 class SklearnModel(SaveableInnerModel):
     _name = "Sklearn"
 
-    def __init__(self, estimator, storage_location=None, filename=None) -> None:
+    def __init__(self,
+                 estimator,
+                 storage_location: Optional[str] = None,
+                 filename: Optional[str] = None):
         # TO-DO what if tokenizer, transformer and predictor are separate parts?
         if isinstance(estimator, (list, tuple)):
             estimator = Pipeline([(e.__class__.__name__, e) for e in estimator])
@@ -67,11 +70,14 @@ class SklearnModel(SaveableInnerModel):
         assert self.innermodel is not None and self.fitted
         return self.__predict_fn(instances, self.innermodel.predict_proba)
     
-    def predict(self, instances: InstanceType, return_labels=True) -> Union[Sequence[FrozenSet[str]], np.ndarray]:
+    def predict(self,
+                instances: InstanceType,
+                return_labels: bool = True) -> Union[Sequence[FrozenSet[str]], np.ndarray]:
         # Q: Should we include the labels for `clusterer`?
         assert self.innermodel is not None and self.fitted
         y_pred = self.__predict_fn(instances, self.innermodel.predict)
-        return y_pred if self.estimator_type != 'classifier' or not return_labels else [frozenset([y]) for y in y_pred]
+        return y_pred if self.estimator_type != 'classifier' or not return_labels \
+             else [frozenset([y]) for y in y_pred]
 
     def predict_proba_instances(self, instances: InstanceType) -> Sequence[FrozenSet[Tuple[str, float]]]:
         y_pred = self.predict_proba(instances).tolist()
@@ -81,7 +87,7 @@ class SklearnModel(SaveableInnerModel):
         ]
         return y_labels
 
-    def __inner_call(self, instances: InstanceType, return_labels=True):
+    def __inner_call(self, instances: InstanceType, return_labels: bool = True):
         # Q: Should we also include the score() function for `clusterer`?
         if self.estimator_type == 'classifier':
             if return_labels:
@@ -89,8 +95,10 @@ class SklearnModel(SaveableInnerModel):
             return self.predict_proba(instances)
         return self.predict(instances)
     
-    def __call__(self, instances: InstanceType,
-                 batch_size=None, return_labels=True) -> Union[FrozenSet[Tuple[str, float]], Sequence[FrozenSet[str]], np.ndarray]:
+    def __call__(self,
+                 instances: InstanceType,
+                 batch_size=None,
+                 return_labels=True) -> Union[FrozenSet[Tuple[str, float]], Sequence[FrozenSet[str]], np.ndarray]:
         if (isinstance(batch_size, int) and batch_size > 0
             and isinstance(instances, InstanceProvider)
             and batch_size < len(instances)

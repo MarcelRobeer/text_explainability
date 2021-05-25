@@ -9,10 +9,12 @@ from typing import Optional
 
 
 class FeatureAttribution:
-    def __init__(self, provider, used_features, scores, labels: Optional[int] = None, sampled: bool = False):
+    def __init__(self, provider, used_features, scores, scores_stddev = None, base_score = None, labels: Optional[int] = None, sampled: bool = False):
         self._provider = provider
         self._used_features = used_features
+        self._base_score = base_score
         self._scores = scores
+        self._scores_stddev = scores_stddev
         self._labels = labels
         self._original_instance = self._provider[next(iter(self._provider))]
         self._sampled_instances = self._provider.get_children(self._original_instance) if sampled else None

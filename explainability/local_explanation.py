@@ -4,9 +4,10 @@
 - Implement Foil Trees
 """
 
+import math
 import numpy as np
 
-from instancelib import TextBucketProvider, DataPointProvider, TextEnvironment
+from instancelib import TextBucketProvider, DataPointProvider, TextEnvironment, TextInstance
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
@@ -17,8 +18,8 @@ from explainability.data.weights import pairwise_distances, exponential_kernel
 from explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
 from explainability.generation.feature_selection import FeatureSelector
 from explainability.generation.return_types import FeatureAttribution
-from explainability.utils import default_detokenizer
 from explainability.default import Readable
+from explainability.utils import default_detokenizer, binarize
 
 
 class LocalExplanation(Readable):
@@ -33,11 +34,17 @@ class LocalExplanation(Readable):
         self.augmenter = augmenter
         self._seed = seed
 
-    def augment_sample(self, sample, model,
-                       sequential = False,
-                       contiguous = False,
+    def augment_sample(self,
+                       sample: TextInstance,
+                       model,
+                       sequential: bool = False,
+                       contiguous: bool = False,
                        n_samples: int = 50,
-                       avoid_proba: bool = False) -> Tuple[TextBucketProvider, np.array, np.array]:
+                       add_background_instance: bool = False,
+                       predict: bool = True,
+                       avoid_proba: bool = False
+                       ) -> Union[Tuple[TextBucketProvider, np.ndarray], \
+                                  Tuple[TextBucketProvider, np.ndarray, np.ndarray]]:
         provider = TextBucketProvider(DataPointProvider.from_data([]), []) if self.dataset is None \
                    else self.dataset.create_empty_provider()
 
@@ -45,23 +52,28 @@ class LocalExplanation(Readable):
         provider.add(sample)
 
         # Do sampling
-        for perturbed_sample in self.augmenter(sample, sequential=sequential, contiguous=contiguous, n_samples=n_samples):
+        augmenter = self.augmenter(sample,
+                                   sequential=sequential,
+                                   contiguous=contiguous,
+                                   n_samples=n_samples,
+                                   add_background_instance=add_background_instance)
+        for perturbed_sample in augmenter:
             provider.add(perturbed_sample)
             provider.add_child(sample, perturbed_sample)
 
         # Perform prediction
-        if avoid_proba:
-            y = model.predict(provider.bulk_get_all(), return_labels=False)
-        else:
-            y = model(provider.bulk_get_all(), return_labels=False)
+        if predict:
+            if avoid_proba:
+                y = model.predict(provider.bulk_get_all(), return_labels=False)
+            else:
+                y = model(provider.bulk_get_all(), return_labels=False)
 
         # Mapping to which instances were perturbed
         perturbed = np.stack([instance.vector for instance in provider.get_all()])
 
-        return provider, perturbed, y
-
-    def binarize(self, X: np.ndarray):
-        return (X > 0).astype(int)
+        if predict:
+            return provider, perturbed, y
+        return provider, perturbed
 
 
 class WeightedExplanation:
@@ -97,17 +109,17 @@ class LIME(LocalExplanation, WeightedExplanation):
         self.local_model = local_model
 
     def __call__(self,
-                 sample,
+                 sample: TextInstance,
                  model,
                  labels=(1,),
-                 n_samples=50,
-                 n_features=10,
-                 feature_selection_method='auto',
-                 weigh_samples=True,
-                 distance_metric='cosine'):
+                 n_samples: int = 50,
+                 n_features: int = 10,
+                 feature_selection_method: str = 'auto',
+                 weigh_samples: bool = True,
+                 distance_metric: str = 'cosine') -> FeatureAttribution:
         provider, perturbed, y = self.augment_sample(sample, model, sequential=False,
                                                      contiguous=False, n_samples=n_samples)
-        perturbed = self.binarize(perturbed)  # flatten all n replacements into one
+        perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         if weigh_samples:
             weights = self.weigh_samples(perturbed, metric=distance_metric)
@@ -124,20 +136,15 @@ class LIME(LocalExplanation, WeightedExplanation):
         self.local_model.alpha_reset()
         self.local_model.fit(perturbed[:, used_features], y, weights=weights)
 
-        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels)#[(self.local_model.feature_importances[label], self.local_model.intercept[label]) for label in labels]
+        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels)
 
 
 class KernelSHAP(LocalExplanation):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
                  augmenter: LocalTokenPertubator = None,
-                 local_model: Optional[LinearSurrogate] = None,
                  seed: int = 0):
         super().__init__(dataset, augmenter, seed)
-        if local_model is None:
-            local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self._seed))
-        self.local_model = local_model
-        pass
 
     def select_features(X: np.ndarray, y: np.ndarray, default_features: int = 1,
                         l1_reg: Union[int, float, str] = 'auto') -> np.ndarray:
@@ -168,12 +175,12 @@ class KernelSHAP(LocalExplanation):
         elif l1_reg in ['auto', 'aic', 'bic']:
             if l1_reg == 'auto':
                 l1_reg = 'aic'
-            nonzero = feature_selector(X, y, method='l1_reg')
+            nonzero = feature_selector(X, y, method=l1_reg)
         else:
             raise Exception(f'Unknown value "{l1_reg}" for l1_reg')
         return nonzero
 
-    def __call__(self, sample, model, n_samples: int = None, l1_reg: Union[int, float, str] = 'auto'):
+    def __call__(self, sample: TextInstance, model, n_samples: Optional[int] = None, l1_reg: Union[int, float, str] = 'auto'):
         # https://github.com/slundberg/shap/blob/master/shap/explainers/_kernel.py
         sample_len = len(sample.tokenized)
         if n_samples is None:
@@ -181,26 +188,110 @@ class KernelSHAP(LocalExplanation):
         n_samples = min(n_samples, 2 ** 30)
 
         provider, perturbed, y = self.augment_sample(sample, model, sequential=True,
-                                                     contiguous=False, n_samples=n_samples)
+                                                     contiguous=False, n_samples=n_samples,
+                                                     add_background_instance=True)
 
-        # Run local model
-        self.local_model.fit(self.binarize(perturbed), y)
+        # To-do: exclude non-varying feature groups
+        y_null, y = y[-1], y[1:-1]
+        y -= y_null
+        used_features = np.arange(perturbed.shape[1])
+        phi = np.zeros([sample_len, y.shape[1]])
+        phi_var = np.zeros(sample_len)
 
-        # Solve
-        # Feature selection
-        mask_aug = None
-        eyAdj_aug = None
-        nonzero = self.select_features(mask_aug, eyAdj_aug, default_features=sample_len, l1_reg=l1_reg)
+        if perturbed.shape[1] == 1:
+            phi = np.mean(y - y_null, axis=0).reshape(1, -1)
+        elif perturbed.shape[1] > 1:
+            # Weigh samples
+            M = perturbed.shape[1]
+            Z = np.sum(perturbed[1:-1], axis=1).astype(int)
+            weight_vector = np.array([(M - 1) / (math.comb(M, m) * m * (M - m)) for m in range(1, M)])
+            weight_vector /= np.sum(weight_vector)
+            kernel_weights = weight_vector[Z - 1]
 
-        if len(nonzero) == 0:
-            return provider, np.zeros(sample_len), np.ones(sample_len)
-
-        # calculate ey
-
+            #nonzero = self.select_features(y, default_features=sample_len, l1_reg=l1_reg)
+            #used_features = nonzero
+            phi_var = np.ones(sample_len)
+            if len(used_features) > 0:
+                X = perturbed[1:-1]
+                X_W = np.dot(X.T, np.diag(kernel_weights))
+                try:
+                    tmp2 = np.linalg.inv(np.dot(X_W, X))
+                except np.linalg.LinAlgError:
+                    tmp2 = np.linalg.pinv(np.dot(X_W, X))
+                phi = np.dot(tmp2, np.dot(X_W, y)).T
+        return FeatureAttribution(provider, used_features, scores=phi, scores_stddev=phi_var, base_score=y_null, labels=np.arange(y.shape[1]))
 
 class Anchor(LocalExplanation):
-    def __call__(self, sample, model, n_samples: int = 50):
+    def __init__(self,
+                 dataset: Optional[TextEnvironment] = None,
+                 augmenter: Optional[LocalTokenPertubator] = None,
+                 seed: int = 0):
+        super().__init__(dataset=dataset, augmenter=augmenter, seed=seed)
+
+    @staticmethod
+    def kl_bernoulli(p, q):
+        p = float(min(0.999999999999999, max(0.000000001, p)))
+        q = float(min(0.999999999999999, max(0.000000001, q)))
+        return (p * np.log(p / q) + (1 - p) *
+                np.log((1 - p) / (1 - q)))
+
+    @staticmethod
+    def dlow_bernoulli(p, level):
+        lm = max(min(1, p - np.sqrt(level / 2.0)), 0.0)
+        qm = (p + lm) / 2.0
+        if Anchor.kl_bernoulli(p, qm) > level:
+            lm = qm
+        return lm
+
+    def generate_candidates(self,):
+        pass
+
+    def best_candidate(self):
+        pass
+
+    @staticmethod
+    def beam_search(perturbed: np.ndarray,
+                    model,
+                    true_label,
+                    beam_size: int = 1,
+                    min_confidence: float = 0.95,
+                    delta: float = 0.05,
+                    epsilon: float = 0.1,
+                    max_anchor_size: Optional[int] = None):
+        assert beam_size >= 1, f'beam size should be at least 1, but is {beam_size}'
+        assert 0.0 <= min_confidence <= 0.95, f'min_confidence should be a value in [0, 1], but is {min_confidence}'
+        assert 0.0 <= delta <= 0.95, f'delta should be a value in [0, 1], but is {delta}'
+        assert 0.0 <= epsilon <= 0.95, f'epsilon should be a value in [0, 1], but is {epsilon}'
+
+        beta = np.log(1.0 / delta)
+
+
+        pass
+
+    def __call__(self,
+                 sample: TextInstance,
+                 model,
+                 n_samples: int = 50,
+                 beam_size: int = 1,
+                 min_confidence: float = 0.95,
+                 delta: float = 0.05,
+                 epsilon: float = 0.1,
+                 max_anchor_size: Optional[int] = None):
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_text.py
+        # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_base.py
+        provider, perturbed = self.augment_sample(sample, None, sequential=False,
+                                                  contiguous=False, n_samples=n_samples,
+                                                  predict=False)
+        perturbed = binarize(perturbed)  # flatten all n replacements into one
+        true_label = np.argmax(model(sample, return_labels=False).reshape(-1))
+
+        # Use beam from https://homes.cs.washington.edu/~marcotcr/aaai18.pdf (Algorithm 2)
+        anchor = Anchor.beam_search(perturbed, model, true_label,
+                                    beam_size=beam_size,
+                                    min_confidence=min_confidence,
+                                    delta=delta,
+                                    epsilon=epsilon,
+                                    max_anchor_size=max_anchor_size)
         pass
 
 
@@ -211,7 +302,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  local_model: Optional[TreeSurrogate] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
-                 explanation_type: str='multiclass',
+                 explanation_type: str = 'multiclass',
                  seed: int = 0):
         LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
@@ -220,9 +311,15 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
-    def __call__(self, sample, model, n_samples: int = 50, weigh_samples=True, distance_metric='cosine', **sample_kwargs):
+    def __call__(self,
+                 sample: TextInstance,
+                 model,
+                 n_samples: int = 50,
+                 weigh_samples: bool = True,
+                 distance_metric: str = 'cosine',
+                 **sample_kwargs):
         provider, perturbed, y = self.augment_sample(sample, model, n_samples=n_samples, avoid_proba=True, **sample_kwargs)
-        perturbed = self.binarize(perturbed)  # flatten all n replacements into one
+        perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         # Sample weights?
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
