@@ -5,16 +5,25 @@
 
 import numpy as np
 
-from typing import Optional
+from typing import Optional, Sequence
 
 
 class FeatureAttribution:
-    def __init__(self, provider, used_features, scores, scores_stddev = None, base_score = None, labels: Optional[int] = None, sampled: bool = False):
+    def __init__(self,
+                 provider,
+                 used_features,
+                 scores,
+                 scores_stddev = None,
+                 base_score = None,
+                 labels: Optional[Sequence[int]] = None,
+                 label_names: Optional[Sequence[str]] = None,
+                 sampled: bool = False):
         self._provider = provider
         self._used_features = used_features
         self._base_score = base_score
         self._scores = scores
         self._scores_stddev = scores_stddev
+        self._label_names = label_names
         self._labels = labels
         self._original_instance = self._provider[next(iter(self._provider))]
         self._sampled_instances = self._provider.get_children(self._original_instance) if sampled else None
@@ -45,15 +54,24 @@ class FeatureAttribution:
         return list(self._labels)
 
     @property
+    def label_names(self):
+        return self._label_names
+
+    @property
     def used_features(self):
         if hasattr(self.original_instance, 'tokenized'):
             return [self.original_instance.tokenized[i] for i in self._used_features]
         return list(self._used_features)
 
+    def label_by_index(self, idx):
+        if self.label_names is not None:
+            return self.label_names[idx]
+        return idx
+
     @property
     def scores(self):
         all_scores = self.get_raw_scores(normalize=True)
-        return {label: {feature: score_ 
+        return {self.label_by_index(label): {feature: score_ 
                 for feature, score_ in zip(self.used_features, all_scores[label])}
                 for label in self.labels}
 
@@ -63,7 +81,7 @@ class FeatureAttribution:
     def __repr__(self) -> str:
         sampled_or_perturbed = 'sampled' if self.sampled_instances is not None else 'perturbed'
         n = sum(1 for _ in self.neighborhood_instances)
-        return f'{self.__class__.__name__}(labels={self.labels}, used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
+        return f'{self.__class__.__name__}(labels={[self.label_by_index(l) for l in self.labels]}, used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
 
     def get_raw_scores(self, normalize: bool = False) -> np.ndarray:
         scores = np.array(self._scores) if not isinstance(self._scores, np.ndarray) else self._scores

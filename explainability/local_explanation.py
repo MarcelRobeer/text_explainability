@@ -1,6 +1,5 @@
 """TO-DO:
 - Implement Anchors
-- Implement SHAP
 - Implement Foil Trees
 """
 
@@ -8,10 +7,11 @@ import math
 import numpy as np
 
 from instancelib import TextBucketProvider, DataPointProvider, TextEnvironment, TextInstance
+from instancelib.labels import LabelProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
-from typing import Callable, Tuple, Optional, Union
+from typing import Callable, Tuple, Optional, Union, Sequence
 
 from explainability.data.augmentation import LocalTokenPertubator, TokenReplacement
 from explainability.data.weights import pairwise_distances, exponential_kernel
@@ -26,11 +26,18 @@ class LocalExplanation(Readable):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  seed: int = 0):
         super().__init__()
         self.dataset = dataset
         if augmenter is None:
             augmenter = TokenReplacement(detokenizer=default_detokenizer)
+        if isinstance(label_names, LabelProvider) and hasattr(label_names, 'labelset'):
+            label_names = list(label_names.labelset)
+        elif label_names is None and self.dataset is not None:
+            if hasattr(self.dataset.labels, 'labelset'):
+                label_names = list(self.dataset.labels.labelset)
+        self.label_names = label_names
         self.augmenter = augmenter
         self._seed = seed
 
@@ -97,12 +104,13 @@ class WeightedExplanation:
 class LIME(LocalExplanation, WeightedExplanation):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  local_model: Optional[LinearSurrogate] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
                  seed: int = 0):
-        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, seed=seed)
+        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
             local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self._seed))
@@ -111,12 +119,17 @@ class LIME(LocalExplanation, WeightedExplanation):
     def __call__(self,
                  sample: TextInstance,
                  model,
-                 labels=(1,),
+                 labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
                  n_samples: int = 50,
                  n_features: int = 10,
                  feature_selection_method: str = 'auto',
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine') -> FeatureAttribution:
+        if labels is not None:
+            n_labels = sum(1 for _ in iter(labels))
+            if n_labels > 0 and isinstance(next(iter(labels)), str):
+                assert self.label_names is not None, 'can only provide label names when such a list exists'
+                labels = [self.label_names.index(label) for label in labels]
         provider, perturbed, y = self.augment_sample(sample, model, sequential=False,
                                                      contiguous=False, n_samples=n_samples)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
@@ -127,7 +140,8 @@ class LIME(LocalExplanation, WeightedExplanation):
         # Get the most important features
         if feature_selection_method == 'auto':
             feature_selection_method = 'forward_selection' if n_features <= 6 else 'highest_weights'
-        used_features = FeatureSelector(self.local_model)(perturbed, y,
+        used_features = FeatureSelector(self.local_model)(perturbed,
+                                                          y,
                                                           weights=weights,
                                                           n_features=n_features,
                                                           method=feature_selection_method)
@@ -136,16 +150,21 @@ class LIME(LocalExplanation, WeightedExplanation):
         self.local_model.alpha_reset()
         self.local_model.fit(perturbed[:, used_features], y, weights=weights)
 
-        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels)
+        if labels is None:
+            labels = np.arange(y.shape[1])
+
+        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels, label_names=self.label_names)
 
 
 class KernelSHAP(LocalExplanation):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: LocalTokenPertubator = None,
                  seed: int = 0):
-        super().__init__(dataset, augmenter, seed)
+        super().__init__(dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
 
+    @staticmethod
     def select_features(X: np.ndarray, y: np.ndarray, default_features: int = 1,
                         l1_reg: Union[int, float, str] = 'auto') -> np.ndarray:
         """Select features for data X and corresponding output y.
@@ -208,8 +227,8 @@ class KernelSHAP(LocalExplanation):
             weight_vector /= np.sum(weight_vector)
             kernel_weights = weight_vector[Z - 1]
 
-            #nonzero = self.select_features(y, default_features=sample_len, l1_reg=l1_reg)
-            #used_features = nonzero
+            nonzero = KernelSHAP.select_features(perturbed[1:-1], y, default_features=sample_len, l1_reg=l1_reg)
+            used_features = nonzero
             phi_var = np.ones(sample_len)
             if len(used_features) > 0:
                 X = perturbed[1:-1]
@@ -219,14 +238,20 @@ class KernelSHAP(LocalExplanation):
                 except np.linalg.LinAlgError:
                     tmp2 = np.linalg.pinv(np.dot(X_W, X))
                 phi = np.dot(tmp2, np.dot(X_W, y)).T
-        return FeatureAttribution(provider, used_features, scores=phi, scores_stddev=phi_var, base_score=y_null, labels=np.arange(y.shape[1]))
+        return FeatureAttribution(provider, used_features,
+                                  scores=phi,
+                                  scores_stddev=phi_var,
+                                  base_score=y_null,
+                                  labels=np.arange(y.shape[1]),
+                                  label_names=self.label_names)
 
 class Anchor(LocalExplanation):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):
-        super().__init__(dataset=dataset, augmenter=augmenter, seed=seed)
+        super().__init__(dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
 
     @staticmethod
     def kl_bernoulli(p, q):
@@ -298,13 +323,14 @@ class Anchor(LocalExplanation):
 class LocalTree(LocalExplanation, WeightedExplanation):
     def __init__(self,
                  dataset: Optional[TextEnvironment] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  local_model: Optional[TreeSurrogate] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
                  explanation_type: str = 'multiclass',
                  seed: int = 0):
-        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, seed=seed)
+        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
             local_model = TreeSurrogate(DecisionTreeClassifier(max_depth=3))

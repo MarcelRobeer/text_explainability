@@ -75,12 +75,15 @@ class FeatureSelector(Readable):
         assert criterion in ['aic', 'bic'], f'Unknown criterion "{criterion}"'
         return np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0]
 
-    def _l1_reg(X: np.ndarray, y: np.ndarray,
+    def _l1_reg(self, X: np.ndarray, y: np.ndarray,
                 n_features: int = 10, alpha: Optional[float] = None):
         """SHAP"""
         if alpha is not None:
             return np.nonzero(Lasso(alpha=alpha).fit(X, y).coef_)[0]
         # use n_features
+        if y.ndim > 1:
+            # To-do: multiclass support?
+            y = y[:, 0]
         return lars_path(X, y, max_iter=n_features)[1]
 
     def __call__(self,
@@ -90,15 +93,16 @@ class FeatureSelector(Readable):
                  n_features: int = 10,
                  method: str = None,
                  alpha: Optional[float] = None):
-        assert self.model is not None and method in ['forward_selection', 'highest_weights', 'lasso_path'], \
-            f'{self.__class__.__name__} requires a `model` to use methods forward_selection, ' \
-             'highest_weights and lasso_path'
+        if self.model is None:
+            assert method not in ['forward_selection', 'highest_weights', 'lasso_path'], \
+                f'{self.__class__.__name__} requires a `model` to use methods forward_selection, ' \
+                'highest_weights and lasso_path'
         assert method in [None, 'forward_selection', 'highest_weights', 'lasso_path',
                           'aic', 'bic', 'l1_reg'], \
             f'Unknown method "{method}"'
         n_features = min(X.shape[1], n_features)
 
-        if n_features == X.shape[1] or method is None:
+        if n_features == X.shape[1] and method not in ['aic', 'bic', 'l1_reg'] or method is None:
             return np.arange(X.shape[1])
 
         if method == 'forward_selection':

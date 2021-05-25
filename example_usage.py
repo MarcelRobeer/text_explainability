@@ -51,16 +51,16 @@ print([i.data for i in LeaveOut(default_detokenizer)(sample, n_samples=10)])
 
 # %% LIME explainer for `sample` on `model`
 explainer = LIME(test_env)
-explainer(sample, model)
+explainer(sample, model, labels=['neutraal', 'positief']).scores
 
 # %% Local tree explainer for `sample` on `model` (non-weighted neighborhood data)
 LocalTree()(sample, model, weigh_samples=False)
 
-# %% SHAP explanation for `sample` on `model`
-KernelSHAP()(sample, model, n_samples=50)
+# %% SHAP explanation for `sample` on `model`, limited to 4 features
+KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 
 # %% Anchor explanation for `sample` on `model`
-Anchor()(sample, model)
+Anchor(label_names=['neg', 'net', 'pos'])(sample, model)
 
 # %% Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(instanceprovider)
