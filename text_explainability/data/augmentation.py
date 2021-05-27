@@ -14,7 +14,7 @@ from typing import (Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional
 from instancelib.instances.text import TextInstance
 from instancelib.typehints.typevars import VT
 
-from explainability.default import Readable
+from text_explainability.default import Readable
 
 
 class LocalTokenPertubator(Readable):
@@ -103,6 +103,8 @@ class TokenReplacement(LocalTokenPertubator):
                 n_samples: int = 50,
                 sequential: bool = True,
                 contiguous: bool = False,
+                min_changes: int = 1,
+                max_changes: int = 10000,
                 add_background_instance: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
         which is assumed not to be part of the original tokens.
@@ -112,12 +114,17 @@ class TokenReplacement(LocalTokenPertubator):
             n_samples (int, optional): Number of samples to return. Defaults to 50.
             sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, etc.). Defaults to True.
             contiguous (bool, optional): Whether to remove contiguous sequences of tokens (n-grams). Defaults to False.
+            min_changes (int, optional): Minimum number of tokens changes (1+). Defaults to 1.
+            max_changes (int, optional): Maximum number of tokens changed. Defaults to 10000.
             add_background_instance (bool, optional): Add an additional instance with all tokens replaced. Defaults to False.
 
         Yields:
             Iterator[Sequence[Iterable[str], Iterable[int]]]: [description]
         """
         instance_len = sum(1 for _ in tokenized_instance)
+        min_changes = min(max(min_changes, 1), instance_len)
+        max_changes = min(instance_len, max_changes)
+        assert min_changes <= max_changes, f'Unable to produce any perturbations since min_changes={min_changes} and max_changes={max_changes}'
         rand = np.random.RandomState(self._seed)
 
         def get_inactive(inactive_range):
@@ -126,7 +133,7 @@ class TokenReplacement(LocalTokenPertubator):
 
         if sequential:
             if contiguous:  # n-grams of length size, up to n_samples
-                for size in range(1, instance_len + 1):
+                for size in range(min_changes, max_changes + 1):
                     n_contiguous = instance_len - size
                     if n_contiguous <= n_samples:
                         n_samples -= n_contiguous
@@ -137,7 +144,7 @@ class TokenReplacement(LocalTokenPertubator):
                             yield get_inactive(range(start, start + size))
                         break
             else:  # used by SHAP
-                for size in range(1, instance_len + 1):
+                for size in range(min_changes, max_changes + 1):
                     n_choose_k = math.comb(instance_len, size)
                     if n_choose_k <= n_samples:  # make all combinations of length size
                         n_samples -= n_choose_k
@@ -148,11 +155,11 @@ class TokenReplacement(LocalTokenPertubator):
                             yield get_inactive(rand.choice(instance_len, size, replace=False))
                         break
         else:
-            sample = rand.randint(1, instance_len + 1, n_samples - 1)
+            sample = rand.randint(min_changes, max_changes + 1, n_samples)
 
             for size in sample:
                 if contiguous: # use n-grams
-                    start = rand.choice(instance_len - size + 1, replace=False)
+                    start = rand.choice(max_changes - size + 1, replace=False)
                     inactive = TokenReplacement.binary_inactive(range(start, start + size), instance_len)
                 else: # used by LIME, https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
                     inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False), instance_len)

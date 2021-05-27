@@ -13,13 +13,13 @@ from sklearn.tree import DecisionTreeClassifier
 
 from typing import Callable, Tuple, Optional, Union, Sequence
 
-from explainability.data.augmentation import LocalTokenPertubator, TokenReplacement
-from explainability.data.weights import pairwise_distances, exponential_kernel
-from explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
-from explainability.generation.feature_selection import FeatureSelector
-from explainability.generation.return_types import FeatureAttribution
-from explainability.default import Readable
-from explainability.utils import default_detokenizer, binarize
+from text_explainability.data.augmentation import LocalTokenPertubator, TokenReplacement
+from text_explainability.data.weights import pairwise_distances, exponential_kernel
+from text_explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
+from text_explainability.generation.feature_selection import FeatureSelector
+from text_explainability.generation.return_types import FeatureAttribution
+from text_explainability.default import Readable
+from text_explainability.utils import default_detokenizer, binarize
 
 
 class LocalExplanation(Readable):
@@ -255,8 +255,8 @@ class Anchor(LocalExplanation):
 
     @staticmethod
     def kl_bernoulli(p, q):
-        p = float(min(0.999999999999999, max(0.000000001, p)))
-        q = float(min(0.999999999999999, max(0.000000001, q)))
+        p = float(min(1 - 1e-15, max(1e-15, p)))
+        q = float(min(1 - 1e-15, max(1e-15, q)))
         return (p * np.log(p / q) + (1 - p) *
                 np.log((1 - p) / (1 - q)))
 
@@ -275,28 +275,38 @@ class Anchor(LocalExplanation):
         pass
 
     @staticmethod
-    def beam_search(perturbed: np.ndarray,
+    def beam_search(provider,
+                    perturbed: np.ndarray,
                     model,
-                    true_label,
                     beam_size: int = 1,
                     min_confidence: float = 0.95,
                     delta: float = 0.05,
                     epsilon: float = 0.1,
-                    max_anchor_size: Optional[int] = None):
+                    max_anchor_size: Optional[int] = None,
+                    batch_size: int = 20):
         assert beam_size >= 1, f'beam size should be at least 1, but is {beam_size}'
         assert 0.0 <= min_confidence <= 0.95, f'min_confidence should be a value in [0, 1], but is {min_confidence}'
         assert 0.0 <= delta <= 0.95, f'delta should be a value in [0, 1], but is {delta}'
         assert 0.0 <= epsilon <= 0.95, f'epsilon should be a value in [0, 1], but is {epsilon}'
+        assert batch_size > 2, f'requires positive batch size'
+
+        y = [provider[i] for i in range(batch_size + 1)]
+        y_true, y = y[0], y[1:]
 
         beta = np.log(1.0 / delta)
+        mean = y.mean()
+        lb = Anchor.dlow_bernoulli(mean, beta / perturbed.shape[0])
 
-
+        batch = 1
+        while mean > min_confidence and lb < min_confidence - epsilon:
+            
+            batch += 1
         pass
 
     def __call__(self,
                  sample: TextInstance,
                  model,
-                 n_samples: int = 50,
+                 n_samples: int = 100,
                  beam_size: int = 1,
                  min_confidence: float = 0.95,
                  delta: float = 0.05,
@@ -307,16 +317,20 @@ class Anchor(LocalExplanation):
         provider, perturbed = self.augment_sample(sample, None, sequential=False,
                                                   contiguous=False, n_samples=n_samples,
                                                   predict=False)
-        perturbed = binarize(perturbed)  # flatten all n replacements into one
-        true_label = np.argmax(model(sample, return_labels=False).reshape(-1))
+        perturbed = binarize(perturbed[1:])  # flatten all n replacements into one
+        y_true = model(provider[0])
+        y_true = np.argmax(y_true) if y_true.ndim > 1 else y_true
 
         # Use beam from https://homes.cs.washington.edu/~marcotcr/aaai18.pdf (Algorithm 2)
-        anchor = Anchor.beam_search(perturbed, model, true_label,
+        anchor = Anchor.beam_search(provider,
+                                    perturbed,
+                                    model,
                                     beam_size=beam_size,
                                     min_confidence=min_confidence,
                                     delta=delta,
                                     epsilon=epsilon,
-                                    max_anchor_size=max_anchor_size)
+                                    max_anchor_size=max_anchor_size,
+                                    batch_size=n_samples // 10 if n_samples >= 1000 else n_samples // 5)
         pass
 
 

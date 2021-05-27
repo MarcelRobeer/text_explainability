@@ -7,8 +7,8 @@ import numpy as np
 from typing import Optional
 from sklearn.linear_model import LassoLarsIC, Lasso, lars_path
 
-from explainability.generation.surrogate import LinearSurrogate
-from explainability.default import Readable
+from text_explainability.generation.surrogate import LinearSurrogate
+from text_explainability.default import Readable
 
 
 class FeatureSelector(Readable):

@@ -1,6 +1,6 @@
 from sklearn.base import clone
 
-from explainability.default import Readable
+from text_explainability.default import Readable
 
 
 class BaseSurrogate(Readable):

@@ -21,11 +21,11 @@ p.fit([t.data for t in train.bulk_get_all()],
       [list(labelprovider.get_labels(k))[0] for k in train])
 
 # %% Imports
-from explainability.model import SklearnModel
-from explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP
-from explainability.global_explanation import TokenFrequency, TokenInformation
-from explainability.data.augmentation import TokenReplacement, LeaveOut
-from explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
+from text_explainability.model import SklearnModel
+from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP
+from text_explainability.global_explanation import TokenFrequency, TokenInformation
+from text_explainability.data.augmentation import TokenReplacement, LeaveOut
+from text_explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
 
 # %% Wrap sklearn model
 model = SklearnModel(p)
@@ -60,7 +60,7 @@ LocalTree()(sample, model, weigh_samples=False)
 KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 
 # %% Anchor explanation for `sample` on `model`
-Anchor(label_names=['neg', 'net', 'pos'])(sample, model)
+#Anchor(label_names=['neg', 'net', 'pos'])(sample, model)
 
 # %% Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(instanceprovider)

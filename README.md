@@ -1,5 +1,5 @@
-# Explainability
-_A generic explainability architecture for explaining machine learning models._
+# Text Explainability
+_A generic explainability architecture for explaining text machine learning models._
 
 Marcel Robeer, 2021
 
@@ -17,7 +17,6 @@ Run lines in `example_usage.py` to see an example of how the package can be used
 Tasks yet to be done:
 - Add data sampling methods (e.g. representative subset, prototypes, MMD-critic)
 - Implement local post-hoc explanations:
-    - Implement SHAP
     - Implement Anchors
     - Implement Foil Trees + ability to turn any output into a binary classification problem (fact-foil encodings)
 - Implement global post-hoc explanations

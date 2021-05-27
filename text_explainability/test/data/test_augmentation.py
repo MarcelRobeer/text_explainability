@@ -1,7 +1,7 @@
 from instancelib import TextInstance
 
-from explainability.data.augmentation import TokenReplacement, LeaveOut
-from explainability.utils import default_tokenizer, default_detokenizer
+from text_explainability.data.augmentation import TokenReplacement, LeaveOut
+from text_explainability.utils import default_tokenizer, default_detokenizer
 
 def craft_instance(data: str):
     s = TextInstance(0, data, None)

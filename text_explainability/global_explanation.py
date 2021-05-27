@@ -10,8 +10,8 @@ from instancelib import TextEnvironment
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
-from explainability.utils import default_detokenizer, default_tokenizer
-from explainability.default import Readable
+from text_explainability.utils import default_detokenizer, default_tokenizer
+from text_explainability.default import Readable
 
 
 class GlobalExplanation(Readable):
