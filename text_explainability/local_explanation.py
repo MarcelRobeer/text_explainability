@@ -312,6 +312,7 @@ class Anchor(LocalExplanation):
                  delta: float = 0.05,
                  epsilon: float = 0.1,
                  max_anchor_size: Optional[int] = None):
+        raise NotImplementedError('Only partially implemented')
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_text.py
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_base.py
         provider, perturbed = self.augment_sample(sample, None, sequential=False,
