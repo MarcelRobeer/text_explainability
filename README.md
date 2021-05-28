@@ -4,7 +4,7 @@ _A generic explainability architecture for explaining text machine learning mode
 Marcel Robeer, 2021
 
 ## Installation
-Clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
+Install from PyPI via `pip3 install text_explainability`. Alternatively, clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
 
 ## Example usage
 Run lines in `example_usage.py` to see an example of how the package can be used.
