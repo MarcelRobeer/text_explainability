@@ -1,6 +1,6 @@
 # %% General imports
 from instancelib.ingest.spreadsheet import read_csv_dataset
-from instancelib.instances.text import TextBucketProvider, TextInstance
+from instancelib.instances.text import TextInstance
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 test_env = read_csv_dataset('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
 instanceprovider = test_env.dataset
 labelprovider = test_env.labels
-train, test = TextBucketProvider.train_test_split(instanceprovider, train_size=round(0.70 * len(instanceprovider)))
+train, test = test_env.train_test_split(instanceprovider, train_size=round(0.70 * len(instanceprovider)))
 
 # %% Fit sklearn model
 p = Pipeline([('vect', CountVectorizer()),

@@ -6,7 +6,7 @@
 import math
 import numpy as np
 
-from instancelib import TextBucketProvider, DataPointProvider, TextEnvironment, TextInstance
+from instancelib import AbstractEnvironment, Instance, TextInstance, InstanceProvider
 from instancelib.labels import LabelProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
@@ -24,7 +24,7 @@ from text_explainability.utils import default_detokenizer, binarize
 
 class LocalExplanation(Readable):
     def __init__(self,
-                 dataset: Optional[TextEnvironment] = None,
+                 dataset: AbstractEnvironment = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  seed: int = 0):
@@ -42,7 +42,7 @@ class LocalExplanation(Readable):
         self._seed = seed
 
     def augment_sample(self,
-                       sample: TextInstance,
+                       sample: Instance,
                        model,
                        sequential: bool = False,
                        contiguous: bool = False,
@@ -50,10 +50,9 @@ class LocalExplanation(Readable):
                        add_background_instance: bool = False,
                        predict: bool = True,
                        avoid_proba: bool = False
-                       ) -> Union[Tuple[TextBucketProvider, np.ndarray], \
-                                  Tuple[TextBucketProvider, np.ndarray, np.ndarray]]:
-        provider = TextBucketProvider(DataPointProvider.from_data([]), []) if self.dataset is None \
-                   else self.dataset.create_empty_provider()
+                       ) -> Union[Tuple[InstanceProvider, np.ndarray], \
+                                  Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
+        provider = self.dataset.create_empty_provider()
 
         sample.vector = np.ones(len(sample.tokenized), dtype=int)
         provider.add(sample)
@@ -103,7 +102,7 @@ class WeightedExplanation:
 
 class LIME(LocalExplanation, WeightedExplanation):
     def __init__(self,
-                 dataset: Optional[TextEnvironment] = None,
+                 dataset: AbstractEnvironment = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  local_model: Optional[LinearSurrogate] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
@@ -158,7 +157,7 @@ class LIME(LocalExplanation, WeightedExplanation):
 
 class KernelSHAP(LocalExplanation):
     def __init__(self,
-                 dataset: Optional[TextEnvironment] = None,
+                 dataset: AbstractEnvironment,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: LocalTokenPertubator = None,
                  seed: int = 0):
@@ -247,7 +246,7 @@ class KernelSHAP(LocalExplanation):
 
 class Anchor(LocalExplanation):
     def __init__(self,
-                 dataset: Optional[TextEnvironment] = None,
+                 dataset: Optional[AbstractEnvironment] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):
@@ -337,7 +336,7 @@ class Anchor(LocalExplanation):
 
 class LocalTree(LocalExplanation, WeightedExplanation):
     def __init__(self,
-                 dataset: Optional[TextEnvironment] = None,
+                 dataset: AbstractEnvironment,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  local_model: Optional[TreeSurrogate] = None,
