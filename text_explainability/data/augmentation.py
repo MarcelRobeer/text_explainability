@@ -4,21 +4,25 @@
 - Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
 """
 
+from instancelib.environment.base import AbstractEnvironment
 import numpy as np
 import math
 import itertools
 
-from uuid import UUID, uuid4
-from typing import (Callable, Iterable, Sequence, Any, Iterator, Tuple, Optional, List, Union)
+from typing import (Callable, Iterable, Sequence, Any, Iterator, Text, Tuple, Optional, List, Union)
 
 from instancelib.instances.text import TextInstance
-from instancelib.typehints.typevars import VT
+from instancelib.pertubations.base import MultiplePertubator, ChildGenerator
+from instancelib.typehints.typevars import VT, KT
 
 from text_explainability.default import Readable
 
 
-class LocalTokenPertubator(Readable):
-    def __init__(self, 
+class LocalTokenPertubator(MultiplePertubator[TextInstance], 
+                           ChildGenerator[TextInstance], 
+                           Readable):
+    def __init__(self,
+                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
                  detokenizer: Callable[[Iterable[str]], str]):
         """Perturb a single instance into neighborhood samples.
 
@@ -26,6 +30,7 @@ class LocalTokenPertubator(Readable):
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
         """
         super().__init__()
+        self.env = env
         self.detokenizer = detokenizer
 
     @staticmethod
@@ -35,33 +40,36 @@ class LocalTokenPertubator(Readable):
         res[inactive] = 0
         return res
 
-    def perturb(tokenized_instance: Iterable[str], *args, **kwargs) -> Sequence[Iterable[str]]:
+    def perturb(tokenized_instance: Iterable[str], 
+                *args: Any, **kwargs: Any) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         raise NotImplementedError
 
-    def __call__(self, instance: TextInstance[Any, VT], *args, **kwargs):
+    def __call__(self, instance: TextInstance[KT, VT], *args, **kwargs) -> Iterator[TextInstance[KT, VT]]:
         """Apply perturbations to an instance to generate neighborhood data.
 
         Args:
             instance (TextInstance[Any, VT]): Tokenized instance to perturb.
 
         Yields:
-            Iterator[Sequence[TextInstance[UUID, VT]]]: Neighborhood data instances.
+            Iterator[Sequence[TextInstance[Any, VT]]]: Neighborhood data instances.
         """
         assert hasattr(instance, 'tokenized'), 'Tokenize your instance before applying a perturbation'
 
-        for new_instance, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
-            new_data = self.detokenizer(new_instance)
-            new_id = uuid4() # TODO This has to be improved. 
-            # Current Provider architecture does not have functionality for **unique** new 
-            # id generation. Or KT should be equal to UUID
-            # (For Active Learning we did not need to create new Instances)
-            t = TextInstance[UUID, VT](new_id, new_data, map_to_original, new_data, new_instance)
-            t.tokenized = new_instance
-            yield t
+        for new_tokenized, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
+            new_data = self.detokenizer(new_tokenized)
+            new_instance = self.env.create(
+                data=new_data, 
+                vector=map_to_original, 
+                representation=new_data,
+                tokenized=new_tokenized
+                )
+            self.register_child(instance, new_instance)
+            yield new_instance
 
 
 class TokenReplacement(LocalTokenPertubator):
     def __init__(self,
+                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
                  detokenizer: Callable[[Iterable[str]], str], 
                  replacement: Optional[Union[str, List[str]]] = 'UNKWRDZ',
                  seed: int = 0):
@@ -73,7 +81,7 @@ class TokenReplacement(LocalTokenPertubator):
                 if you want to delete the word entirely. Defaults to 'UNKWRDZ'.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
-        super().__init__(detokenizer=detokenizer)
+        super().__init__(env= env, detokenizer=detokenizer)
         self.replacement = replacement
         self._seed = seed
 
@@ -172,6 +180,7 @@ class TokenReplacement(LocalTokenPertubator):
 
 class LeaveOut(TokenReplacement):
     def __init__(self,
+                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
                  detokenizer: Callable[[Iterable[str]], str], 
                  seed: int = 0):
         """Leave tokens out of the tokenized sequence.
@@ -180,4 +189,4 @@ class LeaveOut(TokenReplacement):
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
-        super().__init__(detokenizer=detokenizer, replacement=None, seed=seed)
+        super().__init__(env=env, detokenizer=detokenizer, replacement=None, seed=seed)

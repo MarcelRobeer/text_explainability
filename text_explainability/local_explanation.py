@@ -4,39 +4,62 @@
 """
 
 import math
-import numpy as np
+from typing import Callable, Optional, Sequence, Tuple, Union
 
-from instancelib import AbstractEnvironment, Instance, TextInstance, InstanceProvider
-from instancelib.labels import LabelProvider
+import numpy as np
+from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
+                         LabelProvider, MemoryLabelProvider, TextEnvironment,
+                         TextInstance, TextInstanceProvider)
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
-from typing import Callable, Tuple, Optional, Union, Sequence
-
-from text_explainability.data.augmentation import LocalTokenPertubator, TokenReplacement
-from text_explainability.data.weights import pairwise_distances, exponential_kernel
-from text_explainability.generation.surrogate import LinearSurrogate, TreeSurrogate
+from text_explainability.data.augmentation import (LocalTokenPertubator,
+                                                   TokenReplacement)
+from text_explainability.data.weights import (exponential_kernel,
+                                              pairwise_distances)
+from text_explainability.default import Readable
 from text_explainability.generation.feature_selection import FeatureSelector
 from text_explainability.generation.return_types import FeatureAttribution
-from text_explainability.default import Readable
-from text_explainability.utils import default_detokenizer, binarize
+from text_explainability.generation.surrogate import (LinearSurrogate,
+                                                      TreeSurrogate)
+from text_explainability.utils import binarize, default_detokenizer
 
+
+def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:
+    """If no environment is supplied, an empty Enviroment is created for text data
+
+    Parameters
+    ----------
+    env : Optional[AbstractEnvironment]
+        If a environment is supplied, it is used, otherwise
+
+    Returns
+    -------
+    AbstractEnvironment
+        The default environment, or the supplied environment
+    """    
+    if env is not None:
+        return env
+    empty_dataset = TextInstanceProvider([])
+    empty_labels = MemoryLabelProvider([], {})
+    empty_env = TextEnvironment(empty_dataset, empty_labels)
+    return empty_env
 
 class LocalExplanation(Readable):
     def __init__(self,
-                 dataset: AbstractEnvironment = None,
+                 env: Optional[AbstractEnvironment]=None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  seed: int = 0):
         super().__init__()
-        self.dataset = dataset
+        self.env = default_env(env)
         if augmenter is None:
-            augmenter = TokenReplacement(detokenizer=default_detokenizer)
+            augmenter = TokenReplacement(env=self.env, detokenizer=default_detokenizer)
         if isinstance(label_names, LabelProvider) and hasattr(label_names, 'labelset'):
             label_names = list(label_names.labelset)
-        elif label_names is None and self.dataset is not None:
-            if hasattr(self.dataset.labels, 'labelset'):
-                label_names = list(self.dataset.labels.labelset)
+        elif label_names is None and self.env is not None:
+            if hasattr(self.env.labels, 'labelset'):
+                label_names = list(self.env.labels.labelset)
         self.label_names = label_names
         self.augmenter = augmenter
         self._seed = seed
@@ -50,9 +73,9 @@ class LocalExplanation(Readable):
                        add_background_instance: bool = False,
                        predict: bool = True,
                        avoid_proba: bool = False
-                       ) -> Union[Tuple[InstanceProvider, np.ndarray], \
+                       ) -> Union[Tuple[InstanceProvider, np.ndarray], 
                                   Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
-        provider = self.dataset.create_empty_provider()
+        provider = self.env.create_empty_provider()
 
         sample.vector = np.ones(len(sample.tokenized), dtype=int)
         provider.add(sample)
@@ -65,7 +88,6 @@ class LocalExplanation(Readable):
                                    add_background_instance=add_background_instance)
         for perturbed_sample in augmenter:
             provider.add(perturbed_sample)
-            provider.add_child(sample, perturbed_sample)
 
         # Perform prediction
         if predict:
@@ -102,14 +124,14 @@ class WeightedExplanation:
 
 class LIME(LocalExplanation, WeightedExplanation):
     def __init__(self,
-                 dataset: AbstractEnvironment = None,
+                 env: Optional[AbstractEnvironment],
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  local_model: Optional[LinearSurrogate] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
                  seed: int = 0):
-        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
+        LocalExplanation.__init__(self, env=env, augmenter=augmenter, label_names=label_names, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
             local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self._seed))
@@ -157,11 +179,11 @@ class LIME(LocalExplanation, WeightedExplanation):
 
 class KernelSHAP(LocalExplanation):
     def __init__(self,
-                 dataset: AbstractEnvironment,
+                 env: Optional[AbstractEnvironment] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: LocalTokenPertubator = None,
                  seed: int = 0):
-        super().__init__(dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
+        super().__init__(env=env, augmenter=augmenter, label_names=label_names, seed=seed)
 
     @staticmethod
     def select_features(X: np.ndarray, y: np.ndarray, default_features: int = 1,
@@ -246,11 +268,11 @@ class KernelSHAP(LocalExplanation):
 
 class Anchor(LocalExplanation):
     def __init__(self,
-                 dataset: Optional[AbstractEnvironment] = None,
+                 env: Optional[AbstractEnvironment],
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):
-        super().__init__(dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
+        super().__init__(env=env, augmenter=augmenter, label_names=label_names, seed=seed)
 
     @staticmethod
     def kl_bernoulli(p, q):
@@ -336,7 +358,7 @@ class Anchor(LocalExplanation):
 
 class LocalTree(LocalExplanation, WeightedExplanation):
     def __init__(self,
-                 dataset: AbstractEnvironment,
+                 env: Optional[AbstractEnvironment] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  local_model: Optional[TreeSurrogate] = None,
@@ -344,7 +366,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  kernel_width: Union[int, float] = 25,
                  explanation_type: str = 'multiclass',
                  seed: int = 0):
-        LocalExplanation.__init__(self, dataset=dataset, augmenter=augmenter, label_names=label_names, seed=seed)
+        LocalExplanation.__init__(self, env=env, augmenter=augmenter, label_names=label_names, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
             local_model = TreeSurrogate(DecisionTreeClassifier(max_depth=3))

@@ -59,8 +59,9 @@ class SklearnModel(SaveableInnerModel):
         if isinstance(instances, str):
             instances = [instances]
         if isinstance(instances, InstanceProvider):
-            # TO-DO: This should be directly accessible from the InstanceProvider
-            instances = [i.data for i in instances.bulk_get_all()]
+            results = instances.vectorized_data_map(inner_fn)
+            chained = list(itertools.chain.from_iterable(results))
+            return chained
         if isinstance(instances, list) and len(instances) > 0 and isinstance(instances[0], Instance):
             instances = [i.data for i in instances]
         return inner_fn(instances, *args, **kwargs)

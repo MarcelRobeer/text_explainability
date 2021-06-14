@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 test_env = read_csv_dataset('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
 instanceprovider = test_env.dataset
 labelprovider = test_env.labels
-train, test = test_env.train_test_split(instanceprovider, train_size=round(0.70 * len(instanceprovider)))
+train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
 
 # %% Fit sklearn model
 p = Pipeline([('vect', CountVectorizer()),
@@ -35,7 +35,7 @@ sample = TextInstance(0, 'Dit is zeer positieve proef...', None)
 sample.tokenized = default_tokenizer(sample.data)
 
 # %% 
-repl = TokenReplacement(default_detokenizer)
+repl = TokenReplacement(test_env, default_detokenizer)
 
 # %% Sequential replacement, 10 samples
 print([i.data for i in repl(sample, n_samples=10)])
@@ -47,7 +47,7 @@ print([i.data for i in repl(sample, n_samples=10, sequential=False)])
 print([i.data for i in repl(sample, n_samples=10, sequential=False, contiguous=True)])
 
 # %% Sequential deletion, 10 samples
-print([i.data for i in LeaveOut(default_detokenizer)(sample, n_samples=10)])
+print([i.data for i in LeaveOut(test_env, default_detokenizer)(sample, n_samples=10)])
 
 # %% LIME explainer for `sample` on `model`
 explainer = LIME(test_env)
@@ -75,3 +75,5 @@ ti(labelprovider=labelprovider, explain_model=False, k=50)
 
 # %% Token information for model
 ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
+
+#%%
