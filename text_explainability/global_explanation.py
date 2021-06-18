@@ -3,9 +3,10 @@
 - partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
+from instancelib import TextInstance, InstanceProvider
 import numpy as np
 
-from typing import (Callable, Optional, Text, List, Dict, Tuple)
+from typing import (Callable, Optional, Text, List, Dict, Tuple, Any)
 from instancelib import TextEnvironment
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
@@ -16,19 +17,19 @@ from text_explainability.default import Readable
 
 class GlobalExplanation(Readable):
     def __init__(self,
-                 dataset: TextEnvironment,
+                 provider: InstanceProvider[TextInstance, Any, str, Any, str],
                  seed: int = 0):
         super().__init__()
-        self.dataset = dataset
+        self.provider = provider
         self._seed = 0
 
     def get_data(self):
-        return self.dataset.bulk_get_all()
+        return self.provider
 
     def predict(self, model):
         return model.predict(self.get_data())
 
-    def get_instances_labels(self, model, labelprovider, explain_model: bool = True):
+    def get_instances_labels(self, model: Optional[Any], labelprovider, explain_model: bool = True):
         if explain_model:
             assert model is not None, 'Provide a model to explain its predictions, or set `explain_predictions` to False'
         else:
@@ -113,7 +114,7 @@ class TokenInformation(GlobalExplanation):
                              stop_words=filter_words,
                              #max_features=k, # ??
                              **count_vectorizer_kwargs)
-        counts = cv.fit_transform([i.data for i in instances])
+        counts = cv.fit_transform(instances.all_data())
 
         # TO-DO improve beyond classification
         # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#sklearn.feature_selection.mutual_info_regression
