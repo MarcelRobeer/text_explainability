@@ -12,6 +12,7 @@ Run lines in `example_usage.py` to see an example of how the package can be used
 ## Maintenance
 ### Contributors
 - Marcel Robeer
+- Michiel Bron
 
 ### Todo
 Tasks yet to be done:
