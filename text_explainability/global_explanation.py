@@ -16,6 +16,7 @@ from sklearn.feature_selection import mutual_info_classif
 
 from text_explainability.utils import default_detokenizer, default_tokenizer
 from text_explainability.default import Readable
+from text_explainability.generation.return_types import FeatureList
 
 
 class GlobalExplanation(Readable):
@@ -120,7 +121,8 @@ class TokenFrequency(GlobalExplanation):
         if labelwise:  # TO-DO improve beyond classification, e.g. buckets for regression?
             return {label: top_k_counts([instances[idx].data for idx in np.where(labels == label)[0]])
                     for label in np.unique(labels)}
-        return {'all': top_k_counts(instances)}
+        breakpoint()
+        return FeatureList('all', top_k_counts(instances))
 
 
 class TokenInformation(GlobalExplanation):
@@ -158,5 +160,6 @@ class TokenInformation(GlobalExplanation):
         # TO-DO improve beyond classification
         # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#sklearn.feature_selection.mutual_info_regression
         res = list(map(tuple, zip(cv.get_feature_names(), mutual_info_classif(counts, labels, discrete_features=True, random_state=self._seed))))
-        return list(sorted(res, key=lambda x: x[1], reverse=True))[:k]
-
+        res = list(sorted(res, key=lambda x: x[1], reverse=True))[:k]
+        return FeatureList(used_features=[a for a, b in res],
+                           scores=[b for a, b in res])

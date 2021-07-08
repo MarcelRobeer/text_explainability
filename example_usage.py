@@ -71,7 +71,7 @@ tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
 
 # %% Token information for dataset
 ti = TokenInformation(instanceprovider)
-ti(labelprovider=labelprovider, explain_model=False, k=50)
+ti(labelprovider=labelprovider, explain_model=False, k=50).scores
 
 # %% Token information for model
 ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
