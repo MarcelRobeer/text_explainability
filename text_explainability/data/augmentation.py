@@ -1,7 +1,9 @@
-"""TO-DO:
-- Add more complex sampling methods (e.g. top-k replacement by contextual language model, WordNet, ...)
-- Replacement with k tokens at each index
-- Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
+"""Augment a single instance to generate neighborhood data.
+
+Todo:
+    * Add more complex sampling methods (e.g. top-k replacement by contextual language model, WordNet, ...)
+    * Replacement with k tokens at each index
+    * Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
 """
 
 from instancelib.environment.base import AbstractEnvironment
@@ -27,7 +29,8 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
         """Perturb a single instance into neighborhood samples.
 
         Args:
-            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance 
+                to a string used in a predictor.
         """
         super().__init__()
         self.env = env
@@ -132,7 +135,8 @@ class TokenReplacement(LocalTokenPertubator):
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)
         max_changes = min(instance_len, max_changes)
-        assert min_changes <= max_changes, f'Unable to produce any perturbations since min_changes={min_changes} and max_changes={max_changes}'
+        assert min_changes <= max_changes, \
+            f'Unable to produce any perturbations since min_changes={min_changes} and max_changes={max_changes}'
         rand = np.random.RandomState(self._seed)
 
         def get_inactive(inactive_range):
@@ -186,7 +190,8 @@ class LeaveOut(TokenReplacement):
         """Leave tokens out of the tokenized sequence.
 
         Args:
-            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized 
+                instance to a string used in a predictor.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
         super().__init__(env=env, detokenizer=detokenizer, replacement=None, seed=seed)

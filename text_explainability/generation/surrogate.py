@@ -1,3 +1,5 @@
+"""Wrappers for surrogate models, used for local/global explanations."""
+
 from sklearn.base import clone
 
 from text_explainability.default import Readable

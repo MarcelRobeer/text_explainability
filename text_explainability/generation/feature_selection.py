@@ -1,6 +1,4 @@
-"""TO-DO
-- Update documentation
-"""
+"""Feature selection methods for limiting explanation length."""
 
 import numpy as np
 
@@ -13,6 +11,11 @@ from text_explainability.default import Readable
 
 class FeatureSelector(Readable):
     def __init__(self, model: Optional[LinearSurrogate] = None):
+        """[summary]
+
+        Args:
+            model (Optional[LinearSurrogate], optional): [description]. Defaults to None.
+        """
         super().__init__()
         self.model = model
         if self.model is not None:
@@ -22,8 +25,21 @@ class FeatureSelector(Readable):
     def _forward_selection(self, X: np.ndarray,
                            y: np.ndarray,
                            weights: np.ndarray = None,
-                           n_features: int = 10):
-        """LIME"""
+                           n_features: int = 10) -> np.ndarray:
+        """Feature selection with forward selection, as used by `LIME`_.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for y.
+            weights (np.ndarray, optional): Relative weights of X. Defaults to None.
+            n_features (int, optional): [description]. Defaults to 10.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+
+        .. _LIME:
+            https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
+        """
         n_features = min(X.shape[1], n_features)
         used_features = []
         for _ in range(n_features):
@@ -42,8 +58,21 @@ class FeatureSelector(Readable):
         return np.array(used_features)
             
     def _highest_weights(self, X: np.ndarray, y: np.ndarray,
-                         weights: np.ndarray = None, n_features: int = 10):
-        """LIME"""
+                         weights: np.ndarray = None, n_features: int = 10) -> np.ndarray:
+        """Feature selection according to highest feature importance, as used by `LIME`_.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for X.
+            weights (np.ndarray, optional): Relative weights of X. Defaults to None.
+            n_features (int, optional): Number of features to select. Defaults to 10.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+
+        .. _LIME:
+            https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
+        """
         self.model.fit(X, y, weights=weights)
         weighted_data = self.model.feature_importances * X[0]
         feature_weights = sorted(
@@ -53,8 +82,23 @@ class FeatureSelector(Readable):
         return np.array([x[0] for x in feature_weights[:n_features]])
 
     def _lasso_path(self, X: np.ndarray, y: np.ndarray,
-                    weights: np.ndarray = None, n_features: int = 10):
-        """LIME"""
+                    weights: np.ndarray = None, n_features: int = 10) -> np.ndarray:
+        """Feature selection with `LASSO`_, as used by `LIME`_.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for X.
+            weights (np.ndarray, optional): Relative weights of X. Defaults to None.
+            n_features (int, optional): Number of features to select. Defaults to 10.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+
+        .. _LASSO:
+            https://en.wikipedia.org/wiki/Lasso_(statistics)
+        .. _LIME:
+            https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
+        """
         if weights is None:
             weights = np.ones(X.shape[0])
         weighted_data = ((X - np.average(X, axis=0, weights=weights))
@@ -70,14 +114,44 @@ class FeatureSelector(Readable):
         used_features = nonzero
         return np.array(used_features)
 
-    def _information_criterion(self, X: np.ndarray, y: np.ndarray, criterion='aic'):
-        """SHAP"""
+    def _information_criterion(self, X: np.ndarray, y: np.ndarray, criterion='aic') -> np.ndarray:
+        """AIC/BIC for feature selection, as used by `SHAP`_.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for X.
+            criterion (str, optional): Whether to use `Akaike Information Criterion`_ (`aic`) or 
+                `Bayesian Information Criterion`_ (`bic`). Defaults to 'aic'.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+
+        .. _SHAP:
+            https://github.com/slundberg/shap
+        .. _Akaike Information Criterion:
+            https://en.wikipedia.org/wiki/Akaike_information_criterion
+        .. _Bayesian Information Criterion:
+            https://en.wikipedia.org/wiki/Bayesian_information_criterion
+        """
         assert criterion in ['aic', 'bic'], f'Unknown criterion "{criterion}"'
         return np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0]
 
     def _l1_reg(self, X: np.ndarray, y: np.ndarray,
-                n_features: int = 10, alpha: Optional[float] = None):
-        """SHAP"""
+                n_features: int = 10, alpha: Optional[float] = None) -> np.ndarray:
+        """L1-regularization for feature selection, as used by `SHAP`_.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for X.
+            n_features (int, optional): Number of features to select. Defaults to 10.
+            alpha (Optional[float], optional): Hyperparameter for L1 regularization. Defaults to None.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+
+        .. _SHAP:
+            https://github.com/slundberg/shap
+        """
         if alpha is not None:
             return np.nonzero(Lasso(alpha=alpha).fit(X, y).coef_)[0]
         # use n_features
@@ -92,7 +166,22 @@ class FeatureSelector(Readable):
                  weights: np.ndarray = None,
                  n_features: int = 10,
                  method: str = None,
-                 alpha: Optional[float] = None):
+                 alpha: Optional[float] = None) -> np.ndarray:
+        """Apply feature selection for dataset X and targets y.
+
+        Args:
+            X (np.ndarray): Input data.
+            y (np.ndarray): Prediction / ground-truth value for X.
+            weights (np.ndarray, optional): Relative weights of X. Defaults to None.
+            n_features (int, optional): Number of features to select. Defaults to 10.
+            method (str, optional): Method to apply for feature selection, choose from `None`,
+                `forward_selection`, `highest_weights`, `lasso_path`, `aic`, `bic`, `l1_reg`. 
+                Defaults to None.
+            alpha (Optional[float], optional): Hyperparameter for L1 regularization. Defaults to None.
+
+        Returns:
+            np.ndarray: Indices of selecter features.
+        """
         if self.model is None:
             assert method not in ['forward_selection', 'highest_weights', 'lasso_path'], \
                 f'{self.__class__.__name__} requires a `model` to use methods forward_selection, ' \
@@ -102,9 +191,11 @@ class FeatureSelector(Readable):
             f'Unknown method "{method}"'
         n_features = min(X.shape[1], n_features)
 
+        # Do not perform feature selection, but return all
         if n_features == X.shape[1] and method not in ['aic', 'bic', 'l1_reg'] or method is None:
             return np.arange(X.shape[1])
 
+        # Perform feature selection
         if method == 'forward_selection':
             return self._forward_selection(X, y, weights=weights, n_features=n_features)
         elif method == 'highest_weights':

@@ -1,6 +1,8 @@
-"""TO-DO:
-- Implement Anchors
-- Implement Foil Trees
+"""Local explanations explain why a model made a prediction for a single instance.
+
+Todo:
+    * Implement Anchors
+    * Implement Foil Trees
 """
 
 import math
@@ -10,6 +12,7 @@ import numpy as np
 from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
                          LabelProvider, MemoryLabelProvider, TextEnvironment,
                          TextInstance, TextInstanceProvider)
+from instancelib.utils import SaveableInnerModel
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
@@ -26,18 +29,14 @@ from text_explainability.utils import binarize, default_detokenizer
 
 
 def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:
-    """If no environment is supplied, an empty Enviroment is created for text data
+    """If no environment is supplied, an empty Enviroment is created for text data.
 
-    Parameters
-    ----------
-    env : Optional[AbstractEnvironment]
-        If a environment is supplied, it is used, otherwise
+    Args:
+        env (Optional[AbstractEnvironment], optional): If a environment is supplied, it is used, otherwise.
 
-    Returns
-    -------
-    AbstractEnvironment
-        The default environment, or the supplied environment
-    """    
+    Returns:
+        AbstractEnvironment: The default/supplied environment.
+    """
     if env is not None:
         return env
     empty_dataset = TextInstanceProvider([])
@@ -45,12 +44,23 @@ def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironmen
     empty_env = TextEnvironment(empty_dataset, empty_labels)
     return empty_env
 
+
 class LocalExplanation(Readable):
     def __init__(self,
-                 env: Optional[AbstractEnvironment]=None,
+                 env: Optional[AbstractEnvironment] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  seed: int = 0):
+        """Generate explanation for a single decision.
+
+        Args:
+            env (Optional[AbstractEnvironment], optional): Environment to save local perturbations in. Defaults to None.
+            augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
+                to generate neighborhood data. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
+                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+        """
         super().__init__()
         self.env = default_env(env)
         if augmenter is None:
@@ -66,7 +76,7 @@ class LocalExplanation(Readable):
 
     def augment_sample(self,
                        sample: Instance,
-                       model,
+                       model: SaveableInnerModel,
                        sequential: bool = False,
                        contiguous: bool = False,
                        n_samples: int = 50,
@@ -75,6 +85,22 @@ class LocalExplanation(Readable):
                        avoid_proba: bool = False
                        ) -> Union[Tuple[InstanceProvider, np.ndarray], 
                                   Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
+        """Augment a single sample to generate neighborhood data.
+
+        Args:
+            sample (Instance): Instance to perturb.
+            model (SaveableInnerModel): Model to provide predictions for neighborhood data.
+            sequential (bool, optional): Whether to sequentially sample based on length (first length 1, 
+                then 2, ...). Defaults to False.
+            contiguous (bool, optional): Whether to apply perturbations on contiguous stretches of text. Defaults to False.
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. Defaults to False.
+            predict (bool, optional):  Defaults to True.
+            avoid_proba (bool, optional): Model predictions als labels (True) or probabilities when available (False). Defaults to False.
+
+        Returns:
+            Union[Tuple[InstanceProvider, np.ndarray], Tuple[InstanceProvider, np.ndarray, np.ndarray]]: [description]
+        """
         provider = self.env.create_empty_provider()
 
         sample.vector = np.ones(len(sample.tokenized), dtype=int)
@@ -109,8 +135,9 @@ class WeightedExplanation:
         """Add weights to neighborhood data.
 
         Args:
-            kernel (Optional[Callable], optional): Kernel (if set to None defaults to `data.weights.exponential_kernel`). Defaults to None.
-            kernel_width (Union[int, float], optional): Width of kernel. Defaults to 25.
+            kernel (Optional[Callable], optional):  Kernel to determine similarity of perturbed instances to original instance 
+                (if set to None defaults to `data.weights.exponential_kernel`). Defaults to None.
+            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. Defaults to 25.
         """
         if kernel is None:
             kernel = exponential_kernel
@@ -125,12 +152,32 @@ class WeightedExplanation:
 class LIME(LocalExplanation, WeightedExplanation):
     def __init__(self,
                  env: Optional[AbstractEnvironment],
-                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  local_model: Optional[LinearSurrogate] = None,
-                 augmenter: Optional[LocalTokenPertubator] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
+                 augmenter: Optional[LocalTokenPertubator] = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  seed: int = 0):
+        """Local Interpretable Model-Agnostic Explanations (`LIME`_).
+
+        Implementation of local linear surrogate model on (weighted) perturbed text data, 
+        to get feature attribution scores for an example instance.
+
+        Args:
+            env (Optional[AbstractEnvironment]): Environment to save local perturbations in. Defaults to None.
+            local_model (Optional[LinearSurrogate], optional): [description]. Defaults to None.
+            kernel (Optional[Callable], optional): Kernel to determine similarity of perturbed instances to original instance.
+                Defaults to None.
+            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. Defaults to 25.
+            augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
+                to generate neighborhood data. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
+                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+
+        .. _LIME:
+            https://github.com/marcotcr/lime
+        """
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, label_names=label_names, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
@@ -139,13 +186,33 @@ class LIME(LocalExplanation, WeightedExplanation):
 
     def __call__(self,
                  sample: TextInstance,
-                 model,
+                 model: SaveableInnerModel,
                  labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
                  n_samples: int = 50,
                  n_features: int = 10,
                  feature_selection_method: str = 'auto',
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine') -> FeatureAttribution:
+        """Calculate feature attribution scores using `LIME Text`_.
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (SaveableInnerModel): Model to explain.
+            labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
+            feature_selection_method (str, optional): Method for limiting number of features, either `forward_selection`, 
+                `highest_weights` or `auto`. Defaults to 'auto'.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+
+        Returns:
+            FeatureAttribution: [description]
+
+        .. _LIME Text:
+            https://github.com/marcotcr/lime/blob/master/lime/lime_text.py
+        """
         if labels is not None:
             n_labels = sum(1 for _ in iter(labels))
             if n_labels > 0 and isinstance(next(iter(labels)), str):
@@ -166,7 +233,7 @@ class LIME(LocalExplanation, WeightedExplanation):
                                                           weights=weights,
                                                           n_features=n_features,
                                                           method=feature_selection_method)
-
+    
         # Fit explanation model
         self.local_model.alpha_reset()
         self.local_model.fit(perturbed[:, used_features], y, weights=weights)
@@ -174,7 +241,11 @@ class LIME(LocalExplanation, WeightedExplanation):
         if labels is None:
             labels = np.arange(y.shape[1])
 
-        return FeatureAttribution(provider, used_features, self.local_model.feature_importances, labels=labels, label_names=self.label_names)
+        return FeatureAttribution(provider,
+                                  used_features,
+                                  self.local_model.feature_importances,
+                                  labels=labels,
+                                  label_names=self.label_names)
 
 
 class KernelSHAP(LocalExplanation):
@@ -183,6 +254,23 @@ class KernelSHAP(LocalExplanation):
                  label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
                  augmenter: LocalTokenPertubator = None,
                  seed: int = 0):
+        """Calculates `Shapley values`_ for an instance to explain, assuming the model is a black-box.
+
+        Calculates Shapley values (local, additive feature attribution scores) for an instance 
+        to explain, by calculating the average contribution of changing combinations of feature 
+        values.
+
+        Args:
+            env (Optional[AbstractEnvironment], optional): Environment to save local perturbations in. Defaults to None.
+            augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
+                to generate neighborhood data. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
+                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+
+        .. _Shapley values:
+            https://github.com/slundberg/shap
+        """
         super().__init__(env=env, augmenter=augmenter, label_names=label_names, seed=seed)
 
     @staticmethod
@@ -192,7 +280,7 @@ class KernelSHAP(LocalExplanation):
 
         Args:
             X (np.ndarray): Input data.
-            y (np.ndarray): Prediction / ground-truth value for y.
+            y (np.ndarray): Prediction / ground-truth value for X.
             default_features (int, optional): Default number of features, when returning all features. Defaults to 1.
             l1_reg (Union[int, float, str], optional): Method for regularization, either `auto`, `n_features({int})`,
             `{int}`, `{float}`, `aic` or `bic`. Defaults to 'auto'.
@@ -220,8 +308,23 @@ class KernelSHAP(LocalExplanation):
             raise Exception(f'Unknown value "{l1_reg}" for l1_reg')
         return nonzero
 
-    def __call__(self, sample: TextInstance, model, n_samples: Optional[int] = None, l1_reg: Union[int, float, str] = 'auto'):
-        # https://github.com/slundberg/shap/blob/master/shap/explainers/_kernel.py
+    def __call__(self, sample: TextInstance, model: SaveableInnerModel, n_samples: Optional[int] = None, l1_reg: Union[int, float, str] = 'auto') -> FeatureAttribution:
+        """Calculate feature attribution scores using `KernelShap`_.
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (SaveableInnerModel): Model to explain.
+            n_samples (Optional[int], optional): Number of neighborhood samples to generate (if None defaults 
+                to `2 * sample_len + 2 ** 11`). Defaults to None.
+            l1_reg (Union[int, float, str], optional): Method for regularization (limiting number of features), either `auto`, 
+            `n_features({int})`, `{int}`, `{float}`, `aic` or `bic`. Defaults to 'auto'.
+
+        Returns:
+            FeatureAttribution: [description]
+
+        .. _KernelShap:
+            https://github.com/slundberg/shap/blob/master/shap/explainers/_kernel.py
+        """
         sample_len = len(sample.tokenized)
         if n_samples is None:
             n_samples = 2 * sample_len + 2 ** 11

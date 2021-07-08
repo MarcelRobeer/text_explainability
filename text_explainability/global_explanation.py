@@ -1,13 +1,16 @@
-"""TO-DO
-- add support for other tasks than classification (e.g. regression, multi-label classification)
-- partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
+"""Global explanations explain the whole dataset or model behavior on that dataset.
+
+Todo:
+    * add support for other tasks than classification (e.g. regression, multi-label classification)
+    * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
 from instancelib import TextInstance, InstanceProvider
 import numpy as np
 
-from typing import (Callable, Optional, Text, List, Dict, Tuple, Any)
+from typing import (Callable, Optional, Text, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
 from instancelib import TextEnvironment
+from instancelib.utils import SaveableInnerModel
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
@@ -19,21 +22,57 @@ class GlobalExplanation(Readable):
     def __init__(self,
                  provider: InstanceProvider[TextInstance, Any, str, Any, str],
                  seed: int = 0):
+        """Generic wrapper from global explanations (explain whole dataset or model).
+
+        Args:
+            provider (InstanceProvider[TextInstance, Any, str, Any, str]): Dataset to perform explanation on.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+        """
         super().__init__()
         self.provider = provider
         self._seed = 0
 
-    def get_data(self):
+    def get_data(self) -> InstanceProvider:
+        """Easy access to data.
+
+        Returns:
+            InstanceProvider: Easily accessible dataset.
+        """
         return self.provider
 
-    def predict(self, model):
+    def predict(self, model: SaveableInnerModel) -> Union[Sequence[FrozenSet[str]], np.ndarray]:
+        """Apply predict function of model to data.
+
+        Args:
+            model (SaveableInnerModel): Model to apply predictions with.
+
+        Returns:
+            Union[Sequence[FrozenSet[str]], np.ndarray]: Labels for dataset according to model.
+        """
         return model.predict(self.get_data())
 
-    def get_instances_labels(self, model: Optional[Any], labelprovider, explain_model: bool = True):
+    def get_instances_labels(self,
+                             model: Optional[Any], 
+                             labelprovider,
+                             explain_model: bool = True) -> Tuple[InstanceProvider, np.ndarray]:
+        """Get corresponding labels of dataset inputs, either from the original data or 
+            according to the predict function.
+
+        Args:
+            model (Optional[Any]): Model to perform predictions with.
+            labelprovider ([type]): Ground-truth labels.
+            explain_model (bool, optional): Whether to explain using the `model` 
+                labels (True) or `labelprovider` labels (False). Defaults to True.
+
+        Returns:
+            Tuple[InstanceProvider, np.ndarray]: Instances and corresponding labels
+        """
         if explain_model:
-            assert model is not None, 'Provide a model to explain its predictions, or set `explain_predictions` to False'
+            assert model is not None, \
+                'Provide a model to explain its predictions, or set `explain_predictions` to False'
         else:
-            assert labelprovider is not None, 'Provide a labelprovider to explain ground-truth labels, or set `explain_predictions` to True'
+            assert labelprovider is not None, \
+                'Provide a labelprovider to explain ground-truth labels, or set `explain_predictions` to True'
 
         instances = self.get_data()
         labels = model.predict(instances, return_labels=False) if explain_model \
