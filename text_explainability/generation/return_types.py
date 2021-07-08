@@ -71,12 +71,15 @@ class FeatureAttribution:
     @property
     def scores(self):
         all_scores = self.get_raw_scores(normalize=True)
-        return {self.label_by_index(label): {feature: score_ 
-                for feature, score_ in zip(self.used_features, all_scores[label])}
+        return {self.label_by_index(label): [(feature, score_)
+                for feature, score_ in zip(self.used_features, all_scores[label])]
                 for label in self.labels}
 
-    def __str__(self) -> str:
+    def __dict__(self) -> dict:
         return self.scores
+
+    def __str__(self) -> str:
+        return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])
 
     def __repr__(self) -> str:
         sampled_or_perturbed = 'sampled' if self.sampled_instances is not None else 'perturbed'
