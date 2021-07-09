@@ -14,7 +14,8 @@ class FeatureSelector(Readable):
         """[summary]
 
         Args:
-            model (Optional[LinearSurrogate], optional): [description]. Defaults to None.
+            model (Optional[LinearSurrogate], optional): Linear surrogate used to calculate 
+                feature importance scores. Defaults to None.
         """
         super().__init__()
         self.model = model
@@ -34,12 +35,17 @@ class FeatureSelector(Readable):
             weights (np.ndarray, optional): Relative weights of X. Defaults to None.
             n_features (int, optional): [description]. Defaults to 10.
 
+        Raises:
+            AssertionError: The local linear model used to calculate forward_selection
+                was not defined.
+
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
 
         .. _LIME:
             https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
         """
+        assert self.model is not None, 'forward_selection requires a local linear model'
         n_features = min(X.shape[1], n_features)
         used_features = []
         for _ in range(n_features):
@@ -67,12 +73,17 @@ class FeatureSelector(Readable):
             weights (np.ndarray, optional): Relative weights of X. Defaults to None.
             n_features (int, optional): Number of features to select. Defaults to 10.
 
+        Raises:
+            AssertionError: The local linear model used to calculate forward_selection
+                was not defined.
+
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
 
         .. _LIME:
             https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
         """
+        assert self.model is not None, 'highest_weights requires a local linear model'
         self.model.fit(X, y, weights=weights)
         weighted_data = self.model.feature_importances * X[0]
         feature_weights = sorted(
@@ -92,7 +103,7 @@ class FeatureSelector(Readable):
             n_features (int, optional): Number of features to select. Defaults to 10.
 
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
 
         .. _LASSO:
             https://en.wikipedia.org/wiki/Lasso_(statistics)
@@ -124,7 +135,7 @@ class FeatureSelector(Readable):
                 `Bayesian Information Criterion`_ (`bic`). Defaults to 'aic'.
 
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
 
         .. _SHAP:
             https://github.com/slundberg/shap
@@ -147,7 +158,7 @@ class FeatureSelector(Readable):
             alpha (Optional[float], optional): Hyperparameter for L1 regularization. Defaults to None.
 
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
 
         .. _SHAP:
             https://github.com/slundberg/shap
@@ -179,13 +190,16 @@ class FeatureSelector(Readable):
                 Defaults to None.
             alpha (Optional[float], optional): Hyperparameter for L1 regularization. Defaults to None.
 
+        Raises:
+            AssertionError: Unknown method, or the requirements of a method have not been satisfied.
+
         Returns:
-            np.ndarray: Indices of selecter features.
+            np.ndarray: Indices of selected features.
         """
         if self.model is None:
-            assert method not in ['forward_selection', 'highest_weights', 'lasso_path'], \
-                f'{self.__class__.__name__} requires a `model` to use methods forward_selection, ' \
-                'highest_weights and lasso_path'
+            assert method not in ['forward_selection', 'highest_weights'], \
+                f'{self.__class__.__name__} requires a `model` to use methods forward_selection and ' \
+                'highest_weights'
         assert method in [None, 'forward_selection', 'highest_weights', 'lasso_path',
                           'aic', 'bic', 'l1_reg'], \
             f'Unknown method "{method}"'
