@@ -11,8 +11,8 @@ Run lines in `example_usage.py` to see an example of how the package can be used
 
 ## Maintenance
 ### Contributors
-- Marcel Robeer
-- Michiel Bron
+- Marcel Robeer (`@m.j.robeer`)
+- Michiel Bron (`@mpbron-phd`)
 
 ### Todo
 Tasks yet to be done:
@@ -28,4 +28,3 @@ Tasks yet to be done:
     - Bag-of-words style replacements
 - Add rule-based return type
 - Write more tests
-- Update documentation

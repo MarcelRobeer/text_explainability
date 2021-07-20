@@ -61,8 +61,9 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
         for new_tokenized, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
             new_data = self.detokenizer(new_tokenized)
             new_instance = self.env.create(
-                data=new_data, 
-                vector=map_to_original, 
+                data=new_data,
+                vector=None,
+                map_to_original=map_to_original, 
                 representation=new_data,
                 tokenized=new_tokenized
                 )

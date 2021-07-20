@@ -1,6 +1,6 @@
 # %% General imports
 from instancelib.ingest.spreadsheet import read_csv_dataset
-from instancelib.instances.text import TextInstance
+from instancelib.instances.text import MemoryTextInstance
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -12,27 +12,27 @@ instanceprovider = test_env.dataset
 labelprovider = test_env.labels
 train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
 
-# %% Fit sklearn model
+# %% Create sklearn model with pipeline
 p = Pipeline([('vect', CountVectorizer()),
               ('tfidf', TfidfTransformer(use_idf=False)),
               ('rf', RandomForestClassifier())
              ])
-p.fit([t.data for t in train.bulk_get_all()],
-      [list(labelprovider.get_labels(k))[0] for k in train])
 
 # %% Imports
-from text_explainability.model import SklearnModel
+from instancelib.machinelearning import SkLearnDataClassifier
+
 from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP
 from text_explainability.global_explanation import TokenFrequency, TokenInformation
 from text_explainability.data.augmentation import TokenReplacement, LeaveOut
 from text_explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
 
 # %% Wrap sklearn model
-model = SklearnModel(p)
+model = SkLearnDataClassifier.build(p, test_env)
+model.fit_provider(train, labelprovider)
 
 # %% Create example instance
-sample = TextInstance(0, 'Dit is zeer positieve proef...', None)
-sample.tokenized = default_tokenizer(sample.data)
+data = 'Dit is zeer positieve proef...'
+sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
 
 # %% 
 repl = TokenReplacement(test_env, default_detokenizer)

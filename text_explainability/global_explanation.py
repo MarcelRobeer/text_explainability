@@ -5,12 +5,13 @@ Todo:
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
-from instancelib import TextInstance, InstanceProvider
+from instancelib import InstanceProvider
 import numpy as np
 
 from typing import (Callable, Optional, Text, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
 from instancelib import TextEnvironment
-from instancelib.utils import SaveableInnerModel
+from instancelib.instances.text import TextInstance
+from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
@@ -41,11 +42,11 @@ class GlobalExplanation(Readable):
         """
         return self.provider
 
-    def predict(self, model: SaveableInnerModel) -> Union[Sequence[FrozenSet[str]], np.ndarray]:
+    def predict(self, model: AbstractClassifier) -> Union[Sequence[FrozenSet[str]], np.ndarray]:
         """Apply predict function of model to data.
 
         Args:
-            model (SaveableInnerModel): Model to apply predictions with.
+            model (AbstractClassifier): Model to apply predictions with.
 
         Returns:
             Union[Sequence[FrozenSet[str]], np.ndarray]: Labels for dataset according to model.
@@ -76,9 +77,10 @@ class GlobalExplanation(Readable):
                 'Provide a labelprovider to explain ground-truth labels, or set `explain_predictions` to True'
 
         instances = self.get_data()
-        labels = model.predict(instances, return_labels=False) if explain_model \
+        labels = model.predict(instances) if explain_model \
                  else [next(iter(labelprovider.get_labels(k))) for k in instances]
-
+        if len(labels) > 0 and isinstance(labels[0], tuple) and isinstance(labels[0][-1], frozenset):
+            labels = ['-'.join(list(x)) for id, x in labels]
         return instances, np.array(labels)
 
 

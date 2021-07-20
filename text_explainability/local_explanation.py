@@ -10,9 +10,9 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
-                         LabelProvider, MemoryLabelProvider, TextEnvironment,
-                         TextInstance, TextInstanceProvider)
-from instancelib.utils import SaveableInnerModel
+                         LabelProvider, MemoryLabelProvider, TextEnvironment)
+from instancelib.machinelearning import AbstractClassifier
+from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
@@ -76,7 +76,7 @@ class LocalExplanation(Readable):
 
     def augment_sample(self,
                        sample: Instance,
-                       model: SaveableInnerModel,
+                       model: AbstractClassifier,
                        sequential: bool = False,
                        contiguous: bool = False,
                        n_samples: int = 50,
@@ -89,7 +89,7 @@ class LocalExplanation(Readable):
 
         Args:
             sample (Instance): Instance to perturb.
-            model (SaveableInnerModel): Model to provide predictions for neighborhood data.
+            model (AbstractClassifier): Model to provide predictions for neighborhood data.
             sequential (bool, optional): Whether to sequentially sample based on length (first length 1, 
                 then 2, ...). Defaults to False.
             contiguous (bool, optional): Whether to apply perturbations on contiguous stretches of text. Defaults to False.
@@ -103,7 +103,7 @@ class LocalExplanation(Readable):
         """
         provider = self.env.create_empty_provider()
 
-        sample.vector = np.ones(len(sample.tokenized), dtype=int)
+        sample.map_to_original = np.ones(len(sample.tokenized), dtype=int)
         provider.add(sample)
 
         # Do sampling
@@ -117,13 +117,13 @@ class LocalExplanation(Readable):
 
         # Perform prediction
         if predict:
+            ys = model.predict_proba_raw(provider)
+            y = np.stack([y_ for id, y_ in ys]).squeeze()
             if avoid_proba:
-                y = model.predict(provider.bulk_get_all(), return_labels=False)
-            else:
-                y = model(provider.bulk_get_all(), return_labels=False)
+                y = np.argmax(y, axis=1)
 
         # Mapping to which instances were perturbed
-        perturbed = np.stack([instance.vector for instance in provider.get_all()])
+        perturbed = np.stack([instance.map_to_original for instance in provider.get_all()])
 
         if predict:
             return provider, perturbed, y
@@ -185,8 +185,8 @@ class LIME(LocalExplanation, WeightedExplanation):
         self.local_model = local_model
 
     def __call__(self,
-                 sample: TextInstance,
-                 model: SaveableInnerModel,
+                 sample: MemoryTextInstance,
+                 model: AbstractClassifier,
                  labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
                  n_samples: int = 50,
                  n_features: int = 10,
@@ -196,8 +196,8 @@ class LIME(LocalExplanation, WeightedExplanation):
         """Calculate feature attribution scores using `LIME Text`_.
 
         Args:
-            sample (TextInstance): Instance to explain.
-            model (SaveableInnerModel): Model to explain.
+            sample (MemoryTextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
             labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
             n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
             n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
@@ -233,7 +233,6 @@ class LIME(LocalExplanation, WeightedExplanation):
                                                           weights=weights,
                                                           n_features=n_features,
                                                           method=feature_selection_method)
-    
         # Fit explanation model
         self.local_model.alpha_reset()
         self.local_model.fit(perturbed[:, used_features], y, weights=weights)
@@ -308,12 +307,16 @@ class KernelSHAP(LocalExplanation):
             raise Exception(f'Unknown value "{l1_reg}" for l1_reg')
         return nonzero
 
-    def __call__(self, sample: TextInstance, model: SaveableInnerModel, n_samples: Optional[int] = None, l1_reg: Union[int, float, str] = 'auto') -> FeatureAttribution:
+    def __call__(self,
+                 sample: MemoryTextInstance,
+                 model: AbstractClassifier,
+                 n_samples: Optional[int] = None,
+                 l1_reg: Union[int, float, str] = 'auto') -> FeatureAttribution:
         """Calculate feature attribution scores using `KernelShap`_.
 
         Args:
-            sample (TextInstance): Instance to explain.
-            model (SaveableInnerModel): Model to explain.
+            sample (MemoryTextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
             n_samples (Optional[int], optional): Number of neighborhood samples to generate (if None defaults 
                 to `2 * sample_len + 2 ** 11`). Defaults to None.
             l1_reg (Union[int, float, str], optional): Method for regularization (limiting number of features), either `auto`, 
@@ -428,7 +431,7 @@ class Anchor(LocalExplanation):
         pass
 
     def __call__(self,
-                 sample: TextInstance,
+                 sample: MemoryTextInstance,
                  model,
                  n_samples: int = 100,
                  beam_size: int = 1,
@@ -477,7 +480,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         self.explanation_type = explanation_type
 
     def __call__(self,
-                 sample: TextInstance,
+                 sample: MemoryTextInstance,
                  model,
                  n_samples: int = 50,
                  weigh_samples: bool = True,

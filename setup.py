@@ -6,7 +6,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding
 
 setuptools.setup( # type: ignore
     name = 'text_explainability',
-    version = '0.2.1',
+    version = '0.3.0',
     description = 'Generic explainability architecture for text machine learning models',
     long_description = long_description,
     long_description_content_type = 'text/markdown',

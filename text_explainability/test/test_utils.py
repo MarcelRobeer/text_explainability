@@ -22,10 +22,10 @@ def test_empty_detokenize():
     assert default_detokenizer([]) == '', 'Detokenizer made up tokens'
 
 def test_single_word_tokenize():
-    word = 'TEST_WORD'
+    word = 'TESTWORD'
     assert default_tokenizer(word) == [word], 'Single word tokenize failed'
 
 def test_single_word_detokenize():
-    word = 'TEST_WORD'
+    word = 'TESTWORD'
     assert default_detokenizer([word]) == word, 'Single word detokenize failed'
 
