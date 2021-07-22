@@ -6,12 +6,15 @@ Todo:
     * Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
 """
 
+from text_explainability.utils import default_detokenizer
 from instancelib.environment.base import AbstractEnvironment
+from instancelib.environment.text import TextEnvironment
+from instancelib.instances.base import InstanceProvider
 import numpy as np
 import math
 import itertools
 
-from typing import (Callable, Iterable, Sequence, Any, Iterator, Text, Tuple, Optional, List, Union)
+from typing import (Callable, Iterable, Any, Iterator, Tuple, Optional, List, Union)
 
 from instancelib.instances.text import TextInstance
 from instancelib.pertubations.base import MultiplePertubator, ChildGenerator
@@ -24,8 +27,8 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                            ChildGenerator[TextInstance], 
                            Readable):
     def __init__(self,
-                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
-                 detokenizer: Callable[[Iterable[str]], str]):
+                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
+                 detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer):
         """Perturb a single instance into neighborhood samples.
 
         Args:
@@ -33,6 +36,8 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                 to a string used in a predictor.
         """
         super().__init__()
+        if env is None:
+            env = TextEnvironment.from_data([], [], [], [], [])
         self.env = env
         self.detokenizer = detokenizer
 
@@ -43,20 +48,40 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
         res[inactive] = 0
         return res
 
-    def perturb(tokenized_instance: Iterable[str], 
+    def perturb(self, tokenized_instance: Iterable[str], 
                 *args: Any, **kwargs: Any) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         raise NotImplementedError
 
-    def __call__(self, instance: TextInstance[KT, VT], *args, **kwargs) -> Iterator[TextInstance[KT, VT]]:
+    def discard_children(self, parent: TextInstance) -> None:
+        """Discard the generated children for a given parent."""
+        self.env.discard_children(parent)
+
+    def get_children(self, parent: TextInstance) -> InstanceProvider[TextInstance, Any, Any, Any, Any]:
+        """Get the children of a given parent."""
+        return self.env.get_children(parent)
+
+    def __call__(self,
+                 instance: TextInstance[KT, VT],
+                 *args,
+                 discard_children: bool = True,
+                 **kwargs) -> Iterator[TextInstance[KT, VT]]:
         """Apply perturbations to an instance to generate neighborhood data.
 
         Args:
             instance (TextInstance[Any, VT]): Tokenized instance to perturb.
+            discard_children (bool, optional): Remove children from previous passes. Defaults to True.
 
         Yields:
             Iterator[Sequence[TextInstance[Any, VT]]]: Neighborhood data instances.
         """
         assert hasattr(instance, 'tokenized'), 'Tokenize your instance before applying a perturbation'
+
+        if instance.data not in self.env.all_instances.all_data():
+            provider = self.env.create_empty_provider()
+            provider.add(instance)
+
+        if discard_children:
+            self.discard_children(instance)
 
         for new_tokenized, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
             new_data = self.detokenizer(new_tokenized)
@@ -68,24 +93,25 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                 tokenized=new_tokenized
                 )
             self.register_child(instance, new_instance)
-            yield new_instance
+        return self.get_children(instance)
 
 
 class TokenReplacement(LocalTokenPertubator):
     def __init__(self,
-                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
-                 detokenizer: Callable[[Iterable[str]], str], 
+                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
+                 detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
                  replacement: Optional[Union[str, List[str]]] = 'UNKWRDZ',
                  seed: int = 0):
         """[summary]
 
         Args:
-            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a predictor.
+            detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a 
+                predictor.
             replacement (Optional[Union[str, List[str]]], optional): Replacement string, or set to None
                 if you want to delete the word entirely. Defaults to 'UNKWRDZ'.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
-        super().__init__(env= env, detokenizer=detokenizer)
+        super().__init__(env=env, detokenizer=detokenizer)
         self.replacement = replacement
         self._seed = seed
 
@@ -106,8 +132,10 @@ class TokenReplacement(LocalTokenPertubator):
         if isinstance(self.replacement, list):
             instance_len = sum(1 for _ in tokenized_instance)
             replacement_len = len(self.replacement)
-            assert replacement_len >= instance_len, f'Too few replacements in `self.replacement`, got {replacement_len} and expected {instance_len}'
-            return [self.replacement[i] if j == 0 else token for i, (token, j) in enumerate(zip(tokenized_instance, keep))]
+            assert replacement_len >= instance_len, \
+                f'Too few replacements in `self.replacement`, got {replacement_len} and expected {instance_len}'
+            return [self.replacement[i] if j == 0 else token
+                    for i, (token, j) in enumerate(zip(tokenized_instance, keep))]
         return [self.replacement if i == 0 else token for token, i in zip(tokenized_instance, keep)]
 
     def perturb(self,
@@ -124,11 +152,13 @@ class TokenReplacement(LocalTokenPertubator):
         Args:
             tokenized_instance (Iterable[str]): [description]
             n_samples (int, optional): Number of samples to return. Defaults to 50.
-            sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, etc.). Defaults to True.
+            sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, 
+                etc.). Defaults to True.
             contiguous (bool, optional): Whether to remove contiguous sequences of tokens (n-grams). Defaults to False.
             min_changes (int, optional): Minimum number of tokens changes (1+). Defaults to 1.
             max_changes (int, optional): Maximum number of tokens changed. Defaults to 10000.
-            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. Defaults to False.
+            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. 
+                Defaults to False.
 
         Yields:
             Iterator[Sequence[Iterable[str], Iterable[int]]]: [description]
@@ -171,13 +201,16 @@ class TokenReplacement(LocalTokenPertubator):
             sample = rand.randint(min_changes, max_changes + 1, n_samples)
 
             for size in sample:
-                if contiguous: # use n-grams
+                if contiguous:  # use n-grams
                     start = rand.choice(max_changes - size + 1, replace=False)
                     inactive = TokenReplacement.binary_inactive(range(start, start + size), instance_len)
-                else: # used by LIME, https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
-                    inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False), instance_len)
+                # used by LIME, 
+                # https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
+                else: 
+                    inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False),
+                                                                instance_len)
                 yield self._replace(tokenized_instance, inactive), inactive
-        
+
         if add_background_instance:
             inactive = np.zeros(instance_len)
             yield self._replace(tokenized_instance, inactive), inactive
@@ -185,8 +218,8 @@ class TokenReplacement(LocalTokenPertubator):
 
 class LeaveOut(TokenReplacement):
     def __init__(self,
-                 env: AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any],
-                 detokenizer: Callable[[Iterable[str]], str], 
+                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
+                 detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
                  seed: int = 0):
         """Leave tokens out of the tokenized sequence.
 

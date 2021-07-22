@@ -8,14 +8,13 @@ Todo:
 from instancelib import InstanceProvider
 import numpy as np
 
-from typing import (Callable, Optional, Text, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
-from instancelib import TextEnvironment
+from typing import (Callable, Optional, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
 from instancelib.instances.text import TextInstance
 from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
-from text_explainability.utils import default_detokenizer, default_tokenizer
+from text_explainability.utils import default_tokenizer
 from text_explainability.default import Readable
 from text_explainability.generation.return_types import FeatureList
 
@@ -54,7 +53,7 @@ class GlobalExplanation(Readable):
         return model.predict(self.get_data())
 
     def get_instances_labels(self,
-                             model: Optional[Any], 
+                             model: Optional[Any],
                              labelprovider,
                              explain_model: bool = True) -> Tuple[InstanceProvider, np.ndarray]:
         """Get corresponding labels of dataset inputs, either from the original data or 
@@ -99,7 +98,8 @@ class TokenFrequency(GlobalExplanation):
         Args:
             model ([type], optional): Predictive model to explain. Defaults to None.
             labelprovider ([type], optional): Ground-truth labels to explain. Defaults to None.
-            explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False). Defaults to True.
+            explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False).
+                Defaults to True.
             labelwise (bool, optional): Whether to summarize the counts for each label seperately. Defaults to True.
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
@@ -131,7 +131,7 @@ class TokenInformation(GlobalExplanation):
                  model=None,
                  labelprovider=None,
                  explain_model: bool = True,
-                 #labelwise: bool = True,
+                 # labelwise: bool = True,
                  k: Optional[int] = None,
                  filter_words: List[str] = ['de', 'het', 'een'],
                  tokenizer: Callable = default_tokenizer,
@@ -141,7 +141,8 @@ class TokenInformation(GlobalExplanation):
         Args:
             model ([type], optional): Predictive model to explain. Defaults to None.
             labelprovider ([type], optional): Ground-truth labels to explain. Defaults to None.
-            explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False). Defaults to True.
+            explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False).
+                Defaults to True.
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
             tokenizer (Callable, optional): Function for tokenizing strings. Defaults to default_tokenizer.
@@ -159,7 +160,8 @@ class TokenInformation(GlobalExplanation):
         counts = cv.fit_transform(instances.all_data())
 
         # TO-DO improve beyond classification
-        # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#sklearn.feature_selection.mutual_info_regression
+        # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html
+        # #sklearn.feature_selection.mutual_info_regression
         mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self._seed)
         feature_names = cv.get_feature_names()
         res = list(map(tuple, zip(feature_names, mif)))

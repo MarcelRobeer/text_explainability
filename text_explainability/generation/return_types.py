@@ -109,7 +109,7 @@ class FeatureList:
         return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])
 
     def __repr__(self) -> str:
-        labels = [self.label_by_index(l) for l in self.labels] if self.labels is not None else None
+        labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         return f'{self.__class__.__name__}(labels={labels}, used_features={self.used_features})'
 
 
@@ -186,6 +186,6 @@ class FeatureAttribution(FeatureList):
     def __repr__(self) -> str:
         sampled_or_perturbed = 'sampled' if self.sampled_instances is not None else 'perturbed'
         n = sum(1 for _ in self.neighborhood_instances)
-        labels = [self.label_by_index(l) for l in self.labels] if self.labels is not None else None
+        labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         return f'{self.__class__.__name__}(labels={labels}, ' + \
-            'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
+            f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'

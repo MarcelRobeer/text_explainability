@@ -1,0 +1,24 @@
+image: "python:3.9"
+
+stages:
+  - format
+  - test
+
+before_script:
+  - python3 setup.py install
+
+flake8:
+  stage: format
+  script:
+    - flake8 . --config .flake8
+
+run_tests:
+  stage: test
+  script:
+    - python3 -m pytest
+
+  only:
+    - master
+    - branches
+  artifacts:
+    when: always

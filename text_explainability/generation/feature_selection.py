@@ -62,7 +62,7 @@ class FeatureSelector(Readable):
                     max_ = score
             used_features.append(best)
         return np.array(used_features)
-            
+
     def _highest_weights(self, X: np.ndarray, y: np.ndarray,
                          weights: np.ndarray = None, n_features: int = 10) -> np.ndarray:
         """Feature selection according to highest feature importance, as used by `LIME`_.

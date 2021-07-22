@@ -38,16 +38,16 @@ sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
 repl = TokenReplacement(test_env, default_detokenizer)
 
 # %% Sequential replacement, 10 samples
-print([i.data for i in repl(sample, n_samples=10)])
+print(list(repl(sample, n_samples=10).all_data()))
 
 # %% Non-sequential replacement, 10 samples
-print([i.data for i in repl(sample, n_samples=10, sequential=False)])
+print(list(repl(sample, n_samples=10, sequential=False).all_data()))
 
 # %% Non-sequential, contiguous replacement, 10 samples
-print([i.data for i in repl(sample, n_samples=10, sequential=False, contiguous=True)])
+print(list(repl(sample, n_samples=10, sequential=False, contiguous=True).all_data()))
 
 # %% Sequential deletion, 10 samples
-print([i.data for i in LeaveOut(test_env, default_detokenizer)(sample, n_samples=10)])
+print(list(LeaveOut(test_env, default_detokenizer)(sample, n_samples=10).all_data()))
 
 # %% LIME explainer for `sample` on `model`
 explainer = LIME(test_env)

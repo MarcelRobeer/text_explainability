@@ -57,8 +57,9 @@ class LocalExplanation(Readable):
             env (Optional[AbstractEnvironment], optional): Environment to save local perturbations in. Defaults to None.
             augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
                 to generate neighborhood data. Defaults to None.
-            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
-                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or 
+                LabelProvider containing named labels. When not supplied, it uses identifiers for labels. 
+                Defaults to None.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
         super().__init__()
@@ -92,11 +93,14 @@ class LocalExplanation(Readable):
             model (AbstractClassifier): Model to provide predictions for neighborhood data.
             sequential (bool, optional): Whether to sequentially sample based on length (first length 1, 
                 then 2, ...). Defaults to False.
-            contiguous (bool, optional): Whether to apply perturbations on contiguous stretches of text. Defaults to False.
+            contiguous (bool, optional): Whether to apply perturbations on contiguous stretches of text.
+                Defaults to False.
             n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
-            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. Defaults to False.
+            add_background_instance (bool, optional): Add an additional instance with all tokens replaced. 
+                Defaults to False.
             predict (bool, optional):  Defaults to True.
-            avoid_proba (bool, optional): Model predictions als labels (True) or probabilities when available (False). Defaults to False.
+            avoid_proba (bool, optional): Model predictions als labels (True) or probabilities when available (False). 
+                Defaults to False.
 
         Returns:
             Union[Tuple[InstanceProvider, np.ndarray], Tuple[InstanceProvider, np.ndarray, np.ndarray]]: [description]
@@ -112,7 +116,7 @@ class LocalExplanation(Readable):
                                    contiguous=contiguous,
                                    n_samples=n_samples,
                                    add_background_instance=add_background_instance)
-        for perturbed_sample in augmenter:
+        for perturbed_sample in augmenter.bulk_get_all():
             provider.add(perturbed_sample)
 
         # Perform prediction
@@ -135,9 +139,10 @@ class WeightedExplanation:
         """Add weights to neighborhood data.
 
         Args:
-            kernel (Optional[Callable], optional):  Kernel to determine similarity of perturbed instances to original instance 
-                (if set to None defaults to `data.weights.exponential_kernel`). Defaults to None.
-            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. Defaults to 25.
+            kernel (Optional[Callable], optional):  Kernel to determine similarity of perturbed instances to original 
+                instance (if set to None defaults to `data.weights.exponential_kernel`). Defaults to None.
+            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. 
+                Defaults to 25.
         """
         if kernel is None:
             kernel = exponential_kernel
@@ -156,7 +161,7 @@ class LIME(LocalExplanation, WeightedExplanation):
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
                  augmenter: Optional[LocalTokenPertubator] = None,
-                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  seed: int = 0):
         """Local Interpretable Model-Agnostic Explanations (`LIME`_).
 
@@ -166,13 +171,15 @@ class LIME(LocalExplanation, WeightedExplanation):
         Args:
             env (Optional[AbstractEnvironment]): Environment to save local perturbations in. Defaults to None.
             local_model (Optional[LinearSurrogate], optional): [description]. Defaults to None.
-            kernel (Optional[Callable], optional): Kernel to determine similarity of perturbed instances to original instance.
-                Defaults to None.
-            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. Defaults to 25.
+            kernel (Optional[Callable], optional): Kernel to determine similarity of perturbed instances to original
+                instance. Defaults to None.
+            kernel_width (Union[int, float], optional): Hyperparameter for similarity function of kernel. 
+                Defaults to 25.
             augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
                 to generate neighborhood data. Defaults to None.
-            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
-                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or 
+                LabelProvider containing named labels. When not supplied, it uses identifiers for labels. 
+                Defaults to None.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
 
         .. _LIME:
@@ -201,8 +208,8 @@ class LIME(LocalExplanation, WeightedExplanation):
             labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
             n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
             n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
-            feature_selection_method (str, optional): Method for limiting number of features, either `forward_selection`, 
-                `highest_weights` or `auto`. Defaults to 'auto'.
+            feature_selection_method (str, optional): Method for limiting number of features, either
+                `forward_selection`, `highest_weights` or `auto`. Defaults to 'auto'.
             weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
                 instance. Defaults to True.
             distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
@@ -250,7 +257,7 @@ class LIME(LocalExplanation, WeightedExplanation):
 class KernelSHAP(LocalExplanation):
     def __init__(self,
                  env: Optional[AbstractEnvironment] = None,
-                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  augmenter: LocalTokenPertubator = None,
                  seed: int = 0):
         """Calculates `Shapley values`_ for an instance to explain, assuming the model is a black-box.
@@ -263,8 +270,9 @@ class KernelSHAP(LocalExplanation):
             env (Optional[AbstractEnvironment], optional): Environment to save local perturbations in. Defaults to None.
             augmenter (Optional[LocalTokenPertubator], optional): Function to augment data with perturbations, 
                 to generate neighborhood data. Defaults to None.
-            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or LabelProvider 
-                containing named labels. When not supplied, it uses identifiers for labels. Defaults to None.
+            label_names (Optional[Union[Sequence[str], LabelProvider]], optional): Sequence of label names or 
+                LabelProvider containing named labels. When not supplied, it uses identifiers for labels. 
+                Defaults to None.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
 
         .. _Shapley values:
@@ -319,8 +327,8 @@ class KernelSHAP(LocalExplanation):
             model (AbstractClassifier): Model to explain.
             n_samples (Optional[int], optional): Number of neighborhood samples to generate (if None defaults 
                 to `2 * sample_len + 2 ** 11`). Defaults to None.
-            l1_reg (Union[int, float, str], optional): Method for regularization (limiting number of features), either `auto`, 
-            `n_features({int})`, `{int}`, `{float}`, `aic` or `bic`. Defaults to 'auto'.
+            l1_reg (Union[int, float, str], optional): Method for regularization (limiting number of features), 
+                either `auto`, `n_features({int})`, `{int}`, `{float}`, `aic` or `bic`. Defaults to 'auto'.
 
         Returns:
             FeatureAttribution: [description]
@@ -372,10 +380,11 @@ class KernelSHAP(LocalExplanation):
                                   labels=np.arange(y.shape[1]),
                                   label_names=self.label_names)
 
+
 class Anchor(LocalExplanation):
     def __init__(self,
                  env: Optional[AbstractEnvironment],
-                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):
         super().__init__(env=env, augmenter=augmenter, label_names=label_names, seed=seed)
@@ -415,10 +424,10 @@ class Anchor(LocalExplanation):
         assert 0.0 <= min_confidence <= 0.95, f'min_confidence should be a value in [0, 1], but is {min_confidence}'
         assert 0.0 <= delta <= 0.95, f'delta should be a value in [0, 1], but is {delta}'
         assert 0.0 <= epsilon <= 0.95, f'epsilon should be a value in [0, 1], but is {epsilon}'
-        assert batch_size > 2, f'requires positive batch size'
+        assert batch_size > 2, 'requires positive batch size'
 
         y = [provider[i] for i in range(batch_size + 1)]
-        y_true, y = y[0], y[1:]
+        y_true, y = y[0], y[1:]  # noqa: F841
 
         beta = np.log(1.0 / delta)
         mean = y.mean()
@@ -426,7 +435,6 @@ class Anchor(LocalExplanation):
 
         batch = 1
         while mean > min_confidence and lb < min_confidence - epsilon:
-            
             batch += 1
         pass
 
@@ -450,7 +458,7 @@ class Anchor(LocalExplanation):
         y_true = np.argmax(y_true) if y_true.ndim > 1 else y_true
 
         # Use beam from https://homes.cs.washington.edu/~marcotcr/aaai18.pdf (Algorithm 2)
-        anchor = Anchor.beam_search(provider,
+        anchor = Anchor.beam_search(provider,  # noqa: F841
                                     perturbed,
                                     model,
                                     beam_size=beam_size,
@@ -465,7 +473,7 @@ class Anchor(LocalExplanation):
 class LocalTree(LocalExplanation, WeightedExplanation):
     def __init__(self,
                  env: Optional[AbstractEnvironment] = None,
-                 label_names: Optional[Union[Sequence[str], LabelProvider]]  = None,
+                 label_names: Optional[Union[Sequence[str], LabelProvider]] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  local_model: Optional[TreeSurrogate] = None,
                  kernel: Optional[Callable] = None,
@@ -486,7 +494,11 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
                  **sample_kwargs):
-        provider, perturbed, y = self.augment_sample(sample, model, n_samples=n_samples, avoid_proba=True, **sample_kwargs)
+        _, perturbed, y = self.augment_sample(sample,
+                                              model,
+                                              n_samples=n_samples,
+                                              avoid_proba=True,
+                                              **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         # Sample weights?
