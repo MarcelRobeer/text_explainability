@@ -1,3 +1,6 @@
+"""Default classes for all to inherit from."""
+
+
 class Readable:
     """Ensure that a class has a readable representation."""
 

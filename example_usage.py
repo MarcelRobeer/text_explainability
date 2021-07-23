@@ -1,4 +1,6 @@
 # %% General imports
+import os
+
 from instancelib.ingest.spreadsheet import read_csv_dataset
 from instancelib.instances.text import MemoryTextInstance
 
@@ -7,7 +9,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.ensemble import RandomForestClassifier
 
 # %% Create train/test dataset
-test_env = read_csv_dataset('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+path = os.path.join(os.path.dirname(__file__), './datasets/test.csv')
+test_env = read_csv_dataset(path, data_cols=['fulltext'], label_cols=['label'])
 instanceprovider = test_env.dataset
 labelprovider = test_env.labels
 train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
