@@ -1,0 +1,4 @@
+[tool.portray.mkdocs.theme]
+logo = "https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20white.png"
+name = "material"
+palette = {primary = "blue grey", accent = "#80D8FF"}
