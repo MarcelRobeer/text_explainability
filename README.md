@@ -1,4 +1,7 @@
-# Text Explainability
+<p align="center">
+  <img src="img/TextLogo-Logo large.png">
+</p>
+
 _A generic explainability architecture for explaining text machine learning models._
 
 Marcel Robeer, 2021
