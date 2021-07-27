@@ -62,14 +62,16 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
 
     def __call__(self,
                  instance: TextInstance[KT, VT],
-                 *args,
                  discard_children: bool = True,
+                 *args,
                  **kwargs) -> Iterator[TextInstance[KT, VT]]:
         """Apply perturbations to an instance to generate neighborhood data.
 
         Args:
             instance (TextInstance[Any, VT]): Tokenized instance to perturb.
             discard_children (bool, optional): Remove children from previous passes. Defaults to True.
+            *args: Arguments to be passed on to `perturb()` function.
+            **kwargs: Keyword arguments to be passed on to `perturb()` function.
 
         Yields:
             Iterator[Sequence[TextInstance[Any, VT]]]: Neighborhood data instances.
@@ -102,7 +104,7 @@ class TokenReplacement(LocalTokenPertubator):
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
                  replacement: Optional[Union[str, List[str]]] = 'UNKWRDZ',
                  seed: int = 0):
-        """[summary]
+        """Perturb a tokenized instance by replacing with a set token (e.g. 'UNKWRDZ') or deleting it.
 
         Args:
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a 
@@ -117,15 +119,15 @@ class TokenReplacement(LocalTokenPertubator):
 
     def _replace(self,
                  tokenized_instance: Iterable[str],
-                 keep: Iterable[int]):
-        """[summary]
+                 keep: Iterable[int]) -> Iterable[str]:
+        """Apply replacement/deletion to tokenized instance.
 
         Args:
             tokenized_instance (Iterable[str]): Tokenized instance.
             keep (Iterable[int]): Binary indicator whether to keep (1) or replace (0) a token.
 
         Returns:
-            [type]: [description]
+            Iterable[str]: Tokenized instance with perturbation applied.
         """
         if not self.replacement or self.replacement is None:
             return [token for token, i in zip(tokenized_instance, keep) if i == 1]
@@ -150,7 +152,7 @@ class TokenReplacement(LocalTokenPertubator):
         which is assumed not to be part of the original tokens.
 
         Args:
-            tokenized_instance (Iterable[str]): [description]
+            tokenized_instance (Iterable[str]): Tokenized instance to apply perturbations to.
             n_samples (int, optional): Number of samples to return. Defaults to 50.
             sequential (bool, optional): Whether to sample sequentially based on length (first length one, then two, 
                 etc.). Defaults to True.
@@ -161,7 +163,8 @@ class TokenReplacement(LocalTokenPertubator):
                 Defaults to False.
 
         Yields:
-            Iterator[Sequence[Iterable[str], Iterable[int]]]: [description]
+            Iterator[Sequence[Iterable[str], Iterable[int]]]: Pertubed text instances and indices where
+                perturbation were applied.
         """
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)

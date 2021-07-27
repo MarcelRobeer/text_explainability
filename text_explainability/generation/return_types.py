@@ -16,7 +16,7 @@ class FeatureList:
                  used_features: Union[Sequence[str], Sequence[int]],
                  scores: Union[Sequence[int], Sequence[float]],
                  labels: Optional[Sequence[int]] = None,
-                 label_names: Optional[Sequence[str]] = None):
+                 labelset: Optional[Sequence[str]] = None):
         """Save scores per feature, grouped per label.
 
         Examples of scores are feature importance scores, or counts of features in a dataset.
@@ -26,10 +26,10 @@ class FeatureList:
             scores (Union[Sequence[int], Sequence[float]]): Scores per label.
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
-            label_names (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
         """
         self._used_features = used_features
-        self._label_names = label_names
+        self._labelset = labelset
         self._labels = labels
         self._scores = np.array(scores)
 
@@ -41,9 +41,9 @@ class FeatureList:
         return list(self._labels)
 
     @property
-    def label_names(self):
+    def labelset(self):
         """Get label names property."""
-        return self._label_names
+        return self._labelset
 
     @property
     def used_features(self):
@@ -51,20 +51,20 @@ class FeatureList:
         return self._used_features
 
     def label_by_index(self, idx: int) -> Union[str, int]:
-        """Access label name by index, if `label_names` is set.
+        """Access label name by index, if `labelset` is set.
 
         Args:
             idx (int): Lookup index.
 
         Raises:
-            IndexError: `label_names` is set but the element index is
-                not in `label_names` (index out of bounds).
+            IndexError: `labelset` is set but the element index is
+                not in `labelset` (index out of bounds).
 
         Returns:
             Union[str, int]: Label name (if available) else index.
         """
-        if self.label_names is not None:
-            return self.label_names[idx]
+        if self.labelset is not None:
+            return self.labelset[idx]
         return idx
 
     def get_raw_scores(self, normalize: bool = False) -> np.ndarray:
@@ -89,7 +89,7 @@ class FeatureList:
             normalize (bool, optional): Whether to normalize the scores (sum to one). Defaults to False.
 
         Returns:
-            Dict[Union[str, int], Tuple[Union[str, int], Union[float, int]]]: Scores per label, if no `label_names`
+            Dict[Union[str, int], Tuple[Union[str, int], Union[float, int]]]: Scores per label, if no `labelset`
                 is not set, defaults to 'all'
         """
         all_scores = self.get_raw_scores(normalize=normalize)
@@ -121,7 +121,7 @@ class FeatureAttribution(FeatureList):
                  scores_stddev: Sequence[float] = None,
                  base_score: float = None,
                  labels: Optional[Sequence[int]] = None,
-                 label_names: Optional[Sequence[str]] = None,
+                 labelset: Optional[Sequence[str]] = None,
                  sampled: bool = False):
         """Create a `FeatureList` with additional information saved.
 
@@ -136,14 +136,14 @@ class FeatureAttribution(FeatureList):
                 Defaults to None.
             base_score (float, optional): Base score, to which all scores are relative. Defaults to None.
             labels (Optional[Sequence[int]], optional): Labels for outputs (e.g. classes). Defaults to None.
-            label_names (Optional[Sequence[str]], optional): Label names corresponding to labels. Defaults to None.
+            labelset (Optional[Sequence[str]], optional): Label names corresponding to labels. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
         super().__init__(used_features=used_features,
                          scores=scores,
                          labels=labels,
-                         label_names=label_names)
+                         labelset=labelset)
         self._provider = provider
         self._base_score = base_score
         self._scores_stddev = scores_stddev

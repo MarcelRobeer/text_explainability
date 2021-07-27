@@ -22,7 +22,6 @@ Tasks yet to be done:
 - Add data sampling methods (e.g. representative subset, prototypes, MMD-critic)
 - Implement local post-hoc explanations:
     - Implement Anchors
-    - Implement Foil Trees + ability to turn any output into a binary classification problem (fact-foil encodings)
 - Implement global post-hoc explanations
 - Add support for regression models
 - More complex data augmentation
