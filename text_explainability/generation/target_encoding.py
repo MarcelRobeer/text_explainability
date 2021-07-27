@@ -50,15 +50,13 @@ class TargetEncoder:
                 y = [y_[1] for y_ in y]
             if isinstance(y[0], frozenset):
                 y = [list(y_) for y_ in y]
-            if (isinstance(y[0], list) and len(y[0]) > 0
-                and isinstance(y[0][0], str)):
+            if isinstance(y[0], list) and len(y[0]) > 0 and isinstance(y[0][0], str):
                 y = [y_[0] for y_ in y]
         if proba_to_labels:
             # model.predict_proba
-            if (len(y) > 0 and isinstance(y[0], list)
-                and len(y[0]) > 0 and isinstance(y[0][0], tuple)):
-                y = [sorted(y_, key=lambda x: x[1], reverse=True)[0][0]
-                    for y_ in y]
+            if len(y) > 0 and isinstance(y[0], list) and len(y[0]) > 0 and isinstance(y[0][0], tuple):
+                y = [sorted(y_, key=lambda x: x[1], reverse=True)[0][0] for y_ in y]
+
             # model.predict_proba_raw
             if len(y) > 0 and isinstance(y[0], np.ndarray):
                 y = np.hstack([np.argmax(y_, axis=1) for y_ in y])

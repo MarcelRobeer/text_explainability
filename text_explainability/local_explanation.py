@@ -9,7 +9,7 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
-                         LabelProvider, MemoryLabelProvider, TextEnvironment, labels)
+                         LabelProvider, MemoryLabelProvider, TextEnvironment)
 from instancelib.machinelearning import AbstractClassifier
 from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
 from sklearn.linear_model import Ridge
