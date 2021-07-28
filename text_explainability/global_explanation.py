@@ -17,6 +17,7 @@ from sklearn.feature_selection import mutual_info_classif
 from text_explainability.utils import default_tokenizer
 from text_explainability.default import Readable
 from text_explainability.generation.return_types import FeatureList
+from text_explainability.internationalization import translate_list
 
 
 class GlobalExplanation(Readable):
@@ -90,7 +91,7 @@ class TokenFrequency(GlobalExplanation):
                  explain_model: bool = True,
                  labelwise: bool = True,
                  k: Optional[int] = None,
-                 filter_words: List[str] = ['de', 'het', 'een'],
+                 filter_words: List[str] = translate_list('stopwords'),
                  tokenizer: Callable = default_tokenizer,
                  **count_vectorizer_kwargs) -> Dict[str, List[Tuple[str, int]]]:
         """Show the top-k number of tokens for each ground-truth or predicted label.
@@ -133,7 +134,7 @@ class TokenInformation(GlobalExplanation):
                  explain_model: bool = True,
                  # labelwise: bool = True,
                  k: Optional[int] = None,
-                 filter_words: List[str] = ['de', 'het', 'een'],
+                 filter_words: List[str] = translate_list('stopwords'),
                  tokenizer: Callable = default_tokenizer,
                  **count_vectorizer_kwargs) -> List[Tuple[str, float]]:
         """Show the top-k token mutual information for a dataset or model.

@@ -552,4 +552,4 @@ class FoilTree(LocalExplanation, WeightedExplanation):
         # self.local_model.fit(perturbed, y_, weights=weights)
         self.local_model.fit(perturbed, y_)
 
-        return self.local_model
+        return self.local_model, self.local_model.tree_.max_depth

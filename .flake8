@@ -1,5 +1,14 @@
 [flake8]
-exclude = .git,__pycache__,__init__.py,setup.py,example_usage.py,.eggs,text_explainability/test,build
+exclude =
+    .git
+    __pycache__
+    __init__.py
+    setup.py
+    example_usage.py
+    .eggs
+    build
+    text_explainability/test
+    text_explainability/locale
 extend-ignore =
     D413
     D205

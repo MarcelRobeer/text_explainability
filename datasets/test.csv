@@ -9,3 +9,13 @@ id,fulltext,label
 7,'Dit heeft er ook weinig mee te maken.',neutraal
 8,'En deze al helemaal niet!',neutraal
 9,'We verdelen de negatieve examples eerlijk',negatief
+10,'Positiviteit is aanstekelijk',positief
+11,'Een negatief voorbeeld',negatief
+12,'Een positief voorbeeld',positief
+13,'Zijn insteek was niet meer dan positief.',positief
+14,'Dit is noch positief; noch negatief.',neutraal
+15,'Een positieve insteek.',positief
+16,'Een negatieve insteek',negatief
+17,'Een neutrale insteek',neutraal
+18,'Negativiteit is onwenselijk...',neutraal
+19,'Ik voel me soms wel erg positief!',positief
