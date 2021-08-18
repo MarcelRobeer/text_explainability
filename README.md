@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20large.png">
+  <img src="https://i.ibb.co/xXtJ23n/Text-Logo-Logo-large.png">
 </p>
 
 _A generic explainability architecture for explaining text machine learning models._
