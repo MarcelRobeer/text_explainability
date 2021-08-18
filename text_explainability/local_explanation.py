@@ -222,35 +222,49 @@ class LIME(LocalExplanation, WeightedExplanation):
             https://github.com/marcotcr/lime/blob/master/lime/lime_text.py
         """
         if labels is not None:
+            if isinstance(labels, (int, str)):
+                labels = [labels]
+
             n_labels = sum(1 for _ in iter(labels))
             if n_labels > 0 and isinstance(next(iter(labels)), str):
                 assert self.labelset is not None, 'can only provide label names when such a list exists'
                 labels = [self.labelset.index(label) for label in labels]
+
+        # Generate neighborhood samples
         provider, perturbed, y = self.augment_sample(sample, model, sequential=False,
-                                                     contiguous=False, n_samples=n_samples)
+                                                    contiguous=False, n_samples=n_samples)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         if weigh_samples:
             weights = self.weigh_samples(perturbed, metric=distance_metric)
-
-        # Get the most important features
         if feature_selection_method == 'auto':
             feature_selection_method = 'forward_selection' if n_features <= 6 else 'highest_weights'
-        used_features = FeatureSelector(self.local_model)(perturbed,
-                                                          y,
-                                                          weights=weights,
-                                                          n_features=n_features,
-                                                          method=feature_selection_method)
-        # Fit explanation model
-        self.local_model.alpha_reset()
-        self.local_model.fit(perturbed[:, used_features], y, weights=weights)
+
+        feature_importances, used_features = [], {}
 
         if labels is None:
             labels = np.arange(y.shape[1])
 
+        for label in labels:
+            # Look at output for label
+            y_label = y[:, label].copy()
+
+            # Get the most important features
+            features = FeatureSelector(self.local_model)(perturbed,
+                                                         y_label,
+                                                         weights=weights,
+                                                         n_features=n_features,
+                                                         method=feature_selection_method)
+            # Fit explanation model
+            self.local_model.alpha_reset()
+            self.local_model.fit(perturbed[:, features], y_label, weights=weights)
+
+            feature_importances.append(self.local_model.feature_importances)
+            used_features[label] = features
+
         return FeatureAttribution(provider,
                                   used_features,
-                                  self.local_model.feature_importances,
+                                  feature_importances,
                                   labels=labels,
                                   labelset=self.labelset)
 

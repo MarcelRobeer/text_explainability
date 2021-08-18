@@ -96,6 +96,10 @@ class FeatureList:
         if self.labels is None:
             return {'all': [(feature, score_)
                     for feature, score_ in zip(self.used_features, all_scores)]}
+        if isinstance(self.used_features, dict):
+            return {self.label_by_index(label): [(feature, score_)
+                    for feature, score_ in zip(self.used_features[label], all_scores[label])]
+                    for label in self.labels}
         return {self.label_by_index(label): [(feature, score_)
                 for feature, score_ in zip(self.used_features, all_scores[label])]
                 for label in self.labels}
