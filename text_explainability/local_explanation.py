@@ -232,7 +232,7 @@ class LIME(LocalExplanation, WeightedExplanation):
 
         # Generate neighborhood samples
         provider, perturbed, y = self.augment_sample(sample, model, sequential=False,
-                                                    contiguous=False, n_samples=n_samples)
+                                                     contiguous=False, n_samples=n_samples)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         if weigh_samples:
