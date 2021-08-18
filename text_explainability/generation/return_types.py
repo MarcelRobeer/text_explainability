@@ -31,7 +31,7 @@ class FeatureList:
         self._used_features = used_features
         self._labelset = labelset
         self._labels = labels
-        self._scores = np.array(scores)
+        self._scores = scores
 
     @property
     def labels(self):
@@ -76,11 +76,16 @@ class FeatureList:
         Returns:
             np.ndarray: Scores.
         """
-        scores = np.array(self._scores) if not isinstance(self._scores, np.ndarray) else self._scores
+        def feature_scores(scores):
+            if not isinstance(scores, np.ndarray):
+                scores = np.array(scores)
+            if normalize:
+                return scores / scores.sum(axis=0)
+            return scores
 
-        if normalize:
-            return scores / scores.sum(axis=1)[:, np.newaxis]
-        return scores
+        if isinstance(self._scores, dict):
+            return {k: feature_scores(v) for k, v in self._scores.items()}
+        return feature_scores(self._scores)
 
     def get_scores(self, normalize: bool = False) -> Dict[Union[str, int], Tuple[Union[str, int], Union[float, int]]]:
         """Get scores per label.
@@ -185,7 +190,7 @@ class FeatureAttribution(FeatureList):
     @property
     def scores(self):
         """Saved feature attribution scores."""
-        return self.get_scores(normalize=True)
+        return self.get_scores(normalize=False)
 
     def __repr__(self) -> str:
         sampled_or_perturbed = 'sampled' if self.sampled_instances is not None else 'perturbed'
