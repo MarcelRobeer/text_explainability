@@ -122,7 +122,8 @@ class TokenFrequency(GlobalExplanation):
                             cv.vocabulary_.items()), key=lambda x: x[1], reverse=True)
 
         if labelwise:  # TO-DO improve beyond classification, e.g. buckets for regression?
-            return {label: top_k_counts([instances[instances.key_list[idx]].data for idx in np.where(labels == label)[0]])
+            return {label: top_k_counts([instances[instances.key_list[idx]].data
+                                         for idx in np.where(labels == label)[0]])
                     for label in np.unique(labels)}
         return FeatureList('all', top_k_counts(instances.all_data()))
 
