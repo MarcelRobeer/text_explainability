@@ -5,7 +5,11 @@ import i18n
 
 from typing import List
 
-i18n.load_path.append(os.path.join(os.path.dirname(__file__), 'locale'))
+FOLDER = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+if not FOLDER.rstrip('/').endswith('text_explainability/text_explainability'):
+    FOLDER = os.path.join(FOLDER, 'text_explainability')
+
+i18n.load_path.append(os.path.join(FOLDER, 'locale'))
 i18n.set('filename_format', '{locale}.{format}')
 i18n.set('file_format', 'json')
 i18n.set('locale', 'nl')
