@@ -6,7 +6,7 @@ import i18n
 from typing import List
 
 FOLDER = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
-if not FOLDER.rstrip('/').endswith('text_explainability/text_explainability'):
+if not FOLDER.rstrip(os.path.sep).endswith(f'text_explainability{os.path.sep}text_explainability'):
     FOLDER = os.path.join(FOLDER, 'text_explainability')
 
 i18n.load_path.append(os.path.join(FOLDER, 'locale'))
