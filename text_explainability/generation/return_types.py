@@ -30,6 +30,7 @@ class FeatureList:
         """
         self._used_features = used_features
         self._labelset = labelset
+        print('LABELS::init', labels)
         self._labels = labels
         self._scores = scores
 
@@ -101,13 +102,14 @@ class FeatureList:
         if self.labels is None:
             return {'all': [(feature, score_)
                     for feature, score_ in zip(self.used_features, all_scores)]}
-        if isinstance(self.used_features, dict):
+        elif isinstance(self.used_features, dict):
             return {self.label_by_index(label): [(feature, score_)
-                    for feature, score_ in zip(self.used_features[label], all_scores[label])]
-                    for label in self.labels}
+                    for feature, score_ in zip(self.used_features[label], all_scores[i])]
+                    for i, label in enumerate(self.labels)}
+        print(self.labels)
         return {self.label_by_index(label): [(feature, score_)
-                for feature, score_ in zip(self.used_features, all_scores[label])]
-                for label in self.labels}
+                for feature, score_ in zip(self.used_features, all_scores[i])]
+                for i, label in enumerate(self.labels)}
 
     @property
     def scores(self):

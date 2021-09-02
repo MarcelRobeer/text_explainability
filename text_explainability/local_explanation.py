@@ -388,7 +388,8 @@ class KernelSHAP(LocalExplanation):
                 except np.linalg.LinAlgError:
                     tmp2 = np.linalg.pinv(np.dot(X_W, X))
                 phi = np.dot(tmp2, np.dot(X_W, y)).T
-        return FeatureAttribution(provider, used_features,
+        return FeatureAttribution(provider,
+                                  used_features,
                                   scores=phi,
                                   scores_stddev=phi_var,
                                   base_score=y_null,
