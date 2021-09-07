@@ -29,9 +29,9 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
     from sklearn.decomposition import PCA, KernelPCA, IncrementalPCA, NMF
 
     methods = {'pca': PCA,
-              'kernel_pca': KernelPCA,
-              'incremental_pca': IncrementalPCA,
-              'nmf': NMF}
+               'kernel_pca': KernelPCA,
+               'incremental_pca': IncrementalPCA,
+               'nmf': NMF}
 
     assert method in methods.keys(), f'Unknown method "{method}". Choose from {list(methods.keys())}'
 
