@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] - 2021-09-07
+### Changed
+- Bugfix in including `locale/*.json` files during setup
+
+## [0.3.7] - 2021-09-07
+### Added
+- Dependencies for package
+
 ## [0.3.6] - 2021-09-07
 ### Added
 - PyPI release script to .gitignore
@@ -78,6 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.3.8]: https://pypi.org/project/text-explainability/0.3.8/
+[0.3.7]: https://pypi.org/project/text-explainability/0.3.7/
 [0.3.6]: https://pypi.org/project/text-explainability/0.3.6/
 [0.3.5]: https://pypi.org/project/text-explainability/0.3.5/
 [0.3.4]: https://pypi.org/project/text-explainability/0.3.4/
