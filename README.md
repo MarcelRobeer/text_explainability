@@ -23,7 +23,7 @@ Run lines in `example_usage.py` to see an example of how the package can be used
 ## Releases
 `text_explainability` is officially released through [PyPI](https://pypi.org/project/text-explainability/).
 
-See [CHANGELOG.md](../CHANGELOG.md) for a full overview of the changes for each version.
+See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each version.
 
 ## Maintenance
 ### Contributors
