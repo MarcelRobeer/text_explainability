@@ -6,7 +6,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding
 
 setuptools.setup( # type: ignore
     name = 'text_explainability',
-    version = '0.3.7',
+    version = '0.3.8',
     description = 'Generic explainability architecture for text machine learning models',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
@@ -19,8 +19,9 @@ setuptools.setup( # type: ignore
         'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
         'Topic :: Scientific/Engineering :: Artificial Intelligence'
     ],
-    url='https://git.science.uu.nl/m.j.robeer/text_explainability',
+    url = 'https://git.science.uu.nl/m.j.robeer/text_explainability',
     packages = setuptools.find_packages(), # type : ignore
+    include_package_data = True,
     install_requires = [
         'instancelib>=0.3.2.0',
         'numpy>=1.19.5',
