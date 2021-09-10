@@ -1,17 +1,19 @@
 """Sample an (informative) subset from the data.
 
 Todo:
-- Sample (informative?) subset from data
-- Prototype sampling (k-medoids)
-- Refactor to make sampling base class
-- Add ability to perform MMD critic on a subset (e.g. single class)
+    * Sample (informative?) subset from data
+    * Prototype sampling (k-medoids)
+    * Refactor to make sampling base class
+    * Add ability to perform MMD critic on a subset (e.g. single class)
 """
 
-from typing import Dict, Sequence, Callable, Optional
+from typing import Dict, Sequence, Callable, Optional, Union
 
 import numpy as np
 from instancelib.instances.memory import MemoryBucketProvider
 from instancelib.instances.text import MemoryTextInstance
+from instancelib.labels.memory import MemoryLabelProvider
+from instancelib.labels.base import LabelProvider
 
 from text_explainability.data.embedding import Embedder, SentenceTransformer
 from text_explainability.data.weights import exponential_kernel
@@ -183,3 +185,101 @@ class MMDCritic(Readable):
         """
         return {'prototypes': self.prototypes(n=n_prototypes),
                 'criticisms': self.criticisms(n=n_criticisms, regularizer=regularizer)}
+
+
+class LabelwiseMMDCritic(Readable):
+    def __init__(self,
+                 instances: MemoryBucketProvider,
+                 labels: Union[Sequence[str], Sequence[int], LabelProvider],
+                 embedder: Embedder = SentenceTransformer(),
+                 kernel: Callable = exponential_kernel):
+        """Select  prototypes and criticisms for each label based on embedding distances using `MMD-Critic`_.
+
+        Args:
+            instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
+            labels (Union[Sequence[str], Sequence[int], LabelProvider]): Ground-truth or predicted labels, providing 
+                the groups (e.g. classes) in which to subdivide the instances.
+            embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
+                Defaults to SentenceTransformer().
+            kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
+
+        .. _MMD-critic:
+            https://christophm.github.io/interpretable-ml-book/proto.html
+        """
+        if not isinstance(labels, LabelProvider):
+            labels = MemoryLabelProvider.from_tuples((id, frozenset({label}))
+                                                     for id, label in zip(list(instances), labels))
+        self.labels = labels
+        self.instances = instances
+        self._setup_critics(embedder, kernel)
+        
+    def _setup_critics(self,
+                       embedder: Embedder,
+                       kernel: Callable):
+        """Setup a `text_explainability.data.sampling.MMDCritic` for each label in `self.labels.labelset`.
+
+        Args:
+            embedder (Embedder): Method to embed instances (if the `.vector` property is not yet set). 
+                Defaults to SentenceTransformer().
+            kernel (Callable): Kernel to calculate distances.
+        """
+        import copy
+
+        def select_by_label(label):
+            instances = copy.deepcopy(self.instances)
+            keys_to_keep = self.labels.get_instances_by_label(label)
+            instances._remove_from_bucket(frozenset(list(instances)).difference(keys_to_keep))
+            return instances
+
+        self._critics = {label: MMDCritic(select_by_label(label),
+                                          embedder=embedder,
+                                          kernel=kernel)
+                         for label in self.labels.labelset}
+
+    def prototypes(self, n: int = 5) -> Dict[str, Sequence[MemoryTextInstance]]:
+        """Select `n` prototypes (most representatitve instances).
+
+        Args:
+            n (int, optional): Number of prototypes to select. Defaults to 5.
+
+        Returns:
+            Dict[str, Sequence[MemoryTextInstance]]: Dictionary with labels and corresponding list of prototypes.
+        """
+        return {label: critic.prototypes(n=n)
+                for label, critic in self._critics.items()}
+
+    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Dict[str, Sequence[MemoryTextInstance]]:
+        """Select `n` criticisms (instances not well represented by prototypes).
+
+        Args:
+            n (int, optional): Number of criticisms to select. Defaults to 5.
+            regularizer (Optional[str], optional): Regularization method. Choose from [None, 'logdet', 'iterative']. 
+                Defaults to None.
+
+        Raises:
+            Exception: `MMDCritic.prototypes()` must first be run before being able to determine the criticisms.
+
+        Returns:
+            Dict[str, Sequence[MemoryTextInstance]]: Dictionary with labels and corresponding list of criticisms.
+        """
+        return {label: critic.criticisms(n=n, regularizer=regularizer)
+                for label, critic in self._critics.items()}
+
+    def __call__(self,
+                 n_prototypes: int = 5,
+                 n_criticisms: int = 5,
+                 regularizer: Optional[str] = None) -> Dict[str, Dict[str, Sequence[MemoryTextInstance]]]:
+        """Generate prototypes and criticisms for 
+
+        Args:
+            n_prototypes (int, optional): Number of prototypes to select. Defaults to 5.
+            n_criticisms (int, optional): Number of criticisms to select. Defaults to 5.
+            regularizer (Optional[str], optional): Regularization method. Choose from [None, 'logdet', 'iterative']. 
+                Defaults to None.
+
+        Returns:
+            Dict[str, Dict[str, Sequence[MemoryTextInstance]]]: Dictionary with labels and corresponding dictionary 
+                containing prototypes and criticisms.
+        """
+        return {label: critic(n_prototypes=n_prototypes, n_criticisms=n_criticisms, regularizer=regularizer)
+                for label, critic in self._critics.items()}
