@@ -2,15 +2,16 @@
 
 Todo:
 - Sample (informative?) subset from data
-- Prototype sampling
+- Prototype sampling (k-medoids)
 - Refactor to make sampling base class
 - Add ability to perform MMD critic on a subset (e.g. single class)
 """
 
-from typing import Sequence, Callable, Optional
+from typing import Dict, Sequence, Callable, Optional
 
 import numpy as np
 from instancelib.instances.memory import MemoryBucketProvider
+from instancelib.instances.text import MemoryTextInstance
 
 from text_explainability.data.embedding import Embedder, SentenceTransformer
 from text_explainability.data.weights import exponential_kernel
@@ -22,24 +23,48 @@ class MMDCritic(Readable):
                  instances: MemoryBucketProvider,
                  embedder: Embedder = SentenceTransformer(),
                  kernel: Callable = exponential_kernel):
+        """Select prototypes and criticisms based on embedding distances using `MMD-Critic`_.
+
+        Args:
+            instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
+            embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
+                Defaults to SentenceTransformer().
+            kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
+
+        .. _MMD-critic:
+            https://christophm.github.io/interpretable-ml-book/proto.html
+        """
         self.embedder = embedder
         self.kernel = kernel
         self.instances = self.embedder(instances) if any(instances[i].vector is None for i in instances) \
                          else instances
-        self._calculate_diag()
+        self._calculate_kernel()
         self._prototypes = None
         self._criticisms = None
 
-    def _calculate_diag(self):
+    def _calculate_kernel(self):
+        """Calculate kernel `K` and column totals `colsum`."""
         instances = np.stack(self.instances.bulk_get_vectors(list(self.instances))[-1])
         self.K = self.kernel(instances, 1.0 / instances.shape[1])
         self.colsum = np.sum(self.K, axis=0) / instances.shape[1]
 
-    def _select_from_provider(self, keys: Sequence[int]):
+    def _select_from_provider(self, keys: Sequence[int]) -> Sequence[MemoryTextInstance]:
+        """Select instances from provider by keys."""
         return [self.instances[i] for i in keys]
 
-    def prototypes(self, n: int = 5):
-        # https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
+    def prototypes(self, n: int = 5) -> Sequence[MemoryTextInstance]:
+        """Select `n` prototypes (most representatitve instances), using `MMD-critic implementation`_.
+
+        Args:
+            n (int, optional): Number of prototypes to select. Defaults to 5.
+
+        Returns:
+            Sequence[MemoryTextInstance]: List of prototype instances.
+
+        .. _MMD-critic implementation:
+            https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
+        """
+        assert n <= len(self.instances), f'Cannot select more than all instances ({len(self.instances)}.'
         K = self.K
         colsum = self.colsum.copy() * 2
         sample_indices = np.array(list(self.instances))
@@ -67,14 +92,31 @@ class MMDCritic(Readable):
         self._prototypes = self._select_from_provider(selected_in_order)
         return self._prototypes
 
-    def criticisms(self, n: int = 5, regularizer: Optional[str] = None):
+    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Sequence[MemoryTextInstance]:
+        """Select `n` criticisms (instances not well represented by prototypes), using `MMD-critic implementation`_. 
+
+        Args:
+            n (int, optional): Number of criticisms to select. Defaults to 5.
+            regularizer (Optional[str], optional): Regularization method. Choose from [None, 'logdet', 'iterative']. 
+                Defaults to None.
+
+        Raises:
+            Exception: `MMDCritic.prototypes()` must first be run before being able to determine the criticisms.
+
+        Returns:
+            Sequence[MemoryTextInstance]: List of criticism instances.
+
+        .. _MMD-critic implementation:
+            https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
+        """
         if self._prototypes is None:
             raise Exception('Calculating criticisms requires prototypes. Run `MMDCritic.prototypes()` first.')
-        available_regularizers = {None, 'logdet', 'iterative'}
-        assert regularizer in available_regularizers, \
-            f'Unknown regularizer "{regularizer}", choose from {available_regularizers}'
+        regularizers = {None, 'logdet', 'iterative'}
+        assert regularizer in regularizers, \
+            f'Unknown regularizer "{regularizer}", choose from {regularizers}.'
+        assert n <= (len(self.instances) - len(self._prototypes)), \
+            f'Cannot select more than instances excluding prototypes ({len(self.instances) - len(self._prototypes)})'
 
-        # https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
         prototypes = np.array([p.identifier for p in self._prototypes])
 
         K = self.K
@@ -124,6 +166,20 @@ class MMDCritic(Readable):
         self._criticisms = self._select_from_provider(selected_in_order)
         return self._criticisms
 
-    def __call__(self, n_prototypes: int = 5, n_criticisms: int = 5, regularizer: Optional[str] = None):
+    def __call__(self,
+                 n_prototypes: int = 5,
+                 n_criticisms: int = 5,
+                 regularizer: Optional[str] = None) -> Dict[str, Sequence[MemoryTextInstance]]:
+        """Calculate prototypes and criticisms for the provided instances.
+
+        Args:
+            n_prototypes (int, optional): Number of prototypes. Defaults to 5.
+            n_criticisms (int, optional): Number of criticisms. Defaults to 5.
+            regularizer (Optional[str], optional): Regularization method. Choose from [None, 'logdet', 'iterative']. 
+                Defaults to None.
+
+        Returns:
+            Dict[str, Sequence[MemoryTextInstance]]: Dictionary containing prototypes and criticisms.
+        """
         return {'prototypes': self.prototypes(n=n_prototypes),
                 'criticisms': self.criticisms(n=n_criticisms, regularizer=regularizer)}
