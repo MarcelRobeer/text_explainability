@@ -37,7 +37,7 @@ class MMDCritic(Readable):
 
     def _select_from_provider(self, keys: Sequence[int]):
         return [self.instances[i] for i in keys]
-        
+
     def prototypes(self, n: int = 5):
         # https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
         K = self.K
@@ -97,7 +97,7 @@ class MMDCritic(Readable):
 
             if regularizer == 'logdet':
                 diag = np.diagonal(K)[candidate_indices]
-                if inverse_of_prev_selected is not None: # first call has been made already
+                if inverse_of_prev_selected is not None:
                     temp = K[selected, :][:, candidate_indices]
                     temp2 = np.dot(inverse_of_prev_selected, temp) 
                     reg = temp2 * temp
@@ -115,10 +115,10 @@ class MMDCritic(Readable):
             selected = sample_indices[(is_selected > 0) & (is_selected != (n + 1))]
 
             if regularizer == 'iterative':
-                prototype_indices = np.concatenate([prototypes, np.expand_dims(best_sample_index, 0)])
+                prototypes = np.concatenate([prototypes, np.expand_dims(best_sample_index, 0)])
 
             if regularizer == 'logdet':
-                inverse_of_prev_selected = np.linalg.pinv(K[selected,:][:,selected])
+                inverse_of_prev_selected = np.linalg.pinv(K[selected, :][:, selected])
 
         selected_in_order = selected[is_selected[(is_selected > 0) & (is_selected != (n + 1))].argsort()]      
         self._criticisms = self._select_from_provider(selected_in_order)
