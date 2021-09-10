@@ -212,7 +212,7 @@ class LabelwiseMMDCritic(Readable):
         self.labels = labels
         self.instances = instances
         self._setup_critics(embedder, kernel)
- 
+
     def _setup_critics(self,
                        embedder: Embedder,
                        kernel: Callable):
