@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.4.1]: https://pypi.org/project/text-explainability/0.4.1/
 [0.4.0]: https://pypi.org/project/text-explainability/0.4.0/
 [0.3.8]: https://pypi.org/project/text-explainability/0.3.8/
 [0.3.7]: https://pypi.org/project/text-explainability/0.3.7/
