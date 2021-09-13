@@ -27,6 +27,8 @@ setuptools.setup( # type: ignore
         'numpy>=1.19.5',
         'python-i18n>=0.3.9',
         'scikit-learn>=0.24.1',
+        'sentence-transformers',  # optional in future
+        'scikit-learn-extra',  # optional in future
     ],
     python_requires = '>=3.8'
 )

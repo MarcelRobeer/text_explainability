@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for dimensionality reduction
 - Initial implementation of MMD-Critic
 - Initial implementation of labelwise MMD-Critic
+- Initial implementation of prototype selection using k-Medoids
 
 ## [0.3.8] - 2021-09-07
 ### Changed
