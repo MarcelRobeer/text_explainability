@@ -5,12 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2021-09-13
 ### Added
 - Initial support for embeddings/vectors
 - Support for dimensionality reduction
 - Initial implementation of MMD-Critic
 - Initial implementation of labelwise MMD-Critic
 - Initial implementation of prototype selection using k-Medoids
+
+### Changed
+- Updated README.md
 
 ## [0.3.8] - 2021-09-07
 ### Changed
@@ -93,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.4.0]: https://pypi.org/project/text-explainability/0.4.0/
 [0.3.8]: https://pypi.org/project/text-explainability/0.3.8/
 [0.3.7]: https://pypi.org/project/text-explainability/0.3.7/
 [0.3.6]: https://pypi.org/project/text-explainability/0.3.6/

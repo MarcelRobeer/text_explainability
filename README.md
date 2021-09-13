@@ -20,6 +20,20 @@ Marcel Robeer, 2021
 ## Example usage
 Run lines in `example_usage.py` to see an example of how the package can be used.
 
+## Explanation methods included
+`text_explainability` includes methods for model-agnostic _local explanation_, _global explanation_ and _explanation by example_. Each of these methods can be fully customized to fit the explainees' needs.
+
+| Type | Explanation method | Description | Paper/link |
+|------|--------------------|-------------|-------|
+| *Local explanation* | `LIME` | Calculate feature attribution with _Local Intepretable Model-Agnostic Explanations_ (LIME). | [[Ribeiro2016](https://paperswithcode.com/method/lime)], [interpretable-ml/lime](https://christophm.github.io/interpretable-ml-book/lime.html) |
+| |  `KernelSHAP` | Calculate feature attribution with _Shapley Additive Explanations_ (SHAP). | [[Lundberg2017](https://paperswithcode.com/paper/a-unified-approach-to-interpreting-model)], [interpretable-ml/shap](https://christophm.github.io/interpretable-ml-book/shap.html) |
+| |  `LocalTree` | Fit a local decision tree around a single decision. | [[Guidotti2018](https://paperswithcode.com/paper/local-rule-based-explanations-of-black-box)] |
+| |  `FoilTree` | Fit a local contrastive/counterfactual decision tree around a single decision. | [[Robeer2018](https://github.com/MarcelRobeer/ContrastiveExplanation)] |
+| *Global explanation* | `TokenFrequency` | Show the top-_k_ number of tokens for each ground-truth or predicted label. |
+| |  `TokenInformation` | Show the top-_k_ token mutual information for a dataset or model. | [wikipedia/mutual_information](https://en.wikipedia.org/wiki/Mutual_information) |
+| | `KMedoids` | Embed instances and find top-_n_ prototypes (can also be performed for each label using `LabelwiseKMedoids`). | [interpretable-ml/prototypes](https://christophm.github.io/interpretable-ml-book/proto.html) |
+| | `MMDCritic` | Embed instances and find top-_n_ prototypes and top-_n_ criticisms (can also be performed for each label using `LabelwiseMMDCritic`). | [[Kim2016](https://papers.nips.cc/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)], [interpretable-ml/prototypes](https://christophm.github.io/interpretable-ml-book/proto.html) |
+
 ## Releases
 `text_explainability` is officially released through [PyPI](https://pypi.org/project/text-explainability/).
 
@@ -32,10 +46,11 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 
 ### Todo
 Tasks yet to be done:
-- Add data sampling methods (e.g. representative subset, prototypes, MMD-critic)
 - Implement local post-hoc explanations:
     - Implement Anchors
 - Implement global post-hoc explanations
+- Implement explanation by example:
+    - Representative subset
 - Add support for regression models
 - More complex data augmentation
     - Top-k replacement (e.g. according to LM / WordNet)

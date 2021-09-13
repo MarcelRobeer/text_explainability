@@ -25,7 +25,8 @@ p = Pipeline([('vect', CountVectorizer()),
 from instancelib.machinelearning import SkLearnDataClassifier
 
 from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP, FoilTree
-from text_explainability.global_explanation import TokenFrequency, TokenInformation
+from text_explainability.global_explanation import (TokenFrequency, TokenInformation,
+                                                    MMDCritic, KMedoids, LabelwiseMMDCritic)
 from text_explainability.data.augmentation import TokenReplacement, LeaveOut
 from text_explainability.utils import default_detokenizer, default_tokenizer, PUNCTUATION
 
@@ -82,3 +83,17 @@ ti(labelprovider=labelprovider, explain_model=False, k=25).scores
 # %% Token information for model
 ti(model=model, explain_model=True, k=25, filter_words=PUNCTUATION)
 
+# %% Extract top-2 prototypes with KMedoids
+KMedoids(instanceprovider).prototypes(n=2)
+
+# %% Extract top-2 prototypes and top-2 criticisms label with MMDCritic
+MMDCritic(instanceprovider)(n_prototypes=2, n_criticisms=2)
+
+# %% Extract 1 prototype for each ground-truth label with MMDCritic
+LabelwiseMMDCritic(instanceprovider, labelprovider).prototypes(n=1)
+
+# %% Extract 1 prototype and 2 criticisms for each ground-truth label with MMDCritic
+LabelwiseMMDCritic(instanceprovider, labelprovider)(n_prototypes=1, n_criticisms=2)
+
+# %% Extract 1 prototype and 1 criticism for each predicted label with MMDCritic
+LabelwiseMMDCritic(instanceprovider, model)(n_prototypes=1, n_criticisms=1)

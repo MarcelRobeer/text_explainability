@@ -1,6 +1,7 @@
 """Global explanations explain the whole dataset or model behavior on that dataset.
 
 Todo:
+    * More support for sampling methods
     * add support for other tasks than classification (e.g. regression, multi-label classification)
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
@@ -18,6 +19,9 @@ from text_explainability.utils import default_tokenizer
 from text_explainability.default import Readable
 from text_explainability.generation.return_types import FeatureList
 from text_explainability.internationalization import translate_list
+
+from text_explainability.data.sampling import KMedoids, MMDCritic
+from text_explainability.data.sampling import LabelwiseKMedoids, LabelwiseMMDCritic
 
 
 class GlobalExplanation(Readable):
@@ -170,3 +174,7 @@ class TokenInformation(GlobalExplanation):
         res_sorted = list(sorted(res, key=lambda x: x[1], reverse=True))[:k]
         return FeatureList(used_features=[a for a, b in res_sorted],
                            scores=[b for a, b in res_sorted])
+
+
+__all__ = [GlobalExplanation, TokenFrequency, TokenInformation,
+           KMedoids, MMDCritic, LabelwiseKMedoids, LabelwiseMMDCritic]

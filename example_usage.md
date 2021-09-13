@@ -38,13 +38,13 @@ model.fit_provider(train, labelprovider)
 ```
 
 ## Using Text Explainability
-Text Explainability is mainly used for local explanations (explaining a single prediction) or global explanations (explaining general model behavior).
+Text Explainability is used for _local explanations_ (explaining a single prediction), _global explanations_ (explaining general model behavior) or _explanation by example_ (summarizing datasets or subsets thereof by instances).
 
 ### Local explanations
 Popular local explanations include `LIME`, local decion trees (`LocalTree`), `KernelSHAP` and `FoilTree`. First, let us create a sample to explain:
 
 ```python
-from text_explainability.utils import default_tokenizer
+from text_explainability import default_tokenizer
 
 data = 'Dit is zeer positieve proef...'
 sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
@@ -53,7 +53,7 @@ sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
 Next, the prediction of `model` on `sample` can be explained by generating neighborhood data (`text_explainability.data.augmentation.TokenReplacement`), used by `LIME`, `LocalTree`, `FoilTree` and `KernelSHAP`:
 
 ```python
-from text_explainability.local_explanation import LIME, LocalTree, FoilTree, KernelSHAP
+from text_explainability import LIME, LocalTree, FoilTree, KernelSHAP
 
 # LIME explainer for `sample` on `model`
 explainer = LIME(test_env)
@@ -73,7 +73,7 @@ KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 Global explanations provide information on the dataset and its ground-truth labels, or the dataset and corresponding predictions by the `model`. Example global explanations are `TokenFrequency` (the frequency of each token per label/class/bucket) or `TokenInformation` (how informative each token is for predicting the various labels).
 
 ```python
-from text_explainability.global_explanation import TokenFrequency, TokenInformation
+from text_explainability import TokenFrequency, TokenInformation
 
 # Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(instanceprovider)
@@ -88,4 +88,23 @@ ti(labelprovider=labelprovider, explain_model=False, k=50).scores
 
 # Token information for model
 ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
+```
+
+#### Explanation by example
+Explanations by example provide information on a dataset (e.g. the test set) or subsets thereof (e.g. all training instances with label 0) by showing representative instances. Examples of representative instances are prototypes (`n` most representative instances, e.g. of a class) and criticsms (`n` instances not well represented by prototypes). Example explanations by example are `KMedoids` (using the _k-Medoids_ algorithm to extract prototypes) and `MMDCritic` (extracting prototypes and corresponding criticisms). In addition, each of these can be performed labelwise (e.g. for the ground-truth labels in a `labelprovider` or for each models' predicted class).
+
+```python
+from text_explainability import KMedoids, MMDCritic, LabelwiseMMDCritic
+
+# Extract top-2 prototypes with KMedoids
+KMedoids(instanceprovider).prototypes(n=2)
+
+# Extract top-2 prototypes and top-2 criticisms label with MMDCritic
+MMDCritic(instanceprovider)(n_prototypes=2, n_criticisms=2)
+
+# Extract 1 prototype for each ground-truth label with MMDCritic
+LabelwiseMMDCritic(instanceprovider, labelprovider).prototypes(n=1)
+
+# %% Extract 1 prototype and 2 criticisms for each predicted label with MMDCritic
+LabelwiseMMDCritic(instanceprovider, model)(n_prototypes=1, n_criticisms=2)
 ```

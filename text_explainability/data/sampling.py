@@ -13,6 +13,7 @@ from instancelib.instances.memory import MemoryBucketProvider
 from instancelib.instances.text import MemoryTextInstance
 from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.labels.base import LabelProvider
+from instancelib.machinelearning.base import AbstractClassifier
 
 from text_explainability.data.embedding import Embedder, SentenceTransformer
 from text_explainability.data.weights import exponential_kernel
@@ -265,7 +266,7 @@ class LabelwisePrototypeSampler(Readable):
     def __init__(self,
                  sampler: PrototypeSampler,
                  instances: MemoryBucketProvider,
-                 labels: Union[Sequence[str], Sequence[int], LabelProvider],
+                 labels: Union[Sequence[str], Sequence[int], LabelProvider, AbstractClassifier],
                  embedder: Embedder = SentenceTransformer(),
                  **kwargs):
         """Apply `PrototypeSampler()` for each label.
@@ -273,23 +274,31 @@ class LabelwisePrototypeSampler(Readable):
         Args:
             sampler (PrototypeSampler): Prototype sampler to construct (e.g. `KMedoids`, `MMDCritic`)
             instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
-            labels (Union[Sequence[str], Sequence[int], LabelProvider]): Ground-truth or predicted labels, providing 
-                the groups (e.g. classes) in which to subdivide the instances.
+            labels (Union[Sequence[str], Sequence[int], LabelProvider, AbstractClassifier]): Ground-truth or predicted 
+                labels, providing the groups (e.g. classes) in which to subdivide the instances.
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
                 Defaults to SentenceTransformer().
             **kwargs: Additional arguments passed to `_setup_instances()` constructor.
         """
         self.sampler = sampler if isinstance(sampler, type) else self.sampler.__class__
-        if not isinstance(labels, LabelProvider):
-            labels = MemoryLabelProvider.from_tuples((id, frozenset({label}))
-                                                     for id, label in zip(list(instances), labels))
-        self.labels = labels
         self.instances = instances
-        self._setup_instances(embedder, **kwargs)
+        self._get_labels(labels)
+        self._setup_samplers(embedder, **kwargs)
 
-    def _setup_instances(self,
-                         embedder: Embedder,
-                         **kwargs):
+    def _get_labels(self,
+                    labels: Union[Sequence[str], Sequence[int], LabelProvider, AbstractClassifier]):
+        """Transform the labels into a `LabelProvider`."""   
+        if not isinstance(labels, LabelProvider):
+            if isinstance(labels, AbstractClassifier):
+                labels_ = labels.predict(self.instances)
+            else:
+                labels_ = [(id, frozenset({label})) for id, label in zip(list(self.instances), labels)]
+            labels = MemoryLabelProvider.from_tuples(labels_)
+        self.labels = labels
+
+    def _setup_samplers(self,
+                        embedder: Embedder,
+                        **kwargs):
         """Setup a sampler for each label in `self.labels.labelset`.
 
         Args:
@@ -309,6 +318,7 @@ class LabelwisePrototypeSampler(Readable):
                                               embedder=embedder,
                                               **kwargs)
                           for label in self.labels.labelset}
+        self.samplers = self._samplers
 
     def prototypes(self, n: int = 5) -> Dict[str, Sequence[MemoryTextInstance]]:
         """Select `n` prototypes (most representatitve instances).
@@ -320,6 +330,20 @@ class LabelwisePrototypeSampler(Readable):
             Dict[str, Sequence[MemoryTextInstance]]: Dictionary with labels and corresponding list of prototypes.
         """
         return {label: sampler.prototypes(n=n)
+                for label, sampler in self._samplers.items()}
+
+    def __call__(self,
+                 n: int = 5) -> Dict[str, Dict[str, Sequence[MemoryTextInstance]]]:
+        """Generate prototypes for each label.
+
+        Args:
+            n (int, optional): Number of prototypes to select. Defaults to 5.
+
+        Returns:
+            Dict[str, Dict[str, Sequence[MemoryTextInstance]]]: Dictionary with labels and corresponding dictionary 
+                containing prototypes.
+        """
+        return {label: {'prototypes': sampler.prototypes(n=n)}
                 for label, sampler in self._samplers.items()}
 
 
@@ -367,7 +391,8 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
         .. _MMD-critic:
             https://christophm.github.io/interpretable-ml-book/proto.html
         """
-        super().__init__(instances=instances,
+        super().__init__(MMDCritic,
+                         instances=instances,
                          labels=labels,
                          embedder=embedder,
                          kernel=kernel)
@@ -393,7 +418,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
                  n_prototypes: int = 5,
                  n_criticisms: int = 5,
                  regularizer: Optional[str] = None) -> Dict[str, Dict[str, Sequence[MemoryTextInstance]]]:
-        """Generate prototypes and criticisms for 
+        """Generate prototypes and criticisms for each label.
 
         Args:
             n_prototypes (int, optional): Number of prototypes to select. Defaults to 5.
