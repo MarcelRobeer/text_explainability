@@ -123,7 +123,7 @@ class LocalExplanation(Readable):
         # Perform prediction
         if predict:
             ys = model.predict_proba_raw(provider)
-            y = np.stack([y_ for id, y_ in ys]).squeeze()
+            y = np.vstack([y_ for id, y_ in ys]).squeeze()
             if avoid_proba:
                 y = np.argmax(y, axis=1)
 
