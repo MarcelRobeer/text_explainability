@@ -38,7 +38,7 @@ model.fit_provider(train, labelprovider)
 ```
 
 ## Using Text Explainability
-Text Explainability is used for _local explanations_ (explaining a single prediction), _global explanations_ (explaining general model behavior) or _explanation by example_ (summarizing datasets or subsets thereof by instances).
+Text Explainability is used for _local explanations_ (explaining a single prediction) or _global explanations_ (explaining general dataset/model behavior).
 
 ### Local explanations
 Popular local explanations include `LIME`, local decion trees (`LocalTree`), `KernelSHAP` and `FoilTree`. First, let us create a sample to explain:
@@ -90,7 +90,7 @@ ti(labelprovider=labelprovider, explain_model=False, k=50).scores
 ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
 ```
 
-#### Explanation by example
+#### Global explanation: Explanation by example
 Explanations by example provide information on a dataset (e.g. the test set) or subsets thereof (e.g. all training instances with label 0) by showing representative instances. Examples of representative instances are prototypes (`n` most representative instances, e.g. of a class) and criticsms (`n` instances not well represented by prototypes). Example explanations by example are `KMedoids` (using the _k-Medoids_ algorithm to extract prototypes) and `MMDCritic` (extracting prototypes and corresponding criticisms). In addition, each of these can be performed labelwise (e.g. for the ground-truth labels in a `labelprovider` or for each models' predicted class).
 
 ```python

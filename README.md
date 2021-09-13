@@ -21,7 +21,7 @@ Marcel Robeer, 2021
 Run lines in `example_usage.py` to see an example of how the package can be used.
 
 ## Explanation methods included
-`text_explainability` includes methods for model-agnostic _local explanation_, _global explanation_ and _explanation by example_. Each of these methods can be fully customized to fit the explainees' needs.
+`text_explainability` includes methods for model-agnostic _local explanation_ and _global explanation_. Each of these methods can be fully customized to fit the explainees' needs.
 
 | Type | Explanation method | Description | Paper/link |
 |------|--------------------|-------------|-------|
@@ -48,8 +48,7 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 Tasks yet to be done:
 - Implement local post-hoc explanations:
     - Implement Anchors
-- Implement global post-hoc explanations
-- Implement explanation by example:
+- Implement global post-hoc explanations:
     - Representative subset
 - Add support for regression models
 - More complex data augmentation
