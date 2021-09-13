@@ -23,15 +23,15 @@ from text_explainability.default import Readable
 class PrototypeSampler(Readable):
     def __init__(self,
                  instances: MemoryBucketProvider,
-                 embedder: Embedder = SentenceTransformer()):
+                 embedder: Embedder = SentenceTransformer):
         """Generic class for sampling prototypes (representative samples) based on embedding distances.
 
         Args:
             instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
         """
-        self.embedder = embedder
+        self.embedder = embedder() if isinstance(embedder, type) else embedder
         self.instances = self.embedder(instances) if any(instances[i].vector is None for i in instances) \
                          else instances
 
@@ -61,14 +61,14 @@ class PrototypeSampler(Readable):
 class KMedoids(PrototypeSampler):
     def __init__(self,
                  instances: MemoryBucketProvider,
-                 embedder: Embedder = SentenceTransformer(),
+                 embedder: Embedder = SentenceTransformer,
                  seed: int = 0):
         """Sampling prototypes (representative samples) based on embedding distances using `k-Medoids`_.
 
         Args:
             instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
 
         .. _k-Medoids:
@@ -105,14 +105,14 @@ class KMedoids(PrototypeSampler):
 class MMDCritic(PrototypeSampler):
     def __init__(self,
                  instances: MemoryBucketProvider,
-                 embedder: Embedder = SentenceTransformer(),
+                 embedder: Embedder = SentenceTransformer,
                  kernel: Callable = exponential_kernel):
         """Select prototypes and criticisms based on embedding distances using `MMD-Critic`_.
 
         Args:
             instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
 
         .. _MMD-critic:
@@ -267,7 +267,7 @@ class LabelwisePrototypeSampler(Readable):
                  sampler: PrototypeSampler,
                  instances: MemoryBucketProvider,
                  labels: Union[Sequence[str], Sequence[int], LabelProvider, AbstractClassifier],
-                 embedder: Embedder = SentenceTransformer(),
+                 embedder: Embedder = SentenceTransformer,
                  **kwargs):
         """Apply `PrototypeSampler()` for each label.
 
@@ -277,7 +277,7 @@ class LabelwisePrototypeSampler(Readable):
             labels (Union[Sequence[str], Sequence[int], LabelProvider, AbstractClassifier]): Ground-truth or predicted 
                 labels, providing the groups (e.g. classes) in which to subdivide the instances.
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             **kwargs: Additional arguments passed to `_setup_instances()` constructor.
         """
         self.sampler = sampler if isinstance(sampler, type) else self.sampler.__class__
@@ -303,7 +303,7 @@ class LabelwisePrototypeSampler(Readable):
 
         Args:
             embedder (Embedder): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             **kwargs: Additional arguments passed to sampler constructor.
         """
         import copy
@@ -351,7 +351,7 @@ class LabelwiseKMedoids(LabelwisePrototypeSampler):
     def __init__(self,
                  instances: MemoryBucketProvider,
                  labels: Union[Sequence[str], Sequence[int], LabelProvider],
-                 embedder: Embedder = SentenceTransformer(),
+                 embedder: Embedder = SentenceTransformer,
                  seed: int = 0):
         """Select prototypes for each label based on embedding distances using `k-Medoids`_.
 
@@ -360,7 +360,7 @@ class LabelwiseKMedoids(LabelwisePrototypeSampler):
             labels (Union[Sequence[str], Sequence[int], LabelProvider]): Ground-truth or predicted labels, providing 
                 the groups (e.g. classes) in which to subdivide the instances.
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
 
         .. _k-Medoids:
@@ -376,7 +376,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
     def __init__(self,
                  instances: MemoryBucketProvider,
                  labels: Union[Sequence[str], Sequence[int], LabelProvider],
-                 embedder: Embedder = SentenceTransformer(),
+                 embedder: Embedder = SentenceTransformer,
                  kernel: Callable = exponential_kernel):
         """Select prototypes and criticisms for each label based on embedding distances using `MMD-Critic`_.
 
@@ -385,7 +385,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
             labels (Union[Sequence[str], Sequence[int], LabelProvider]): Ground-truth or predicted labels, providing 
                 the groups (e.g. classes) in which to subdivide the instances.
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
-                Defaults to SentenceTransformer().
+                Defaults to SentenceTransformer.
             kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
 
         .. _MMD-critic:

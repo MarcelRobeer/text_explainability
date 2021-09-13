@@ -14,11 +14,11 @@ Marcel Robeer, 2021
 ## Installation
 | Method | Instructions |
 |--------|--------------|
-| `pip` | Install from PyPI via `pip3 install text_explainability`. |
+| `pip` | Install from [PyPI](https://pypi.org/project/text-explainability/) via `pip3 install text_explainability`. |
 | Local | Clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
 
 ## Example usage
-Run lines in `example_usage.py` to see an example of how the package can be used.
+See [example_usage.md](example_usage.md) to see an example of how the package can be used, or run the lines in `example_usage.py` to do explore it interactively.
 
 ## Explanation methods included
 `text_explainability` includes methods for model-agnostic _local explanation_ and _global explanation_. Each of these methods can be fully customized to fit the explainees' needs.
