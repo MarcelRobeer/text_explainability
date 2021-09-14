@@ -21,7 +21,7 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
         vectors (Union[np.ndarray, list, MemoryBucketProvider]): Vectors or BucketProvider with vectorized instances.
         n (int, optional): Number of dimensions (should be low, e.g. 2 or 3). Defaults to 2.
         method (str, optional): Method used for dimensionality reduction. Choose from ['pca', 'kernel_pca', 
-        'incremental_pca', 'nmf']. Defaults to 'pca'.
+            'incremental_pca', 'nmf']. Defaults to 'pca'.
 
     Returns:
         np.ndarray: Vectors summarized in n dimensions.
@@ -33,7 +33,7 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
                'incremental_pca': IncrementalPCA,
                'nmf': NMF}
 
-    assert method in methods.keys(), f'Unknown method "{method}". Choose from {list(methods.keys())}'
+    assert method in methods.keys(), f'Unknown method "{method}". Choose from {list(methods.keys())}.'
 
     if isinstance(vectors, MemoryBucketProvider):
         vectors = vectors.bulk_get_vectors(list(vectors))[-1]
@@ -68,7 +68,7 @@ class Embedder(Readable):
 
         Returns:
             Union[np.ndarray, MemoryBucketProvider]: Embedded instances (provided back into the BucketProvider if it
-            was originally passed as a BucketProvider).
+                was originally passed as a BucketProvider).
         """
         is_provider = isinstance(instances, MemoryBucketProvider)
 
@@ -87,7 +87,8 @@ class Embedder(Readable):
             embeddings = np.array(embeddings)
         return embeddings
 
-    def __call__(self, instances: Union[np.ndarray, list, MemoryBucketProvider]):
+    def __call__(self,
+                 instances: Union[np.ndarray, list, MemoryBucketProvider])  -> Union[np.ndarray, MemoryBucketProvider]:
         """Calls the `self.embed()` function."""
         return self.embed(instances)
 
@@ -99,11 +100,11 @@ class SentenceTransformer(Embedder):
         By default requires and active internet connection, or provide the name of a local `model_name`.
 
         Args:
-            model_name (str, optional): Name Sentence Transformer model. See 
-            https://www.sbert.net/docs/pretrained_models.html for model names. Defaults to 
-            'distiluse-base-multilingual-cased-v1'.
+            model_name (str, optional): Name of Sentence Transformer model. See 
+                https://www.sbert.net/docs/pretrained_models.html for model names. Defaults to 
+                'distiluse-base-multilingual-cased-v1'.
             **kwargs: Optional arguments to be passed to `SentenceTransformer.encode()` function. See
-            https://www.sbert.net/examples/applications/computing-embeddings/README.html
+                https://www.sbert.net/examples/applications/computing-embeddings/README.html
 
         .. _Sentence Transformers:
             https://github.com/UKPLab/sentence-transformers

@@ -1,12 +1,17 @@
 import setuptools
 from os import path
+from distutils.util import convert_path
+
+main_ns = {}
+with open(convert_path('text_explainability/__init__.py')) as ver_file:
+    exec(ver_file.read(), main_ns)
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup( # type: ignore
     name = 'text_explainability',
-    version = '0.4.2',
+    version = main_ns['__version__'],
     description = 'Generic explainability architecture for text machine learning models',
     long_description = long_description,
     long_description_content_type = 'text/markdown',

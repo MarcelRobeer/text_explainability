@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- New embeddings not requiring internet (`CountVectorizer`, `TfidfVectorizer`)
+
+### Changed
+- New default embedding method for `MMDCritic` and `KMedoids`
+- Version moved to `__init__.py`
+- New README.md layout
+- Updates to Anchor local explanations
 
 ## [0.4.2] - 2021-09-13
 ### Changed

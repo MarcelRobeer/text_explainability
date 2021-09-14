@@ -1,13 +1,15 @@
 <p align="center">
-  <img src="https://i.ibb.co/xXtJ23n/Text-Logo-Logo-large.png">
+  <img src="https://i.ibb.co/xXtJ23n/Text-Logo-Logo-large.png" alt="T_xt Explainability logo" width="70%">
 </p>
-
-_A generic explainability architecture for explaining text machine learning models._
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
 [![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](https://pypi.org/project/text-explainability/)
 [![Build_passing](https://img.shields.io/badge/build-passing-brightgreen)](https://git.science.uu.nl/m.j.robeer/text_explainability/-/pipelines)
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+
+---
+
+_A generic explainability architecture for explaining text machine learning models._
 
 Marcel Robeer, 2021
 

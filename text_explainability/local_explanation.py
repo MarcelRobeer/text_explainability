@@ -442,17 +442,18 @@ class Anchor(LocalExplanation):
         assert 0.0 <= epsilon <= 0.95, f'epsilon should be a value in [0, 1], but is {epsilon}'
         assert batch_size > 2, 'requires positive batch size'
 
-        y = [provider[i] for i in range(batch_size + 1)]
-        y_true, y = y[0], y[1:]  # noqa: F841
+        for batch in provider.instance_chunker(batch_size):
+            y = list(model.predict_proba_raw(batch))[-1][-1]  # todo: only look at probs of one class
+            y_true, y = y[0], y[1:]  # noqa: F841
 
-        beta = np.log(1.0 / delta)
-        mean = y.mean()
-        lb = Anchor.dlow_bernoulli(mean, beta / perturbed.shape[0])
+            beta = np.log(1.0 / delta)
+            mean = y.mean()
+            lb = Anchor.dlow_bernoulli(mean, beta / perturbed.shape[0])
 
-        batch = 1
-        while mean > min_confidence and lb < min_confidence - epsilon:
-            batch += 1
-        pass
+            if not(mean > min_confidence and lb < min_confidence - epsilon):
+                break
+
+        raise NotImplementedError('[WIP] Implementing anchor/anchor_base.py')
 
     def __call__(self,
                  sample: MemoryTextInstance,
@@ -470,8 +471,7 @@ class Anchor(LocalExplanation):
                                                   contiguous=False, n_samples=n_samples,
                                                   predict=False)
         perturbed = binarize(perturbed[1:])  # flatten all n replacements into one
-        y_true = model(provider[0])
-        y_true = np.argmax(y_true) if y_true.ndim > 1 else y_true
+        y_true = np.argmax(model.predict_proba([provider[0]])[0][-1])
 
         # Use beam from https://homes.cs.washington.edu/~marcotcr/aaai18.pdf (Algorithm 2)
         anchor = Anchor.beam_search(provider,  # noqa: F841
@@ -519,7 +519,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
 
         # Sample weights?
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        self.local_model.fit(perturbed, y, weights=weights)
+        self.local_model.fit(perturbed, y, sample_weight=weights)
 
         return self.local_model.feature_importances, self.local_model
 
@@ -563,8 +563,7 @@ class FoilTree(LocalExplanation, WeightedExplanation):
 
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
-        # weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        # self.local_model.fit(perturbed, y_, weights=weights)
-        self.local_model.fit(perturbed, y_)
+        weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
+        self.local_model.fit(perturbed, y_, sample_weight=weights)
 
         return self.local_model, self.local_model.tree_.max_depth
