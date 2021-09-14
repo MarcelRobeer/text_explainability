@@ -109,3 +109,18 @@ class SentenceTransformer(Embedder):
         from sentence_transformers import SentenceTransformer as SentTransformer
         self.model = SentTransformer(model_name)
         super().__init__(lambda x: self.model.encode(x, **kwargs))
+
+
+class TfidfTransformer(Embedder):
+    def __init__(self, **kwargs):
+        """Embed sentences using `sklearn.TfidfTransformer`_.
+
+        Args:
+            **kwargs: Optional arguments passed for `sklearn.TfidfTransformer()` construction.
+
+        .. _sklearn.TfidfTransformer:
+            https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfTransformer.html
+        """
+        from sklearn.feature_extraction.text import TfidfTransformer as Tfidf
+        self.model = Tfidf(**kwargs)
+        super().__init__(lambda x: self.model.fit_transform(x).toarray())
