@@ -111,16 +111,16 @@ class SentenceTransformer(Embedder):
         super().__init__(lambda x: self.model.encode(x, **kwargs))
 
 
-class TfidfTransformer(Embedder):
+class TfidfVectorizer(Embedder):
     def __init__(self, **kwargs):
-        """Embed sentences using `sklearn.TfidfTransformer`_.
+        """Embed sentences using `sklearn.TfidfVectorizer`_.
 
         Args:
-            **kwargs: Optional arguments passed for `sklearn.TfidfTransformer()` construction.
+            **kwargs: Optional arguments passed for `sklearn.TfidfVectorizer()` construction.
 
-        .. _sklearn.TfidfTransformer:
-            https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfTransformer.html
+        .. _sklearn.TfidfVectorizer:
+            https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
         """
-        from sklearn.feature_extraction.text import TfidfTransformer as Tfidf
+        from sklearn.feature_extraction.text import TfidfVectorizer as Tfidf
         self.model = Tfidf(**kwargs)
         super().__init__(lambda x: self.model.fit_transform(x).toarray())
