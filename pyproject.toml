@@ -1,5 +1,37 @@
+[tool.portray]
+modules = ["text_explainability"]
+
+[tool.portray.mkdocs]
+nav = [{ Home = "README.md" },
+       { Installation = "docs/installation.md" },
+       { "Example usage" = "example_usage.md" },
+       { Changelog = "CHANGELOG.md" }]
+markdown_extensions = ["toc",
+                       "admonition",
+                       "pymdownx.superfences",
+                       "pymdownx.highlight",
+                       "pymdownx.details",
+                       "mdx_truly_sane_lists"]
+
 [tool.portray.mkdocs.theme]
-logo = "https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20white.png"
+logo = "https://i.ibb.co/pvkkWqZ/Text-Logo-Logo-white.png"
 name = "material"
 palette = {primary = "blue grey", accent = "#80D8FF"}
-markdown_extensions = ["pymdownx.superfences", "pymdownx.highlight"]
+site_description = """
+  This is the documentation for text_explainability, a generic explainability architecture 
+  for text machine learning models.
+  """
+
+[[tool.portray.mkdocs.markdown_extensions]]
+[tool.portray.mkdocs.markdown_extensions."pymdownx.highlight"]
+linenums = true
+
+[[tool.portray.mkdocs.markdown_extensions]]
+[tool.portray.mkdocs.markdown_extensions.mdx_truly_sane_lists]
+nested_indent = 4
+truly_sane = true
+
+[[tool.portray.mkdocs.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/MarcelRobeer/Text_Explainability"
+name = "text_explainability on GitHub"

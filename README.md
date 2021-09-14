@@ -12,6 +12,8 @@ _A generic explainability architecture for explaining text machine learning mode
 Marcel Robeer, 2021
 
 ## Installation
+See [installation.md](docs/installation.md) for an extended installation guide.
+
 | Method | Instructions |
 |--------|--------------|
 | `pip` | Install from [PyPI](https://pypi.org/project/text-explainability/) via `pip3 install text_explainability`. |
@@ -46,6 +48,7 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 
 ### Todo
 Tasks yet to be done:
+
 - Implement local post-hoc explanations:
     - Implement Anchors
 - Implement global post-hoc explanations:
