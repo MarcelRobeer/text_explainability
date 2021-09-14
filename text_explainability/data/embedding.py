@@ -96,6 +96,8 @@ class SentenceTransformer(Embedder):
     def __init__(self, model_name: str = 'distiluse-base-multilingual-cased-v1', **kwargs):
         """Embed sentences using the `Sentence Transformers`_ package.
 
+        By default requires and active internet connection, or provide the name of a local `model_name`.
+
         Args:
             model_name (str, optional): Name Sentence Transformer model. See 
             https://www.sbert.net/docs/pretrained_models.html for model names. Defaults to 
@@ -109,6 +111,21 @@ class SentenceTransformer(Embedder):
         from sentence_transformers import SentenceTransformer as SentTransformer
         self.model = SentTransformer(model_name)
         super().__init__(lambda x: self.model.encode(x, **kwargs))
+
+
+class CountVectorizer(Embedder):
+    def __init__(self, **kwargs):
+        """Embed sentences using `sklearn.CountVectorizer`_.
+
+        Args:
+            **kwargs: Optional arguments passed for `sklearn.CountVectorizer()` construction.
+
+        .. _sklearn.TfidfVectorizer:
+            https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html
+        """
+        from sklearn.feature_extraction.text import CountVectorizer as Count
+        self.model = Count(**kwargs)
+        super().__init__(lambda x: self.model.fit_transform(x).toarray())
 
 
 class TfidfVectorizer(Embedder):
