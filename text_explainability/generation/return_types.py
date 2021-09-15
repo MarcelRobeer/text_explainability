@@ -30,7 +30,6 @@ class FeatureList:
         """
         self._used_features = used_features
         self._labelset = labelset
-        print('LABELS::init', labels)
         self._labels = labels
         self._scores = scores
 
@@ -106,7 +105,6 @@ class FeatureList:
             return {self.label_by_index(label): [(feature, score_)
                     for feature, score_ in zip(self.used_features[label], all_scores[i])]
                     for i, label in enumerate(self.labels)}
-        print(self.labels)
         return {self.label_by_index(label): [(feature, score_)
                 for feature, score_ in zip(self.used_features, all_scores[i])]
                 for i, label in enumerate(self.labels)}
@@ -159,8 +157,8 @@ class FeatureAttribution(FeatureList):
         self._base_score = base_score
         self._scores_stddev = scores_stddev
         self._original_instance = self._provider[next(iter(self._provider))]
-        self._sampled_instances = self._provider.get_children(self._original_instance) if sampled else None
-        self._perturbed_instances = None if sampled else self._provider.get_children(self._original_instance) 
+        self._neighborhood_instances = self._provider.get_children(self._original_instance)
+        self.sampled = sampled
 
     @property
     def original_instance(self):
@@ -170,17 +168,17 @@ class FeatureAttribution(FeatureList):
     @property
     def perturbed_instances(self):
         """Perturbed versions of the original instance, if `sampled=False` during initialization."""
-        return self._perturbed_instances
+        return None if self.sampled else self._neighborhood_instances
 
     @property
     def sampled_instances(self):
         """Sampled instances, if `sampled=True` during initialization."""
-        return self._sampled_instances
+        return self._neighborhood_instances if self.sampled else None
 
     @property
     def neighborhood_instances(self):
-        """Instances in the neighborhood, either `sampled_instances` or `perturbed_instances`."""
-        return self.sampled_instances if self.sampled_instances is not None else self.perturbed_instances
+        """Instances in the neighborhood (either sampled or perturbed)."""
+        return self._neighborhood_instances
 
     @property
     def used_features(self):
@@ -195,8 +193,9 @@ class FeatureAttribution(FeatureList):
         return self.get_scores(normalize=False)
 
     def __repr__(self) -> str:
-        sampled_or_perturbed = 'sampled' if self.sampled_instances is not None else 'perturbed'
+        sampled_or_perturbed = 'sampled' if self.sampled else 'perturbed'
         n = sum(1 for _ in self.neighborhood_instances)
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         return f'{self.__class__.__name__}(labels={labels}, ' + \
             f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
+

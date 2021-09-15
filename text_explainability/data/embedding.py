@@ -14,40 +14,48 @@ from text_explainability.default import Readable
 
 def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
                      n: int = 2,
-                     method: str = 'pca') -> np.ndarray:
+                     method: str = 'pca',
+                     **kwargs) -> np.ndarray:
     """Summarize vectors into n dimensions.
 
     Args:
         vectors (Union[np.ndarray, list, MemoryBucketProvider]): Vectors or BucketProvider with vectorized instances.
         n (int, optional): Number of dimensions (should be low, e.g. 2 or 3). Defaults to 2.
         method (str, optional): Method used for dimensionality reduction. Choose from ['pca', 'kernel_pca', 
-            'incremental_pca', 'nmf']. Defaults to 'pca'.
+            'incremental_pca', 'nmf', 'tsne']. Defaults to 'pca'.
+        **kwargs: Optional arguments passed to method constructor.
 
     Returns:
         np.ndarray: Vectors summarized in n dimensions.
     """
     from sklearn.decomposition import PCA, KernelPCA, IncrementalPCA, NMF
+    from sklearn.manifold import TSNE
 
     methods = {'pca': PCA,
                'kernel_pca': KernelPCA,
                'incremental_pca': IncrementalPCA,
-               'nmf': NMF}
+               'nmf': NMF,
+               'tsne': TSNE}
+
+    # Default to `init='pca'` for tsne to ensure stability
+    if method == 'tsne' and 'init' not in kwargs:
+        kwargs['init'] = 'pca'
 
     assert method in methods.keys(), f'Unknown method "{method}". Choose from {list(methods.keys())}.'
 
     if isinstance(vectors, MemoryBucketProvider):
         vectors = vectors.bulk_get_vectors(list(vectors))[-1]
-    return methods[method](n_components=n).fit_transform(vectors)
+    return methods[method](n_components=n, **kwargs).fit_transform(vectors)
 
 
-def as_2d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 'pca') -> np.ndarray:
+def as_2d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 'pca', **kwargs) -> np.ndarray:
     """Summarize vectors in 2 dimensions."""
-    return as_n_dimensional(vectors=vectors, n=2, method=method)
+    return as_n_dimensional(vectors=vectors, n=2, method=method, **kwargs)
 
 
-def as_3d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 'pca') -> np.ndarray:
+def as_3d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 'pca', **kwargs) -> np.ndarray:
     """Summarize vectors in 3 dimensions."""
-    return as_n_dimensional(vectors=vectors, n=2, method=method)
+    return as_n_dimensional(vectors=vectors, n=2, method=method, **kwargs)
 
 
 class Embedder(Readable):
@@ -88,7 +96,7 @@ class Embedder(Readable):
         return embeddings
 
     def __call__(self,
-                 instances: Union[np.ndarray, list, MemoryBucketProvider])  -> Union[np.ndarray, MemoryBucketProvider]:
+                 instances: Union[np.ndarray, list, MemoryBucketProvider]) -> Union[np.ndarray, MemoryBucketProvider]:
         """Calls the `self.embed()` function."""
         return self.embed(instances)
 

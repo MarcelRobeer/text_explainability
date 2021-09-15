@@ -471,7 +471,7 @@ class Anchor(LocalExplanation):
                                                   contiguous=False, n_samples=n_samples,
                                                   predict=False)
         perturbed = binarize(perturbed[1:])  # flatten all n replacements into one
-        y_true = np.argmax(model.predict_proba([provider[0]])[0][-1])
+        y_true = np.argmax(model.predict_proba([provider[0]])[0][-1])  # noqa: F841
 
         # Use beam from https://homes.cs.washington.edu/~marcotcr/aaai18.pdf (Algorithm 2)
         anchor = Anchor.beam_search(provider,  # noqa: F841
@@ -499,7 +499,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = TreeSurrogate(DecisionTreeClassifier(max_depth=3))
+            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self.seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -509,6 +509,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
+                 max_rule_size: Optional[int] = None,
                  **sample_kwargs):
         _, perturbed, y = self.augment_sample(sample,
                                               model,
@@ -517,11 +518,11 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                                               **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
-        # Sample weights?
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        self.local_model.fit(perturbed, y, sample_weight=weights)
+        self.local_model.max_rule_size(max_rule_size)
+        self.local_model.fit(perturbed, y, weights=weights)
 
-        return self.local_model.feature_importances, self.local_model
+        return self.local_model, perturbed, y, weights
 
 
 class FoilTree(LocalExplanation, WeightedExplanation):
@@ -546,6 +547,7 @@ class FoilTree(LocalExplanation, WeightedExplanation):
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
+                 max_rule_size: Optional[int] = None,
                  **sample_kwargs):
         _, perturbed, y = self.augment_sample(sample,
                                               model,
@@ -564,6 +566,7 @@ class FoilTree(LocalExplanation, WeightedExplanation):
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        self.local_model.fit(perturbed, y_, sample_weight=weights)
+        self.local_model.max_rule_size(max_rule_size)
+        self.local_model.fit(perturbed, y_, weights=weights)
 
         return self.local_model, self.local_model.tree_.max_depth

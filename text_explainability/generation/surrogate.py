@@ -1,6 +1,14 @@
-"""Wrappers for surrogate models, used for local/global explanations."""
+"""Wrappers for surrogate models, used for local/global explanations.
 
+Todo:
+    * Add documentation
+    * Differentiate between classifiers and regressors
+    * Extract rules from decision tree (https://mljar.com/blog/extract-rules-decision-tree/)
+"""
+
+import numpy as np
 from sklearn.base import clone
+from typing import Optional, Sequence
 
 from text_explainability.default import Readable
 
@@ -13,6 +21,9 @@ class BaseSurrogate(Readable):
     def fit(self, X, y, weights=None):
         self._model.fit(X, y, sample_weight=weights)
         return self
+
+    def predict(self, X):
+        return self._model.predict(X)
 
     @property
     def feature_importances(self):
@@ -61,3 +72,29 @@ class TreeSurrogate(BaseSurrogate):
     @property
     def feature_importances(self):
         return self._model.feature_importances_
+
+    @property
+    def classes(self):
+        return self._model.classes_
+
+    def decision_path(self, X):
+        if not isinstance(X, np.ndarray):
+            X = np.array(X)
+        if X.ndim < 2:
+            X = X.reshape(1, -1)
+        return self._model.decision_path(X).toarray()
+
+    def max_rule_size(self, size: Optional[int]):
+        self._model.set_params(max_depth=size)
+
+    def features(self, tokens_to_map: Optional[Sequence[str]] = None):
+        def map_token(token):
+            if tokens_to_map is None:
+                return token
+            return tokens_to_map[token]
+        return [None if f < 0 else map_token[f] for f in self._model.tree_.feature]
+
+    def leaf_classes(self):
+        # TODO: check if truly classification
+        return [self._model.classes_[np.argmax(self._model.tree_.value[i])] if f < 0 else None
+                for i, f in enumerate(self._model.tree_.feature)]
