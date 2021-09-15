@@ -198,4 +198,3 @@ class FeatureAttribution(FeatureList):
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         return f'{self.__class__.__name__}(labels={labels}, ' + \
             f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
-
