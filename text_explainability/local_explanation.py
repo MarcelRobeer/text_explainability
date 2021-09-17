@@ -269,9 +269,9 @@ class LIME(LocalExplanation, WeightedExplanation):
             feature_importances.append(self.local_model.feature_importances)
             used_features[label] = features
 
-        return FeatureAttribution(provider,
-                                  used_features,
-                                  feature_importances,
+        return FeatureAttribution(provider=provider,
+                                  scores=feature_importances,
+                                  used_features=used_features,
                                   labels=labels,
                                   labelset=self.labelset)
 
@@ -395,11 +395,11 @@ class KernelSHAP(LocalExplanation):
                 except np.linalg.LinAlgError:
                     tmp2 = np.linalg.pinv(np.dot(X_W, X))
                 phi = np.dot(tmp2, np.dot(X_W, y)).T
-        return FeatureAttribution(provider,
-                                  used_features,
+        return FeatureAttribution(provider=provider,
                                   scores=phi,
                                   scores_stddev=phi_var,
                                   base_score=y_null,
+                                  used_features=used_features,
                                   labels=np.arange(y.shape[1]),
                                   labelset=self.labelset)
 
@@ -526,7 +526,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        self.local_model.max_rule_size(max_rule_size)
+        self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y, weights=weights)
 
         return self.local_model, perturbed, y, weights
@@ -579,11 +579,10 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         y_ = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
-        self.local_model.max_rule_size(max_rule_size)
+        self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y_, weights=weights)
 
         return Rules(provider,
-                     used_features=list(sample.tokenized),
                      rules=self.local_model,
                      labelset=labelset,
                      sampled=True)
@@ -604,7 +603,6 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         if local_model is None:
             local_model = RuleSurrogate(SkopeRules(max_depth_duplication=2,
                                                    n_estimators=30,
-                                                   feature_names=self.labelset,
                                                    random_state=self._seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
@@ -632,7 +630,6 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model.fit(perturbed, y_, weights=weights)
 
         return Rules(provider,
-                     used_features=list(sample.tokenized),
                      rules=self.local_model,
                      labelset=labelset,
                      sampled=True)

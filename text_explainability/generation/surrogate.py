@@ -77,15 +77,20 @@ class TreeSurrogate(BaseSurrogate):
     def classes(self):
         return self._model.classes_
 
+    @property
+    def max_rule_size(self):
+        return self._model.max_depth
+
+    @max_rule_size.setter
+    def max_rule_size(self, size: Optional[int]):
+        self._model.set_params(max_depth=size)
+
     def decision_path(self, X):
         if not isinstance(X, np.ndarray):
             X = np.array(X)
         if X.ndim < 2:
             X = X.reshape(1, -1)
         return self._model.decision_path(X).toarray()
-
-    def max_rule_size(self, size: Optional[int]):
-        self._model.set_params(max_depth=size)
 
     def features(self, tokens_to_map: Optional[Sequence[str]] = None):
         def map_token(token):
@@ -110,6 +115,14 @@ class RuleSurrogate(BaseSurrogate):
     @property
     def rules(self):
         return self._model.rules_
+
+    @property
+    def feature_names(self):
+        return self._model.feature_names
+
+    @feature_names.setter
+    def feature_names(self, feature_names: Sequence[str]):
+        self._model.feature_names = feature_names
 
     def score_top_rules(self, X):
         return self._model.score_top_rules(X)

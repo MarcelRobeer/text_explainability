@@ -198,8 +198,8 @@ class ReadableDataMixin:
 class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
-                 used_features: Union[Sequence[str], Sequence[int]],
                  scores: Sequence[float],
+                 used_features: Optional[Union[Sequence[str], Sequence[int]]] = None,
                  scores_stddev: Sequence[float] = None,
                  base_score: float = None,
                  labels: Optional[Sequence[int]] = None,
@@ -212,8 +212,9 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
 
         Args:
             provider (InstanceProvider): Sampled or generated data, including original instance.
-            used_features (Union[Sequence[str], Sequence[int]]): Which features were selected for the explanation.
             scores (Sequence[float]): Scores corresponding to the selected features.
+            used_features (Optional[Union[Sequence[str], Sequence[int]]]): Selected features for the explanation label. 
+                Defaults to None.
             scores_stddev (Sequence[float], optional): Standard deviation of each feature attribution score. 
                 Defaults to None.
             base_score (float, optional): Base score, to which all scores are relative. Defaults to None.
@@ -222,14 +223,16 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
+        DataExplanation.__init__(self,
+                                 provider=provider,
+                                 sampled=sampled)
+        if used_features is None:
+            used_features = list(range(len(self.original_instance.tokenized)))
         FeatureList.__init__(self,
                              used_features=used_features,
                              scores=scores,
                              labels=labels,
                              labelset=labelset)
-        DataExplanation.__init__(self,
-                                 provider=provider,
-                                 sampled=sampled)
         self._base_score = base_score
         self._scores_stddev = scores_stddev
 
@@ -242,36 +245,45 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
 class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
-                 used_features: Union[Sequence[str], Sequence[int]],
-                 rules: Union[Sequence[str], TreeSurrogate],
+                 rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate],
+                 used_features: Optional[Union[Sequence[str], Sequence[int]]] = None,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
                  sampled: bool = False):
         """Base return type.
 
         Args:
-            used_features (Union[Sequence[str], Sequence[int]]): Used features per label.
-            rules (Union[Sequence[str], TreeSurrogate]): Rules applicable.
+            provider (InstanceProvider): Sampled or generated data, including original instance.
+            rules (Union[Sequence[str], TreeSurrogate, RuleSurrogate]): Rules applicable.
+            used_features (Optional[Union[Sequence[str], Sequence[int]]]): Used features per label. Defaults to None.
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
+        DataExplanation.__init__(self,
+                                 provider=provider,
+                                 sampled=sampled)
+        if used_features is None:
+            used_features = list(range(len(self.original_instance.tokenized)))
         BaseReturnType.__init__(self,
                                 used_features=used_features,
                                 labels=labels,
                                 labelset=labelset)
-        DataExplanation.__init__(self,
-                                 provider=provider,
-                                 sampled=sampled)
-        self._extract_rules(rules)
+        self._rules = self._extract_rules(rules)
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
         if isinstance(rules, RuleSurrogate):
-            return self.rules
+            from skrules.rule import replace_feature_name
+            from skrules.skope_rules import BASE_FEATURE_NAME
+            feature_dict = {BASE_FEATURE_NAME + str(i): feat
+                            for i, feat in enumerate(self.used_features)}
+            return [(replace_feature_name(rule, feature_dict), perf)
+                     for rule, perf in rules.rules]
         print(rules)
         raise NotImplementedError('TODO: Convert tree to list of rules')
 
+    @property
     def rules(self):
-        raise NotImplementedError('TODO: Determine applicable rules to sample')
+        return self._rules

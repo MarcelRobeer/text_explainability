@@ -35,7 +35,7 @@ model = SkLearnDataClassifier.build(p, test_env)
 model.fit_provider(train, labelprovider)
 
 # %% Create example instance
-data = 'Dit is zeer positieve of negatieve proef...'
+data = 'Dit is zeer positieve of negatieve proef... Of toch negatief?'
 sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
 
 # %% 
@@ -70,8 +70,7 @@ KernelSHAP(labelset=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 FoilTree()(sample, model, 'positief')
 
 # %% LocalRules on `model` (why 'positief'?)
-print(sample.tokenized)
-LocalRules()(sample, model, 'neutraal', n_samples=100)
+LocalRules()(sample, model, 'negatief', n_samples=100).rules
 
 # %% Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(instanceprovider)
