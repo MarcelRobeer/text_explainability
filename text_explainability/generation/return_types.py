@@ -10,7 +10,7 @@ import numpy as np
 from typing import Union, Optional, Sequence, Dict, Tuple
 from instancelib import InstanceProvider
 
-from text_explainability.generation.surrogate import TreeSurrogate
+from text_explainability.generation.surrogate import TreeSurrogate, RuleSurrogate
 
 
 class BaseReturnType:
@@ -179,7 +179,23 @@ class DataExplanation:
         return self._neighborhood_instances
 
 
-class FeatureAttribution(FeatureList, DataExplanation):
+class ReadableDataMixin:
+    @property
+    def used_features(self):
+        """Names of features of the original instance."""
+        if hasattr(self.original_instance, 'tokenized'):
+            return [self.original_instance.tokenized[i] for i in self._used_features]
+        return list(self._used_features)
+
+    def __repr__(self) -> str:
+        sampled_or_perturbed = 'sampled' if self.sampled else 'perturbed'
+        n = sum(1 for _ in self.neighborhood_instances)
+        labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
+        return f'{self.__class__.__name__}(labels={labels}, ' + \
+            f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
+
+
+class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
                  used_features: Union[Sequence[str], Sequence[int]],
@@ -206,36 +222,23 @@ class FeatureAttribution(FeatureList, DataExplanation):
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
-        super(self, FeatureList).__init__(used_features=used_features,
-                                          scores=scores,
-                                          labels=labels,
-                                          labelset=labelset)
-        super(self, DataExplanation).__init__(provider=provider,
-                                              sampled=sampled)
+        FeatureList.__init__(self,
+                             used_features=used_features,
+                             scores=scores,
+                             labels=labels,
+                             labelset=labelset)
+        DataExplanation.__init__(self,
+                                 provider=provider,
+                                 sampled=sampled)
         self._base_score = base_score
         self._scores_stddev = scores_stddev
-
-    @property
-    def used_features(self):
-        """Names of features of the original instance."""
-        if hasattr(self.original_instance, 'tokenized'):
-            return [self.original_instance.tokenized[i] for i in self._used_features]
-        return list(self._used_features)
 
     @property
     def scores(self):
         """Saved feature attribution scores."""
         return self.get_scores(normalize=False)
 
-    def __repr__(self) -> str:
-        sampled_or_perturbed = 'sampled' if self.sampled else 'perturbed'
-        n = sum(1 for _ in self.neighborhood_instances)
-        labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
-        return f'{self.__class__.__name__}(labels={labels}, ' + \
-            f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
-
-
-class Rules(BaseReturnType, DataExplanation):
+class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
                  used_features: Union[Sequence[str], Sequence[int]],
@@ -254,28 +257,18 @@ class Rules(BaseReturnType, DataExplanation):
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
-        super(self, BaseReturnType).__init__(used_features=used_features,
-                                             labels=labels,
-                                             labelset=labelset)
-        super(self, DataExplanation).__init__(provider=provider,
-                                              sampled=sampled)
+        BaseReturnType.__init__(self,
+                                used_features=used_features,
+                                labels=labels,
+                                labelset=labelset)
+        DataExplanation.__init__(self,
+                                 provider=provider,
+                                 sampled=sampled)
         self._extract_rules(rules)
 
-    @property
-    def used_features(self):
-        """Names of features of the original instance."""
-        if hasattr(self.original_instance, 'tokenized'):
-            return [self.original_instance.tokenized[i] for i in self._used_features]
-        return list(self._used_features)
-
-    def __repr__(self) -> str:
-        sampled_or_perturbed = 'sampled' if self.sampled else 'perturbed'
-        n = sum(1 for _ in self.neighborhood_instances)
-        labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
-        return f'{self.__class__.__name__}(labels={labels}, ' + \
-            f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
-
-    def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate]):
+    def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
+        if isinstance(rules, RuleSurrogate):
+            return self.rules
         print(rules)
         raise NotImplementedError('TODO: Convert tree to list of rules')
 

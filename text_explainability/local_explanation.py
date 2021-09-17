@@ -4,16 +4,21 @@ Todo:
     * Implement Anchors
 """
 
+import numpy as np
 import math
 from typing import Callable, Optional, Sequence, Tuple, Union
 
-import numpy as np
+import six
+import sys
+sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
+
 from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
                          LabelProvider, MemoryLabelProvider, TextEnvironment)
 from instancelib.machinelearning import AbstractClassifier
 from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
+from skrules import SkopeRules
 
 from text_explainability.data.augmentation import (LocalTokenPertubator,
                                                    TokenReplacement)
@@ -21,9 +26,10 @@ from text_explainability.data.weights import (exponential_kernel,
                                               pairwise_distances)
 from text_explainability.default import Readable
 from text_explainability.generation.feature_selection import FeatureSelector
-from text_explainability.generation.return_types import FeatureAttribution
+from text_explainability.generation.return_types import FeatureAttribution, Rules
 from text_explainability.generation.surrogate import (LinearSurrogate,
-                                                      TreeSurrogate)
+                                                      TreeSurrogate,
+                                                      RuleSurrogate)
 from text_explainability.generation.target_encoding import FactFoilEncoder
 from text_explainability.utils import binarize, default_detokenizer
 
@@ -499,7 +505,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self.seed))
+            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self._seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -525,18 +531,29 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         return self.local_model, perturbed, y, weights
 
 
-class FoilTree(LocalExplanation, WeightedExplanation):
+class FactFoilMixin:
+    def to_fact_foil(self, y, labelset, foil_fn: Union[FactFoilEncoder, int, str]):
+        if isinstance(foil_fn, str):
+            foil_fn = FactFoilEncoder.from_str(foil_fn, labelset)
+        elif isinstance(foil_fn, int):
+            foil_fn = FactFoilEncoder(foil_fn, labelset)
+        return foil_fn(y)
+
+
+class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
     def __init__(self,
                  env: Optional[AbstractEnvironment] = None,
                  labelset: Optional[Union[Sequence[str], LabelProvider]] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
-                 local_model: Optional[TreeSurrogate] = DecisionTreeClassifier(),
+                 local_model: Optional[TreeSurrogate] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
                  explanation_type: str = 'multiclass',
                  seed: int = 0):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
+        if local_model is None:
+            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self._seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -549,24 +566,72 @@ class FoilTree(LocalExplanation, WeightedExplanation):
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
-        _, perturbed, y = self.augment_sample(sample,
-                                              model,
-                                              n_samples=n_samples,
-                                              avoid_proba=True,
-                                              **sample_kwargs)
+        provider, perturbed, y = self.augment_sample(sample,
+                                                     model,
+                                                     n_samples=n_samples,
+                                                     avoid_proba=True,
+                                                     **sample_kwargs)
+        perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         # Encode foil as 0 and rest as 1
         labelset = self.labelset if self.labelset else model
-        if isinstance(foil_fn, str):
-            foil_fn = FactFoilEncoder.from_str(foil_fn, labelset)
-        elif isinstance(foil_fn, int):
-            foil_fn = FactFoilEncoder(foil_fn, labelset)
-        y_ = foil_fn(y)
-
-        perturbed = binarize(perturbed)  # flatten all n replacements into one
+        y_ = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
         self.local_model.max_rule_size(max_rule_size)
         self.local_model.fit(perturbed, y_, weights=weights)
 
-        return self.local_model, self.local_model.tree_.max_depth
+        return Rules(provider,
+                     used_features=list(sample.tokenized),
+                     rules=self.local_model,
+                     labelset=labelset,
+                     sampled=True)
+
+
+class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
+    def __init__(self,
+                 env: Optional[AbstractEnvironment] = None,
+                 labelset: Optional[Union[Sequence[str], LabelProvider]] = None,
+                 augmenter: Optional[LocalTokenPertubator] = None,
+                 local_model: Optional[RuleSurrogate] = None,
+                 kernel: Optional[Callable] = None,
+                 kernel_width: Union[int, float] = 25,
+                 explanation_type: str = 'multiclass',
+                 seed: int = 0):
+        LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
+        WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
+        if local_model is None:
+            local_model = RuleSurrogate(SkopeRules(max_depth_duplication=2,
+                                                   n_estimators=30,
+                                                   feature_names=self.labelset,
+                                                   random_state=self._seed))
+        self.local_model = local_model
+        self.explanation_type = explanation_type
+
+    def __call__(self,
+                 sample: MemoryTextInstance,
+                 model: AbstractClassifier,
+                 foil_fn: Union[FactFoilEncoder, int, str],
+                 n_samples: int = 50,
+                 weigh_samples: bool = True,
+                 distance_metric: str = 'cosine',
+                 **sample_kwargs):
+        provider, perturbed, y = self.augment_sample(sample,
+                                                     model,
+                                                     n_samples=n_samples,
+                                                     avoid_proba=True,
+                                                     **sample_kwargs)
+        perturbed = binarize(perturbed)  # flatten all n replacements into one
+
+        # Encode foil as 0 and rest as 1
+        labelset = self.labelset if self.labelset else model
+        y_ = self.to_fact_foil(y, labelset, foil_fn)
+
+        weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
+        self.local_model.fit(perturbed, y_, weights=weights)
+
+        return Rules(provider,
+                     used_features=list(sample.tokenized),
+                     rules=self.local_model,
+                     labelset=labelset,
+                     sampled=True)

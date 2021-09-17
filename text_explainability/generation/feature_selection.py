@@ -1,4 +1,8 @@
-"""Feature selection methods for limiting explanation length."""
+"""Feature selection methods for limiting explanation length.
+
+Todo:
+    * Convert to factory design pattern
+"""
 
 import numpy as np
 

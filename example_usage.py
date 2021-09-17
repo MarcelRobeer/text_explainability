@@ -24,7 +24,7 @@ p = Pipeline([('vect', CountVectorizer()),
 # %% Imports
 from instancelib.machinelearning import SkLearnDataClassifier
 
-from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP, FoilTree
+from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP, FoilTree, LocalRules
 from text_explainability.global_explanation import (TokenFrequency, TokenInformation,
                                                     MMDCritic, KMedoids, LabelwiseMMDCritic)
 from text_explainability.data.augmentation import TokenReplacement, LeaveOut
@@ -35,7 +35,7 @@ model = SkLearnDataClassifier.build(p, test_env)
 model.fit_provider(train, labelprovider)
 
 # %% Create example instance
-data = 'Dit is zeer positieve proef...'
+data = 'Dit is zeer positieve of negatieve proef...'
 sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
 
 # %% 
@@ -68,6 +68,10 @@ KernelSHAP(labelset=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 
 # %% FoilTree explanation for `sample` on `model` (why not 'neg'?)
 FoilTree()(sample, model, 'positief')
+
+# %% LocalRules on `model` (why 'positief'?)
+print(sample.tokenized)
+LocalRules()(sample, model, 'neutraal', n_samples=100)
 
 # %% Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(instanceprovider)

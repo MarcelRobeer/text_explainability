@@ -98,3 +98,18 @@ class TreeSurrogate(BaseSurrogate):
         # TODO: check if truly classification
         return [self._model.classes_[np.argmax(self._model.tree_.value[i])] if f < 0 else None
                 for i, f in enumerate(self._model.tree_.feature)]
+
+
+class RuleSurrogate(BaseSurrogate):
+    """Wrapper around `SkopeRules`_ model for usage in local/global surrogate models.
+
+    _SkopeRules:
+        https://github.com/scikit-learn-contrib/skope-rules
+    """
+
+    @property
+    def rules(self):
+        return self._model.rules_
+
+    def score_top_rules(self, X):
+        return self._model.score_top_rules(X)
