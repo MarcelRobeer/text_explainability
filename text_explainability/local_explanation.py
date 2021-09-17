@@ -8,10 +8,6 @@ import numpy as np
 import math
 from typing import Callable, Optional, Sequence, Tuple, Union
 
-import six
-import sys
-sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
-
 from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
                          LabelProvider, MemoryLabelProvider, TextEnvironment)
 from instancelib.machinelearning import AbstractClassifier
@@ -32,6 +28,10 @@ from text_explainability.generation.surrogate import (LinearSurrogate,
                                                       RuleSurrogate)
 from text_explainability.generation.target_encoding import FactFoilEncoder
 from text_explainability.utils import binarize, default_detokenizer
+
+import six
+import sys
+sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
 
 
 def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:

@@ -238,6 +238,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
         """Saved feature attribution scores."""
         return self.get_scores(normalize=False)
 
+
 class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
