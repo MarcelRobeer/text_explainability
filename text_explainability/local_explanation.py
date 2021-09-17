@@ -14,7 +14,6 @@ from instancelib.machinelearning import AbstractClassifier
 from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
-from skrules import SkopeRules
 
 from text_explainability.data.augmentation import (LocalTokenPertubator,
                                                    TokenReplacement)
@@ -32,6 +31,8 @@ from text_explainability.utils import binarize, default_detokenizer
 import six
 import sys
 sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
+
+from skrules import SkopeRules  # noqa: E402
 
 
 def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:
