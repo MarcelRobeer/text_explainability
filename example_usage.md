@@ -29,7 +29,7 @@ train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
 # Create sklearn model with pipeline
 p = Pipeline([('vect', CountVectorizer()),
               ('tfidf', TfidfTransformer(use_idf=False)),
-              ('rf', RandomForestClassifier())
+              ('rf', RandomForestClassifier(random_state=0))
              ])
 
 # Build and fit (train) model
@@ -41,7 +41,7 @@ model.fit_provider(train, labelprovider)
 Text Explainability is used for _local explanations_ (explaining a single prediction) or _global explanations_ (explaining general dataset/model behavior).
 
 ### Local explanations
-Popular local explanations include `LIME`, local decion trees (`LocalTree`), `KernelSHAP` and `FoilTree`. First, let us create a sample to explain:
+Popular local explanations include `LIME`, `KernelSHAP` , local decion trees (`LocalTree`), local decision rules (`LocalRules`) and `FoilTree`. First, let us create a sample to explain:
 
 ```python
 from text_explainability import default_tokenizer
@@ -59,14 +59,17 @@ from text_explainability import LIME, LocalTree, FoilTree, KernelSHAP
 explainer = LIME(test_env)
 explainer(sample, model, labels=['neutraal', 'positief']).scores
 
+# SHAP explanation for `sample` on `model`, limited to 4 features
+KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
+
 # Local tree explainer for `sample` on `model` (non-weighted neighborhood data)
 LocalTree()(sample, model, weigh_samples=False)
 
 # Contrastive local tree explainer for `sample` on `model` (why not 'positief'?)
-FoilTree()(sample, model, foil_fn='positief')
+FoilTree()(sample, model, foil_fn='positief').rules
 
-# SHAP explanation for `sample` on `model`, limited to 4 features
-KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
+# %% LocalRules on `model` (why 'positief'?)
+LocalRules()(sample, model, foil_fn='negatief', n_samples=100).rules
 ```
 
 ### Global explanations

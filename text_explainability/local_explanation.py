@@ -139,7 +139,7 @@ class LocalExplanation(Readable):
 
         if predict:
             return provider, perturbed, y
-        return provider, perturbed
+        return provider, perturbed        
 
 
 class WeightedExplanation:
@@ -518,18 +518,21 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
-        _, perturbed, y = self.augment_sample(sample,
-                                              model,
-                                              n_samples=n_samples,
-                                              avoid_proba=True,
-                                              **sample_kwargs)
+        provider, perturbed, y = self.augment_sample(sample,
+                                                     model,
+                                                     n_samples=n_samples,
+                                                     avoid_proba=True,
+                                                     **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
         self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y, weights=weights)
 
-        return self.local_model, perturbed, y, weights
+        return Rules(provider=provider,
+                     rules=self.local_model,
+                     labelset=self.labelset,
+                     sampled=True)
 
 
 class FactFoilMixin:
@@ -582,7 +585,8 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y_, weights=weights)
 
-        return Rules(provider,
+        # TODO: pass to which label the Foil Tree applies
+        return Rules(provider=provider,
                      rules=self.local_model,
                      labelset=labelset,
                      sampled=True)

@@ -85,6 +85,12 @@ class TreeSurrogate(BaseSurrogate):
     def max_rule_size(self, size: Optional[int]):
         self._model.set_params(max_depth=size)
 
+    @property
+    def rules(self):
+        if not hasattr(self, '_rules') or self._rules is None:
+            self.to_rules()
+        return self._rules
+
     def decision_path(self, X):
         if not isinstance(X, np.ndarray):
             X = np.array(X)
@@ -103,6 +109,15 @@ class TreeSurrogate(BaseSurrogate):
         # TODO: check if truly classification
         return [self._model.classes_[np.argmax(self._model.tree_.value[i])] if f < 0 else None
                 for i, f in enumerate(self._model.tree_.feature)]
+
+    def to_rules(self):
+        from skrules.skope_rules import SkopeRules, BASE_FEATURE_NAME
+        from skrules.rule import Rule
+        feature_names = [BASE_FEATURE_NAME + str(i) for i in range(self._model.n_features_)]
+        rules = SkopeRules._tree_to_rules(None, tree=self._model, feature_names=feature_names)
+        # TODO: add performance metrics and output label
+        self._rules = [tuple(rule) for rule in [Rule(r) for r in rules]]
+        return self._rules
 
 
 class RuleSurrogate(BaseSurrogate):

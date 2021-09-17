@@ -18,7 +18,7 @@ train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
 # %% Create sklearn model with pipeline
 p = Pipeline([('vect', CountVectorizer()),
               ('tfidf', TfidfTransformer(use_idf=False)),
-              ('rf', RandomForestClassifier())
+              ('rf', RandomForestClassifier(random_state=0))
              ])
 
 # %% Imports
@@ -58,7 +58,7 @@ explainer = LIME(test_env)
 explainer(sample, model, labels=['neutraal', 'positief']).scores
 
 # %% Local tree explainer for `sample` on `model` (non-weighted neighborhood data)
-LocalTree()(sample, model, weigh_samples=False)
+LocalTree()(sample, model, weigh_samples=False).rules
 
 # %% SHAP explanation for `sample` on `model`, limited to 4 features
 KernelSHAP(labelset=labelprovider)(sample, model, n_samples=50, l1_reg=4)
@@ -67,7 +67,7 @@ KernelSHAP(labelset=labelprovider)(sample, model, n_samples=50, l1_reg=4)
 #Anchor(label_names=['neg', 'net', 'pos'])(sample, model)
 
 # %% FoilTree explanation for `sample` on `model` (why not 'neg'?)
-FoilTree()(sample, model, 'positief')
+FoilTree()(sample, model, 'positief').rules
 
 # %% LocalRules on `model` (why 'positief'?)
 LocalRules()(sample, model, 'negatief', n_samples=100).rules

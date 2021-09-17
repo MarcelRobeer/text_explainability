@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version moved to `__init__.py`
 - New README.md layout
 - Updates to Anchor local explanations
+- Added random state in example_usage to ensure reproducibility
 
 ## [0.4.2] - 2021-09-13
 ### Changed

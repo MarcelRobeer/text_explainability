@@ -274,7 +274,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
         self._rules = self._extract_rules(rules)
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
-        if isinstance(rules, RuleSurrogate):
+        if isinstance(rules, (TreeSurrogate, RuleSurrogate)):
             from skrules.rule import replace_feature_name
             from skrules.skope_rules import BASE_FEATURE_NAME
             feature_dict = {BASE_FEATURE_NAME + str(i): feat
@@ -282,7 +282,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
             return [(replace_feature_name(rule, feature_dict), perf)
                      for rule, perf in rules.rules]
         print(rules)
-        raise NotImplementedError('TODO: Convert tree to list of rules')
+        raise NotImplementedError('TODO: Support lists of rules')
 
     @property
     def rules(self):
