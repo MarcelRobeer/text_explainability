@@ -1,4 +1,5 @@
 {
   "str1": "This is the English version.",
+  "list1": "this;is;a;test;list",
   "stopwords": "a;an;the"
 }

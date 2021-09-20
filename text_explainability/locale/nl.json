@@ -1,4 +1,5 @@
 {
-    "str1": "Dit is de Nederlandse versie.",
-    "stopwords": "de;het;een"
+  "str1": "Dit is de Nederlandse versie.",
+  "list1": "dit;is;een;testlijst",
+  "stopwords": "de;het;een"
 }  

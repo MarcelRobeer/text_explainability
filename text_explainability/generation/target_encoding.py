@@ -105,6 +105,8 @@ class FactFoilEncoder(TargetEncoder):
 
     def encode(self, y):
         """Encode a single instance into foil (0) or not foil (1)."""
+        if all(isinstance(y_, str) for y_ in y):
+            y = [self.labelset.index(y_) for y_ in y]
         if isinstance(self.foil, int):
             return [0 if y_ == self.foil else 1 for y_ in y]
         return [0 if y_ in self.foil else 1 for y_ in y]
