@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New embeddings not requiring internet (`CountVectorizer`, `TfidfVectorizer`)
 - `Rules` return type
 - First version of local rules using `SkopeRules`
+- More test cases
 
 ### Changed
 - New default embedding method for `MMDCritic` and `KMedoids`
