@@ -366,7 +366,8 @@ class LabelwiseKMedoids(LabelwisePrototypeSampler):
         .. _k-Medoids:
             https://scikit-learn-extra.readthedocs.io/en/stable/generated/sklearn_extra.cluster.KMedoids.html
         """
-        super().__init__(instances=instances,
+        super().__init__(KMedoids,
+                         instances=instances,
                          labels=labels,
                          embedder=embedder,
                          seed=seed)
