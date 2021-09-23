@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2021-09-23
+### Added
+- Character-level tokenizer/detokenizer
+
 ## [0.4.3] - 2021-09-20
 ### Added
 - New embeddings not requiring internet (`CountVectorizer`, `TfidfVectorizer`)
