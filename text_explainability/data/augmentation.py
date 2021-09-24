@@ -50,7 +50,7 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
 
     def perturb(self, tokenized_instance: Iterable[str], 
                 *args: Any, **kwargs: Any) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
-        raise NotImplementedError
+        raise NotImplementedError('Implemented in subclasses')
 
     def discard_children(self, parent: TextInstance) -> None:
         """Discard the generated children for a given parent."""
@@ -151,6 +151,14 @@ class TokenReplacement(LocalTokenPertubator):
                 add_background_instance: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
         which is assumed not to be part of the original tokens.
+
+        Example:
+            Randomly replace at least two tokens with the replacement word 'UNK':
+
+            >>> from text_explainability.augmentation import TokenReplacement
+            >>> TokenReplacement(replacement='UNK').perturb(['perturb', 'this', 'into', 'multiple'],
+            >>>                                             n_samples=3,
+            >>>                                             min_changes=2)
 
         Args:
             tokenized_instance (Iterable[str]): Tokenized instance to apply perturbations to.
