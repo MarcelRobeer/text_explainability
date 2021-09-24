@@ -6,7 +6,6 @@ Todo:
     * Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
 """
 
-from text_explainability.utils import default_detokenizer
 from instancelib.environment.base import AbstractEnvironment
 from instancelib.environment.text import TextEnvironment
 from instancelib.instances.base import InstanceProvider
@@ -18,9 +17,10 @@ from typing import (Callable, Iterable, Any, Iterator, Tuple, Optional, List, Un
 
 from instancelib.instances.text import TextInstance
 from instancelib.pertubations.base import MultiplePertubator, ChildGenerator
-from instancelib.typehints.typevars import VT, KT
 
 from text_explainability.default import Readable
+from text_explainability.decorators import text_instance
+from text_explainability.utils import default_detokenizer
 
 
 class LocalTokenPertubator(MultiplePertubator[TextInstance], 
@@ -60,21 +60,22 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
         """Get the children of a given parent."""
         return self.env.get_children(parent)
 
+    @text_instance(tokenize=True)
     def __call__(self,
-                 instance: TextInstance[KT, VT],
+                 instance: TextInstance,
                  discard_children: bool = True,
                  *args,
-                 **kwargs) -> Iterator[TextInstance[KT, VT]]:
+                 **kwargs) -> Iterator[TextInstance]:
         """Apply perturbations to an instance to generate neighborhood data.
 
         Args:
-            instance (TextInstance[Any, VT]): Tokenized instance to perturb.
+            instance (TextInstance): Tokenized instance to perturb.
             discard_children (bool, optional): Remove children from previous passes. Defaults to True.
             *args: Arguments to be passed on to `perturb()` function.
             **kwargs: Keyword arguments to be passed on to `perturb()` function.
 
         Yields:
-            Iterator[Sequence[TextInstance[Any, VT]]]: Neighborhood data instances.
+            Iterator[Sequence[TextInstance]]: Neighborhood data instances.
         """
         assert hasattr(instance, 'tokenized'), 'Tokenize your instance before applying a perturbation'
 

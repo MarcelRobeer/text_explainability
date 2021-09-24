@@ -8,10 +8,10 @@ import numpy as np
 import math
 from typing import Callable, Optional, Sequence, Tuple, Union
 
-from instancelib import (AbstractEnvironment, Instance, InstanceProvider,
+from instancelib import (AbstractEnvironment, InstanceProvider,
                          LabelProvider, MemoryLabelProvider, TextEnvironment)
 from instancelib.machinelearning import AbstractClassifier
-from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
+from instancelib.instances.text import TextInstance, TextInstanceProvider
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
@@ -26,6 +26,7 @@ from text_explainability.generation.surrogate import (LinearSurrogate,
                                                       TreeSurrogate,
                                                       RuleSurrogate)
 from text_explainability.generation.target_encoding import FactFoilEncoder
+from text_explainability.decorators import text_instance
 from text_explainability.utils import binarize, default_detokenizer
 
 import six
@@ -82,8 +83,9 @@ class LocalExplanation(Readable):
         self.augmenter = augmenter
         self._seed = seed
 
+    @text_instance(tokenize=True)
     def augment_sample(self,
-                       sample: Instance,
+                       sample: TextInstance,
                        model: AbstractClassifier,
                        sequential: bool = False,
                        contiguous: bool = False,
@@ -96,7 +98,7 @@ class LocalExplanation(Readable):
         """Augment a single sample to generate neighborhood data.
 
         Args:
-            sample (Instance): Instance to perturb.
+            sample (TextInstance): Instance to perturb.
             model (AbstractClassifier): Model to provide predictions for neighborhood data.
             sequential (bool, optional):
                 Whether to sequentially sample based on length (first length 1, then 2, ...). Defaults to False.
@@ -199,8 +201,9 @@ class LIME(LocalExplanation, WeightedExplanation):
             local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self._seed))
         self.local_model = local_model
 
+    @text_instance(tokenize=True)
     def __call__(self,
-                 sample: MemoryTextInstance,
+                 sample: TextInstance,
                  model: AbstractClassifier,
                  labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
                  n_samples: int = 50,
@@ -211,7 +214,7 @@ class LIME(LocalExplanation, WeightedExplanation):
         """Calculate feature attribution scores using `LIME Text`_.
 
         Args:
-            sample (MemoryTextInstance): Instance to explain.
+            sample (TextInstance): Instance to explain.
             model (AbstractClassifier): Model to explain.
             labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
             n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
@@ -337,15 +340,16 @@ class KernelSHAP(LocalExplanation):
             raise Exception(f'Unknown value "{l1_reg}" for l1_reg')
         return nonzero
 
+    @text_instance(tokenize=True)
     def __call__(self,
-                 sample: MemoryTextInstance,
+                 sample: TextInstance,
                  model: AbstractClassifier,
                  n_samples: Optional[int] = None,
                  l1_reg: Union[int, float, str] = 'auto') -> FeatureAttribution:
         """Calculate feature attribution scores using `KernelShap`_.
 
         Args:
-            sample (MemoryTextInstance): Instance to explain.
+            sample (TextInstance): Instance to explain.
             model (AbstractClassifier): Model to explain.
             n_samples (Optional[int], optional): Number of neighborhood samples to generate (if None defaults 
                 to `2 * sample_len + 2 ** 11`). Defaults to None.
@@ -462,9 +466,10 @@ class Anchor(LocalExplanation):
 
         raise NotImplementedError('[WIP] Implementing anchor/anchor_base.py')
 
+    @text_instance
     def __call__(self,
-                 sample: MemoryTextInstance,
-                 model,
+                 sample: TextInstance,
+                 model: AbstractClassifier,
                  n_samples: int = 100,
                  beam_size: int = 1,
                  min_confidence: float = 0.95,
@@ -510,9 +515,10 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @text_instance
     def __call__(self,
-                 sample: MemoryTextInstance,
-                 model,
+                 sample: TextInstance,
+                 model: AbstractClassifier,
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
@@ -561,8 +567,9 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @text_instance
     def __call__(self,
-                 sample: MemoryTextInstance,
+                 sample: TextInstance,
                  model: AbstractClassifier,
                  foil_fn: Union[FactFoilEncoder, int, str],
                  n_samples: int = 50,
@@ -611,8 +618,9 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @text_instance
     def __call__(self,
-                 sample: MemoryTextInstance,
+                 sample: TextInstance,
                  model: AbstractClassifier,
                  foil_fn: Union[FactFoilEncoder, int, str],
                  n_samples: int = 50,

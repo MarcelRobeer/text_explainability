@@ -11,6 +11,7 @@ import numpy as np
 
 from typing import (Callable, Optional, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
 from instancelib.instances.text import TextInstance
+from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
@@ -58,15 +59,15 @@ class GlobalExplanation(Readable):
         return model.predict(self.get_data())
 
     def get_instances_labels(self,
-                             model: Optional[Any],
-                             labelprovider,
+                             model: Optional[AbstractClassifier],
+                             labelprovider: Optional[LabelProvider],
                              explain_model: bool = True) -> Tuple[InstanceProvider, np.ndarray]:
         """Get corresponding labels of dataset inputs, either from the original data or 
             according to the predict function.
 
         Args:
-            model (Optional[Any]): Model to perform predictions with.
-            labelprovider ([type]): Ground-truth labels.
+            model (Optional[AbstractClassifier]): Model to perform predictions with.
+            labelprovider (Optional[LabelProvider]): Ground-truth labels.
             explain_model (bool, optional): Whether to explain using the `model` 
                 labels (True) or `labelprovider` labels (False). Defaults to True.
 
@@ -90,8 +91,8 @@ class GlobalExplanation(Readable):
 
 class TokenFrequency(GlobalExplanation):
     def __call__(self,
-                 model=None,
-                 labelprovider=None,
+                 model: Optional[AbstractClassifier] = None,
+                 labelprovider: Optional[LabelProvider] = None,
                  explain_model: bool = True,
                  labelwise: bool = True,
                  k: Optional[int] = None,
@@ -101,8 +102,8 @@ class TokenFrequency(GlobalExplanation):
         """Show the top-k number of tokens for each ground-truth or predicted label.
 
         Args:
-            model ([type], optional): Predictive model to explain. Defaults to None.
-            labelprovider ([type], optional): Ground-truth labels to explain. Defaults to None.
+            model (Optional[AbstractClassifier], optional): Predictive model to explain. Defaults to None.
+            labelprovider (Optional[LabelProvider], optional): Ground-truth labels to explain. Defaults to None.
             explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False).
                 Defaults to True.
             labelwise (bool, optional): Whether to summarize the counts for each label seperately. Defaults to True.
@@ -134,8 +135,8 @@ class TokenFrequency(GlobalExplanation):
 
 class TokenInformation(GlobalExplanation):
     def __call__(self,
-                 model=None,
-                 labelprovider=None,
+                 model: Optional[AbstractClassifier] = None,
+                 labelprovider: Optional[LabelProvider] = None,
                  explain_model: bool = True,
                  # labelwise: bool = True,
                  k: Optional[int] = None,
@@ -145,8 +146,8 @@ class TokenInformation(GlobalExplanation):
         """Show the top-k token mutual information for a dataset or model.
 
         Args:
-            model ([type], optional): Predictive model to explain. Defaults to None.
-            labelprovider ([type], optional): Ground-truth labels to explain. Defaults to None.
+            model (Optional[AbstractClassifier], optional): Predictive model to explain. Defaults to None.
+            labelprovider (Optional[LabelProvider], optional): Ground-truth labels to explain. Defaults to None.
             explain_model (bool, optional): Whether to explain the model (True) or ground-truth labels (False).
                 Defaults to True.
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.

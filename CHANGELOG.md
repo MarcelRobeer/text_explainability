@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2021-09-24
+### Added
+- Decorator to allow strings to be converted into TextInstances
+- Decorator to ensure TextInstances are tokenized when required
+
+### Changed
+- Typing fixes
+
 ## [0.4.4] - 2021-09-23
 ### Added
 - Character-level tokenizer/detokenizer
@@ -124,6 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.4.5]: https://pypi.org/project/text-explainability/0.4.5/
+[0.4.4]: https://pypi.org/project/text-explainability/0.4.4/
 [0.4.3]: https://pypi.org/project/text-explainability/0.4.3/
 [0.4.2]: https://pypi.org/project/text-explainability/0.4.2/
 [0.4.1]: https://pypi.org/project/text-explainability/0.4.1/
