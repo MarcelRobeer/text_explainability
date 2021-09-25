@@ -22,6 +22,9 @@ See [installation.md](docs/installation.md) for an extended installation guide.
 | `pip` | Install from [PyPI](https://pypi.org/project/text-explainability/) via `pip3 install text_explainability`. |
 | Local | Clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
 
+## Documentation
+Full documentation of the latest version is provided at [https://marcelrobeer.github.io/text_explainability/](https://marcelrobeer.github.io/text_explainability/).
+
 ## Example usage
 See [example_usage.md](example_usage.md) to see an example of how the package can be used, or run the lines in `example_usage.py` to do explore it interactively.
 
@@ -44,6 +47,10 @@ See [example_usage.md](example_usage.md) to see an example of how the package ca
 `text_explainability` is officially released through [PyPI](https://pypi.org/project/text-explainability/).
 
 See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each version.
+
+## Extensions
+`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. 
+The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).
 
 ## Maintenance
 ### Contributors

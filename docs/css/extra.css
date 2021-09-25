@@ -56,6 +56,35 @@
     --md-footer-bg-color: #44444E;
 }
 
+.highlight .gp {
+    color: #d52a2a;
+}
+
 .md-footer-nav__inner {
-    text-align: justify;
+    padding: 2em 0 1em 0;
+}
+
+.md-flex__ellipsis {
+    position: relative;
+    font-size: 1.5rem;
+}
+
+.md-footer-nav__direction {
+    position: absolute;
+    top: -1em;
+    font-size: .35em;
+}
+
+.md-footer-nav .md-flex__cell--stretch {
+    margin-right: 0;
+}
+
+.md-footer-nav  .md-grid {
+    display: flex;
+    justify-content: space-between;
+    -webkit-justify-content: space-between !important;
+}
+
+.md-typeset table:not([class]) {
+    box-shadow: 0 0.2rem 0.5rem rgb(255 255 255 / 5%), 0 0 0.05rem rgb(255 255 255 / 10%);
 }
