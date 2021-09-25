@@ -68,7 +68,7 @@ LocalTree()(sample, model, weigh_samples=False)
 # Contrastive local tree explainer for `sample` on `model` (why not 'positief'?)
 FoilTree()(sample, model, foil_fn='positief').rules
 
-# %% LocalRules on `model` (why 'positief'?)
+# LocalRules on `model` (why 'positief'?)
 LocalRules()(sample, model, foil_fn='negatief', n_samples=100).rules
 ```
 
@@ -108,6 +108,6 @@ MMDCritic(instanceprovider)(n_prototypes=2, n_criticisms=2)
 # Extract 1 prototype for each ground-truth label with MMDCritic
 LabelwiseMMDCritic(instanceprovider, labelprovider).prototypes(n=1)
 
-# %% Extract 1 prototype and 2 criticisms for each predicted label with MMDCritic
+# Extract 1 prototype and 2 criticisms for each predicted label with MMDCritic
 LabelwiseMMDCritic(instanceprovider, model)(n_prototypes=1, n_criticisms=2)
 ```

@@ -2,6 +2,7 @@
 modules = ["text_explainability"]
 
 [tool.portray.mkdocs]
+site_url = "https://marcelrobeer.github.io/text_explainability"
 nav = [{ Home = "README.md" },
        { Installation = "docs/installation.md" },
        { "Example usage" = "example_usage.md" },
@@ -12,11 +13,13 @@ markdown_extensions = ["toc",
                        "pymdownx.highlight",
                        "pymdownx.details",
                        "mdx_truly_sane_lists"]
+extra_css = ["docs/css/extra.css"]
 
 [tool.portray.mkdocs.theme]
 logo = "https://i.ibb.co/pvkkWqZ/Text-Logo-Logo-white.png"
 name = "material"
-palette = {primary = "blue grey", accent = "#80D8FF"}
+palette = [{ media = "(prefers-color-scheme: light)", scheme = "light", toggle = { icon = "material/toggle-switch-off-outline", name = "Switch to dark mode" } },
+           { media = "(prefers-color-scheme: dark)", scheme = "dark", toggle = { icon = "material/toggle-switch", name = "Switch to light mode" } },]
 site_description = """
   This is the documentation for text_explainability, a generic explainability architecture 
   for text machine learning models.
@@ -32,6 +35,11 @@ nested_indent = 4
 truly_sane = true
 
 [[tool.portray.mkdocs.extra.social]]
-icon = "fontawesome/brands/github"
-link = "https://github.com/MarcelRobeer/Text_Explainability"
-name = "text_explainability on GitHub"
+icon = "fontawesome/brands/gitlab"
+link = "https://git.science.uu.nl/m.j.robeer/text_explainability"
+name = "text_explainability on GitLab"
+
+[[tool.portray.mkdocs.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/text-explainability/"
+name = "text_explainability on PyPI"
