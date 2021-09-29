@@ -14,10 +14,12 @@ markdown_extensions = ["toc",
                        "pymdownx.details",
                        "mdx_truly_sane_lists"]
 extra_css = ["docs/css/extra.css"]
+copyright = "Copyright &copy; 2021 Marcel Robeer"
 
 [tool.portray.mkdocs.theme]
 logo = "https://i.ibb.co/pvkkWqZ/Text-Logo-Logo-white.png"
 name = "material"
+custom_dir = "docs/overrides"
 palette = [{ media = "(prefers-color-scheme: light)", scheme = "light", toggle = { icon = "material/toggle-switch-off-outline", name = "Switch to dark mode" } },
            { media = "(prefers-color-scheme: dark)", scheme = "dark", toggle = { icon = "material/toggle-switch", name = "Switch to light mode" } },]
 site_description = """

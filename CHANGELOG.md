@@ -6,14 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Hosting documentation in /site folder
+- External documentation
+- Documentation styling
+- Citation information
 
 ## [0.4.5] - 2021-09-24
 ### Added
 - Decorator to allow strings to be converted into TextInstances
 - Decorator to ensure TextInstances are tokenized when required
 
-### Changed
+### Fixed
 - Typing fixes
 
 ## [0.4.4] - 2021-09-23
@@ -35,11 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added random state in example_usage to ensure reproducibility
 
 ## [0.4.2] - 2021-09-13
-### Changed
+### Fixed
 - Hotfix to fix `predict_proba` usage
 
 ## [0.4.1] - 2021-09-13
-### Changed
+### Fixed
 - Hotfix to make dependency on internet optional
 
 ## [0.4.0] - 2021-09-13
@@ -55,8 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.8] - 2021-09-07
 ### Changed
-- Bugfix in including `locale/*.json` files during setup
 - Support for dimensionality reduction
+
+### Fixed
+- Bugfix in including `locale/*.json` files during setup
 
 ## [0.3.7] - 2021-09-07
 ### Added
@@ -70,14 +74,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.5] - 2021-09-03
 ### Changed
-- Bugfix for getting key in TokenFrequency
 - Locale changed to .json format, to remove optional dependency
+
+### Fixed
+- Bugfix for getting key in TokenFrequency
 - Bugfixes in FeatureAttribution return type
 - Bugfixes in `i18n`
 
 ## [0.3.4] - 2021-08-18
 ### Changed
 - External logo url
+
+### Fixed
 - Hotfix in FeatureAttribution
 
 ## [0.3.3] - 2021-08-18
@@ -88,6 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Additional samples in example dataset
+
+### Fixed
 - Bugfixes for LIME and FeatureAttribution return type
 
 ## [0.3.2] - 2021-07-27

@@ -49,6 +49,7 @@
     --md-code-hl-function-color: #B388FF;
     --md-code-hl-string-color: #B9F6CA;
     --md-code-hl-number-color: #FF8A80;
+    --md-code-hl-comment-color: #2FD381;
     --md-code-hl-punctuation-color: hsla(200, 18%, 78%, 1) !important;
     --md-code-fg-color: hsla(200, 18%, 78%, 1);
 
@@ -58,31 +59,6 @@
 
 .highlight .gp {
     color: #d52a2a;
-}
-
-.md-footer-nav__inner {
-    padding: 2em 0 1em 0;
-}
-
-.md-flex__ellipsis {
-    position: relative;
-    font-size: 1.5rem;
-}
-
-.md-footer-nav__direction {
-    position: absolute;
-    top: -1em;
-    font-size: .35em;
-}
-
-.md-footer-nav .md-flex__cell--stretch {
-    margin-right: 0;
-}
-
-.md-footer-nav  .md-grid {
-    display: flex;
-    justify-content: space-between;
-    -webkit-justify-content: space-between !important;
 }
 
 .md-typeset table:not([class]) {

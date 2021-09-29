@@ -52,6 +52,16 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 `text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. 
 The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).
 
+## Citation
+```
+@misc{text_explainability,
+  title = {Python package text_explainability},
+  author = {Marcel Robeer},
+  howpublished = {https://git.science.uu.nl/m.j.robeer/text_explainability},
+  year = {2021}
+}
+```
+
 ## Maintenance
 ### Contributors
 - [Marcel Robeer](https://www.uu.nl/staff/MJRobeer) (`@m.j.robeer`)
@@ -60,14 +70,14 @@ The `text_sensitivity` package is available through [PyPI](https://pypi.org/proj
 ### Todo
 Tasks yet to be done:
 
-- Implement local post-hoc explanations:
+* Implement local post-hoc explanations:
     - Implement Anchors
-- Implement global post-hoc explanations:
+* Implement global post-hoc explanations:
     - Representative subset
-- Add support for regression models
-- More complex data augmentation
+* Add support for regression models
+* More complex data augmentation
     - Top-k replacement (e.g. according to LM / WordNet)
     - Tokens to exclude from being changed
     - Bag-of-words style replacements
-- Add rule-based return type
-- Write more tests
+* Add rule-based return type
+* Write more tests
