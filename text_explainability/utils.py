@@ -6,9 +6,10 @@ import numpy as np
 from typing import Sequence, Iterable
 
 
-def word_tokenizer(input: str) -> Sequence[str]:
+def word_tokenizer(input: str, exclude_curly_brackets: bool = False) -> Sequence[str]:
     """Simple regex tokenizer."""
-    return re.findall(r"\w+|[^\w\s]+", input)
+    pattern = r"\{.+?\}|\w+|[^\w\s]+" if exclude_curly_brackets else r"\w+|[^\w\s]+"
+    return re.findall(pattern, input)
 
 
 def word_detokenizer(input: Iterable[str]) -> str:

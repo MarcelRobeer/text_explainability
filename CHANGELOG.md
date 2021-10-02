@@ -5,10 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.6] - 2021-10-02
 ### Added
 - External documentation
 - Documentation styling
 - Citation information
+
+### Changed:
+- Word tokenizer can now combine tokens in curly bracket when setting `exclude_curly_brackets=True`
 
 ## [0.4.5] - 2021-09-24
 ### Added
