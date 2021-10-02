@@ -40,8 +40,7 @@ class FeatureSelector(Readable):
             n_features (int, optional): [description]. Defaults to 10.
 
         Raises:
-            AssertionError: The local linear model used to calculate forward_selection
-                was not defined.
+            ValueError: The local linear model used to calculate forward_selection was not defined.
 
         Returns:
             np.ndarray: Indices of selected features.
@@ -49,7 +48,9 @@ class FeatureSelector(Readable):
         .. _LIME:
             https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
         """
-        assert self.model is not None, 'forward_selection requires a local linear model'
+        if self.model is None:
+            raise ValueError('forward_selection requires a local linear model')
+
         n_features = min(X.shape[1], n_features)
         used_features = []
         for _ in range(n_features):
@@ -78,8 +79,7 @@ class FeatureSelector(Readable):
             n_features (int, optional): Number of features to select. Defaults to 10.
 
         Raises:
-            AssertionError: The local linear model used to calculate forward_selection
-                was not defined.
+            ValueError: The local linear model used to calculate highest_weights was not defined.
 
         Returns:
             np.ndarray: Indices of selected features.
@@ -87,7 +87,9 @@ class FeatureSelector(Readable):
         .. _LIME:
             https://github.com/marcotcr/lime/blob/master/lime/lime_base.py
         """
-        assert self.model is not None, 'highest_weights requires a local linear model'
+        if self.model is None:
+            raise ValueError('highest_weights requires a local linear model')
+
         self.model.fit(X, y, weights=weights)
         weighted_data = self.model.feature_importances * X[0]
         feature_weights = sorted(
@@ -138,6 +140,9 @@ class FeatureSelector(Readable):
             criterion (str, optional): Whether to use `Akaike Information Criterion`_ (`aic`) or 
                 `Bayesian Information Criterion`_ (`bic`). Defaults to 'aic'.
 
+        Raises:
+            ValueError: Unknown criterion.
+
         Returns:
             np.ndarray: Indices of selected features.
 
@@ -148,7 +153,8 @@ class FeatureSelector(Readable):
         .. _Bayesian Information Criterion:
             https://en.wikipedia.org/wiki/Bayesian_information_criterion
         """
-        assert criterion in ['aic', 'bic'], f'Unknown criterion "{criterion}"'
+        if criterion not in ['aic', 'bic']:
+            raise ValueError(f'Unknown criterion "{criterion}", choose from [aic, bic]')
         return np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0]
 
     def _l1_reg(self, X: np.ndarray, y: np.ndarray,
@@ -195,18 +201,17 @@ class FeatureSelector(Readable):
             alpha (Optional[float], optional): Hyperparameter for L1 regularization. Defaults to None.
 
         Raises:
-            AssertionError: Unknown method, or the requirements of a method have not been satisfied.
+            ValueError: Unknown method, or the requirements of a method have not been satisfied.
 
         Returns:
             np.ndarray: Indices of selected features.
         """
-        if self.model is None:
-            assert method not in ['forward_selection', 'highest_weights'], \
-                f'{self.__class__.__name__} requires a `model` to use methods forward_selection and ' \
-                'highest_weights'
-        assert method in [None, 'forward_selection', 'highest_weights', 'lasso_path',
-                          'aic', 'bic', 'l1_reg'], \
-            f'Unknown method "{method}"'
+        if self.model is None and method in ['forward_selection', 'highest_weights']:
+            raise ValueError(f'{self.__class__.__name__} requires a `model` to use methods forward_selection and ',
+                             'highest_weights')
+        if method not in [None, 'forward_selection', 'highest_weights', 'lasso_path', 'aic', 'bic', 'l1_reg']:
+            raise ValueError(f'Unknown {method=}')
+
         n_features = min(X.shape[1], n_features)
 
         # Do not perform feature selection, but return all

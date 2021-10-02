@@ -25,6 +25,9 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
             'incremental_pca', 'nmf', 'tsne']. Defaults to 'pca'.
         **kwargs: Optional arguments passed to method constructor.
 
+    Raises:
+        ValueError: Unknown method selected.
+
     Returns:
         np.ndarray: Vectors summarized in n dimensions.
     """
@@ -41,7 +44,8 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
     if method == 'tsne' and 'init' not in kwargs:
         kwargs['init'] = 'pca'
 
-    assert method in methods.keys(), f'Unknown method "{method}". Choose from {list(methods.keys())}.'
+    if method not in methods.keys():
+        raise ValueError(f'Unknown {method=}. Choose from {list(methods.keys())}.')
 
     if isinstance(vectors, MemoryBucketProvider):
         vectors = vectors.bulk_get_vectors(list(vectors))[-1]

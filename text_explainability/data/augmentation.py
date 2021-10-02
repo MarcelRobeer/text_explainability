@@ -74,10 +74,14 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
             *args: Arguments to be passed on to `perturb()` function.
             **kwargs: Keyword arguments to be passed on to `perturb()` function.
 
+        Raises:
+            ValueError: 'Tokenize your instance before applying a perturbation'
+
         Yields:
             Iterator[Sequence[TextInstance]]: Neighborhood data instances.
         """
-        assert hasattr(instance, 'tokenized'), 'Tokenize your instance before applying a perturbation'
+        if not hasattr(instance, 'tokenized'):
+            raise ValueError('Tokenize your instance before applying a perturbation')
 
         if instance.data not in self.env.all_instances.all_data():
             provider = self.env.create_empty_provider()
@@ -127,6 +131,9 @@ class TokenReplacement(LocalTokenPertubator):
             tokenized_instance (Iterable[str]): Tokenized instance.
             keep (Iterable[int]): Binary indicator whether to keep (1) or replace (0) a token.
 
+        Raises:
+            ValueError: Too few replacements in self.replacement.
+
         Returns:
             Iterable[str]: Tokenized instance with perturbation applied.
         """
@@ -135,8 +142,9 @@ class TokenReplacement(LocalTokenPertubator):
         if isinstance(self.replacement, list):
             instance_len = sum(1 for _ in tokenized_instance)
             replacement_len = len(self.replacement)
-            assert replacement_len >= instance_len, \
-                f'Too few replacements in `self.replacement`, got {replacement_len} and expected {instance_len}'
+            if not (replacement_len >= instance_len):
+                raise ValueError(f'Too few replacements in `self.replacement`, got {replacement_len} ',
+                                 f'and expected {instance_len}')
             return [self.replacement[i] if j == 0 else token
                     for i, (token, j) in enumerate(zip(tokenized_instance, keep))]
         return [self.replacement if i == 0 else token for token, i in zip(tokenized_instance, keep)]
@@ -171,6 +179,9 @@ class TokenReplacement(LocalTokenPertubator):
             add_background_instance (bool, optional): Add an additional instance with all tokens replaced. 
                 Defaults to False.
 
+        Raises:
+            ValueError: min_changes cannot be greater than max_changes.
+
         Yields:
             Iterator[Sequence[Iterable[str], Iterable[int]]]: Pertubed text instances and indices where
                 perturbation were applied.
@@ -178,8 +189,8 @@ class TokenReplacement(LocalTokenPertubator):
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)
         max_changes = min(instance_len, max_changes)
-        assert min_changes <= max_changes, \
-            f'Unable to produce any perturbations since min_changes={min_changes} and max_changes={max_changes}'
+        if min_changes > max_changes:
+            raise ValueError(f'Unable to produce any perturbations since {min_changes=} and {max_changes=}')
         rand = np.random.RandomState(self._seed)
 
         def get_inactive(inactive_range):

@@ -3,7 +3,7 @@
 </p>
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
-[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](https://pypi.org/project/text-explainability/)
+[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://pypi.org/project/text-explainability/)
 [![Build_passing](https://img.shields.io/badge/build-passing-brightgreen)](https://git.science.uu.nl/m.j.robeer/text_explainability/-/pipelines)
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Docs_passing](https://img.shields.io/badge/docs-external-blueviolet)](https://marcelrobeer.github.io/text_explainability)
@@ -53,11 +53,11 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).
 
 ## Citation
-```
+```bibtex
 @misc{text_explainability,
   title = {Python package text_explainability},
   author = {Marcel Robeer},
-  howpublished = {https://git.science.uu.nl/m.j.robeer/text_explainability},
+  howpublished = {\url{https://git.science.uu.nl/m.j.robeer/text_explainability}},
   year = {2021}
 }
 ```

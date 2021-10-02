@@ -1,5 +1,16 @@
 {
   "str1": "This is the English version.",
   "list1": "this;is;a;test;list",
-  "stopwords": "a;an;the"
+  "stopwords": "a;an;the",
+  "name": "name",
+  "first_name": "first name",
+  "last_name": "last name",
+  "male": "male",
+  "female": "female",
+  "nonbinary": "non-binary",
+  "phone_number": "phone number",
+  "date": "date",
+  "day": "day",
+  "month": "month",
+  "year": "year"
 }

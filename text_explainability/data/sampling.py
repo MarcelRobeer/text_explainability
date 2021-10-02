@@ -135,13 +135,18 @@ class MMDCritic(PrototypeSampler):
         Args:
             n (int, optional): Number of prototypes to select. Defaults to 5.
 
+        Raises:
+            ValueError: Cannot select more instances than the total number of instances.
+
         Returns:
             Sequence[MemoryTextInstance]: List of prototype instances.
 
         .. _MMD-critic implementation:
             https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
         """
-        assert n <= len(self.instances), f'Cannot select more than all instances ({len(self.instances)}.'
+        if n > len(self.instances):
+            raise ValueError(f'Cannot select more than all instances ({len(self.instances)}.')
+
         K = self.K
         colsum = self.colsum.copy() * 2
         sample_indices = np.array(list(self.instances))
@@ -179,6 +184,7 @@ class MMDCritic(PrototypeSampler):
 
         Raises:
             Exception: `MMDCritic.prototypes()` must first be run before being able to determine the criticisms.
+            ValueError: Unknown regularizer or requested more criticisms than there are samples left.
 
         Returns:
             Sequence[MemoryTextInstance]: List of criticism instances.
@@ -189,10 +195,12 @@ class MMDCritic(PrototypeSampler):
         if self._prototypes is None:
             raise Exception('Calculating criticisms requires prototypes. Run `MMDCritic.prototypes()` first.')
         regularizers = {None, 'logdet', 'iterative'}
-        assert regularizer in regularizers, \
-            f'Unknown regularizer "{regularizer}", choose from {regularizers}.'
-        assert n <= (len(self.instances) - len(self._prototypes)), \
-            f'Cannot select more than instances excluding prototypes ({len(self.instances) - len(self._prototypes)})'
+
+        if regularizer not in regularizers:
+            raise ValueError(f'Unknown {regularizer=}. Choose from {regularizers}.')
+        if n > (len(self.instances) - len(self._prototypes)):
+            raise ValueError('Cannot select more than instances excluding prototypes ',
+                             f'({len(self.instances) - len(self._prototypes)})')
 
         prototypes = np.array([p.identifier for p in self._prototypes])
 

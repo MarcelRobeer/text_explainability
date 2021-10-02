@@ -71,15 +71,17 @@ class GlobalExplanation(Readable):
             explain_model (bool, optional): Whether to explain using the `model` 
                 labels (True) or `labelprovider` labels (False). Defaults to True.
 
+        Raises:
+            ValueError: if explain_model = True provide a model, and if False provide a labelprovider.
+
         Returns:
             Tuple[InstanceProvider, np.ndarray]: Instances and corresponding labels
         """
-        if explain_model:
-            assert model is not None, \
-                'Provide a model to explain its predictions, or set `explain_predictions` to False'
-        else:
-            assert labelprovider is not None, \
-                'Provide a labelprovider to explain ground-truth labels, or set `explain_predictions` to True'
+        if explain_model and model is None:
+            raise ValueError('Provide a model to explain its predictions, or set `explain_predictions` to False')
+        elif not explain_model and labelprovider is None:
+            raise ValueError('Provide a labelprovider to explain ground-truth labels, ',
+                             'or set `explain_predictions` to True')
 
         instances = self.get_data()
         labels = model.predict(instances) if explain_model \

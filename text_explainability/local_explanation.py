@@ -225,6 +225,9 @@ class LIME(LocalExplanation, WeightedExplanation):
                 instance. Defaults to True.
             distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
 
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
         Returns:
             FeatureAttribution: [description]
 
@@ -237,7 +240,8 @@ class LIME(LocalExplanation, WeightedExplanation):
 
             n_labels = sum(1 for _ in iter(labels))
             if n_labels > 0 and isinstance(next(iter(labels)), str):
-                assert self.labelset is not None, 'can only provide label names when such a list exists'
+                if self.labelset is None:
+                    raise ValueError('Can only provide label names when such a list exists in self.labelset')
                 labels = [self.labelset.index(label) for label in labels]
 
         # Generate neighborhood samples
@@ -447,11 +451,17 @@ class Anchor(LocalExplanation):
                     epsilon: float = 0.1,
                     max_anchor_size: Optional[int] = None,
                     batch_size: int = 20):
-        assert beam_size >= 1, f'beam size should be at least 1, but is {beam_size}'
-        assert 0.0 <= min_confidence <= 0.95, f'min_confidence should be a value in [0, 1], but is {min_confidence}'
-        assert 0.0 <= delta <= 0.95, f'delta should be a value in [0, 1], but is {delta}'
-        assert 0.0 <= epsilon <= 0.95, f'epsilon should be a value in [0, 1], but is {epsilon}'
-        assert batch_size > 2, 'requires positive batch size'
+        # TODO: add value checking to decorator
+        if beam_size < 1:
+            raise ValueError(f'{beam_size=} should be at least 1.')
+        if not (0.0 <= min_confidence <= 1.0):
+            raise ValueError(f'{min_confidence=} should be in range [0, 1].')
+        if not (0.0 <= delta <= 1.0):
+            raise ValueError(f'{delta=} should be in range [0, 1].')
+        if not (0.0 <= epsilon <= 1.0):
+            raise ValueError(f'{epsilon=} should be in range [0, 1].')
+        if batch_size < 2:
+            raise ValueError(f'{batch_size=} should be at least 2.')
 
         for batch in provider.instance_chunker(batch_size):
             y = list(model.predict_proba_raw(batch))[-1][-1]  # todo: only look at probs of one class

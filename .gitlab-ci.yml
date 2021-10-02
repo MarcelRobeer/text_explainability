@@ -3,6 +3,7 @@ image: python:3.9
 stages:
   - format
   - test
+  - security
 
 before_script:
   - python3 setup.py install
@@ -22,3 +23,8 @@ run_tests:
     - branches
   artifacts:
     when: always
+
+bandit:
+  stage: security
+  script:
+    - bandit -r ./text_sensitvity -x /test
