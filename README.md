@@ -81,3 +81,13 @@ Tasks yet to be done:
     - Bag-of-words style replacements
 * Add rule-based return type
 * Write more tests
+
+## Credits
+- Florian Gardin, Ronan Gautier, Nicolas Goix, Bibi Ndiaye and Jean-Matthieu Schertzer. _[Skope-rules](https://github.com/scikit-learn-contrib/skope-rules)_. 2020.
+- Riccardo Guidotti, Anna Monreale, Salvatore Ruggieri, Dino Pedreschi, Franco Turini and Fosca Gianotti. _[Local Rule-Based Explanations of Black Box Decision Systems](https://paperswithcode.com/paper/local-rule-based-explanations-of-black-box)_. 2018.
+- Been Kim, Rajiv Khanna and Oluwasanmi O. Koyejo. [Examples are not Enough, Learn to Criticize! Criticism for Interpretability](https://papers.nips.cc/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html). _Advances in Neural Information Processing Systems (NIPS 2016)_. 2016.
+- Scott Lundberg and Su-In Lee. [A Unified Approach to Interpreting Model Predictions](https://paperswithcode.com/paper/a-unified-approach-to-interpreting-model). _31st Conference on Neural Information Processing Systems (NIPS 2017)_. 2017.
+- Christoph Molnar. _[Interpretable Machine Learning: A Guide for Making Black Box Models Explainable](https://christophm.github.io/interpretable-ml-book/)_. 2021.
+- Marco Tulio Ribeiro, Sameer Singh and Carlos Guestrin. ["Why Should I Trust You?": Explaining the Predictions of Any Classifier](https://paperswithcode.com/method/lime). _Proceedings of the 2016 Conference of the North American Chapter of the Association for Computational Linguistics (NAACL 2016)_. 2016.
+- Marco Tulio Ribeiro, Sameer Singh and Carlos Guestrin. [Anchors: High-Precision Model-Agnostic Explanations](https://github.com/marcotcr/anchor). _AAAI Conference on Artificial Intelligence (AAAI)_. 2018.
+- Jasper van der Waa, Marcel Robeer, Jurriaan van Diggelen, Matthieu Brinkhuis and Mark Neerincx. ["Contrastive Explanations with Local Foil Trees"](https://github.com/MarcelRobeer/ContrastiveExplanation). _2018 Workshop on Human Interpretability in Machine Learning (WHI 2018)_. 2018.
