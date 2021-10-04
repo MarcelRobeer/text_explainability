@@ -10,9 +10,9 @@
 
 ---
 
-```plaintext
-A generic explainability architecture for explaining text machine learning models
-```
+**<h3 align="center">
+A generic explainability architecture for explaining text machine learning models**
+</h3>
 
 `text_explainability` provides a **generic architecture** from which well-known state-of-the-art explainability approaches for text can be composed. This modular architecture allows components to be swapped out and combined, to **quickly develop new types of explainability approaches** for (natural language) text, or to **improve a plethora of approaches by improving a single module**.
 
