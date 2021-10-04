@@ -1,5 +1,5 @@
-<p align="center">
-  <img src="https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20large.png" alt="T_xt Explainability logo" width="70%">
+*<p align="center">
+  <img src="https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20large.png" alt="T_xt Explainability logo" width="70%">*
 </p>
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
