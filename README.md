@@ -10,9 +10,9 @@
 
 ---
 
-<h3 align="center">
-    <p>A generic explainability architecture for explaining text machine learning models</p>
-</h3>
+```plaintext
+A generic explainability architecture for explaining text machine learning models
+```
 
 `text_explainability` provides a **generic architecture** from which well-known state-of-the-art explainability approaches for text can be composed. This modular architecture allows components to be swapped out and combined, to **quickly develop new types of explainability approaches** for (natural language) text, or to **improve a plethora of approaches by improving a single module**.
 
@@ -23,29 +23,28 @@ Several example methods are included, which provide **local explanations** (_exp
 ## Quick tour
 **Local explanation**: explain a models' prediction on a given sample, self-provided or from a dataset.
 ```python
-from text_explainability import LIME, LocalRules
+>>> from text_explainability import LIME, LocalTree
+>>> # Define sample to explain
+>>> sample = 'Explain why this is positive and not negative!'
 
-# Define sample to explain
-sample = 'Explain why this is positive and not negative!'
+>>> # LIME explanation (local feature importance)
+>>> LIME().explain(sample, model).scores
 
-# LIME explanation (local feature importance)
-LIME().explain(sample, model)
-
-# List of local rules
-LocalRules().explain(sample, model)
+>>> # List of local rules
+>>> LocalTree().explain(sample, model).rules
 ``` 
 
 **Global explanation**: explain the whole dataset (e.g. train set, test set), and what they look like for the ground-truth or predicted labels.
 ```python
-# Import dataset
-from text_explainability.data import import_data, TokenFrequency, MMDCritic
-env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+>>> from text_explainability import import_data, TokenFrequency, MMDCritic
+>>> # Import dataset
+>>> env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
 
-# Top-k most frequent tokens per label
-TokenFrequency(env.dataset).explain(labelprovider=labelprovider, explain_model=False, k=3)
+>>> # Top-k most frequent tokens per label
+>>> TokenFrequency(env.dataset).explain(labelprovider=env.labels, explain_model=False, k=3)
 
-# 2 prototypes and 1 criticisms for the dataset
-MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=2)
+>>> # 2 prototypes and 1 criticisms for the dataset
+>>> MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
 ```
 
 ## Installation

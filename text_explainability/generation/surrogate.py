@@ -1,6 +1,7 @@
 """Wrappers for surrogate models, used for local/global explanations.
 
 Todo:
+
     * Add documentation
     * Differentiate between classifiers and regressors
     * Extract rules from decision tree (https://mljar.com/blog/extract-rules-decision-tree/)

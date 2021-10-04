@@ -1,7 +1,9 @@
 """Local explanations explain why a model made a prediction for a single instance.
 
 Todo:
+
     * Implement Anchors
+    * Various bugfixes
 """
 
 import numpy as np
@@ -16,7 +18,7 @@ from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
 from text_explainability.data.augmentation import (LocalTokenPertubator,
-                                                   TokenReplacement)
+                                                   LeaveOut)
 from text_explainability.data.weights import (exponential_kernel,
                                               pairwise_distances)
 from text_explainability.default import Readable
@@ -73,7 +75,7 @@ class LocalExplanation(Readable):
         super().__init__()
         self.env = default_env(env)
         if augmenter is None:
-            augmenter = TokenReplacement(env=self.env, detokenizer=default_detokenizer)
+            augmenter = LeaveOut(env=self.env, detokenizer=default_detokenizer)
         if isinstance(labelset, LabelProvider) and hasattr(labelset, 'labelset'):
             labelset = list(labelset.labelset)
         elif labelset is None and self.env is not None:
@@ -169,7 +171,7 @@ class WeightedExplanation:
 
 class LIME(LocalExplanation, WeightedExplanation):
     def __init__(self,
-                 env: Optional[AbstractEnvironment],
+                 env: Optional[AbstractEnvironment] = None,
                  local_model: Optional[LinearSurrogate] = None,
                  kernel: Optional[Callable] = None,
                  kernel_width: Union[int, float] = 25,
@@ -418,7 +420,7 @@ class KernelSHAP(LocalExplanation):
 
 class Anchor(LocalExplanation):
     def __init__(self,
-                 env: Optional[AbstractEnvironment],
+                 env: Optional[AbstractEnvironment] = None,
                  labelset: Optional[Union[Sequence[str], LabelProvider]] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
                  seed: int = 0):

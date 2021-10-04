@@ -1,8 +1,10 @@
 """General return types for global/local explanations.
 
 Todo:
-    * add rule-based explanations
-    * add named label support
+
+    * Add rule-based explanations
+    * Add named label support
+    * Test for bugs
 """
 
 import numpy as np

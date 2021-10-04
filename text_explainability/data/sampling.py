@@ -1,6 +1,7 @@
 """Sample an (informative) subset from the data.
 
 Todo:
+
     * Sample (informative?) subset from data
     * Refactor to make sampling base class
     * Add ability to perform MMD critic on a subset (e.g. single class)

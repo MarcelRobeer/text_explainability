@@ -1,6 +1,7 @@
 """Embed text instances into numerical vectors.
 
 Todo:
+
     * Add more sentence embedding methods
 """
 
