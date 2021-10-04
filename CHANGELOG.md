@@ -5,9 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.0] - 2021-10-04
 ### Added
 - Security testing with bandit
 - More locale translations
+- Wrappers around `instancelib` in `text_explainability.data` and `text_explainability.model`
+
+### Changed
+- Extended description in README.md
+- Changed example usage to fit workflow changes
+- Logo link in README.md
+
+### Fixed
+- Bugfixes in MMDCritic
+- Bugfixes in KernelSHAP
 
 ## [0.4.6] - 2021-10-02
 ### Added
@@ -15,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation styling
 - Citation information
 
-### Changed:
+### Changed
 - Word tokenizer can now combine tokens in curly bracket when setting `exclude_curly_brackets=True`
 
 ## [0.4.5] - 2021-09-24
@@ -152,6 +164,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.5.0]: https://pypi.org/project/text-explainability/0.5.0/
+[0.4.6]: https://pypi.org/project/text-explainability/0.4.6/
 [0.4.5]: https://pypi.org/project/text-explainability/0.4.5/
 [0.4.4]: https://pypi.org/project/text-explainability/0.4.4/
 [0.4.3]: https://pypi.org/project/text-explainability/0.4.3/

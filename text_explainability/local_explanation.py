@@ -141,7 +141,10 @@ class LocalExplanation(Readable):
 
         if predict:
             return provider, perturbed, y
-        return provider, perturbed        
+        return provider, perturbed
+
+    def explain(self, *args, **kwargs):
+        return self(*args, **kwargs)    
 
 
 class WeightedExplanation:
@@ -375,7 +378,7 @@ class KernelSHAP(LocalExplanation):
                                                      contiguous=False, n_samples=n_samples,
                                                      add_background_instance=True)
 
-        # To-do: exclude non-varying feature groups
+        # TODO: exclude non-varying feature groups
         y_null, y = y[-1], y[1:-1]
         y -= y_null
         used_features = np.arange(perturbed.shape[1])
@@ -389,6 +392,7 @@ class KernelSHAP(LocalExplanation):
             M = perturbed.shape[1]
             Z = np.sum(perturbed[1:-1], axis=1).astype(int)
             weight_vector = np.array([(M - 1) / (math.comb(M, m) * m * (M - m)) for m in range(1, M)])
+            weight_vector = np.append(weight_vector, [np.mean(weight_vector)])  # TODO: replace hotfix
             weight_vector /= np.sum(weight_vector)
             kernel_weights = weight_vector[Z - 1]
 

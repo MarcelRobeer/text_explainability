@@ -3,9 +3,7 @@
 import inspect
 from functools import wraps, partial
 
-from uuid import uuid4
-from instancelib.instances.text import MemoryTextInstance
-
+from text_explainability.data import from_string
 from text_explainability.utils import default_tokenizer
 
 
@@ -16,7 +14,7 @@ def text_instance(func=None, *, tokenize: bool = False):
 
     def str_to_text_instance(arg):
         if isinstance(arg, str):
-            arg = MemoryTextInstance(str(uuid4()), arg, None)
+            arg = from_string(arg)
         if tokenize and not arg.tokenized:
             arg.tokenized = default_tokenizer(arg.data)
         return arg

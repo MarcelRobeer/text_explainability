@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.ibb.co/xXtJ23n/Text-Logo-Logo-large.png" alt="T_xt Explainability logo" width="70%">
+  <img src="https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20large.png" alt="T_xt Explainability logo" width="70%">
 </p>
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
@@ -10,9 +10,43 @@
 
 ---
 
-_A generic explainability architecture for explaining text machine learning models._
+<h3 align="center">
+    <p>A generic explainability architecture for explaining text machine learning models</p>
+</h3>
 
-Marcel Robeer, 2021
+`text_explainability` provides a **generic architecture** from which well-known state-of-the-art explainability approaches for text can be composed. This modular architecture allows components to be swapped out and combined, to **quickly develop new types of explainability approaches** for (natural language) text, or to **improve a plethora of approaches by improving a single module**.
+
+Several example methods are included, which provide **local explanations** (_explaining the prediction of a single instance_, e.g. `LIME` and `SHAP`) or **global explanations** (_explaining the dataset, or model behavior on the dataset_, e.g. `TokenFrequency` and `MMDCritic`). By replacing the default modules (e.g. local data generation, global data sampling or improved embedding methods), these methods can be improved upon or new methods can be introduced.
+
+&copy; Marcel Robeer, 2021
+
+## Quick tour
+**Local explanation**: explain a models' prediction on a given sample, self-provided or from a dataset.
+```python
+from text_explainability import LIME, LocalRules
+
+# Define sample to explain
+sample = 'Explain why this is positive and not negative!'
+
+# LIME explanation (local feature importance)
+LIME().explain(sample, model)
+
+# List of local rules
+LocalRules().explain(sample, model)
+``` 
+
+**Global explanation**: explain the whole dataset (e.g. train set, test set), and what they look like for the ground-truth or predicted labels.
+```python
+# Import dataset
+from text_explainability.data import import_data, TokenFrequency, MMDCritic
+env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+
+# Top-k most frequent tokens per label
+TokenFrequency(env.dataset).explain(labelprovider=labelprovider, explain_model=False, k=3)
+
+# 2 prototypes and 1 criticisms for the dataset
+MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=2)
+```
 
 ## Installation
 See [installation.md](docs/installation.md) for an extended installation guide.

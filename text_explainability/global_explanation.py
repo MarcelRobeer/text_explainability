@@ -90,6 +90,9 @@ class GlobalExplanation(Readable):
             labels = ['-'.join(list(x)) for id, x in labels]
         return instances, np.array(labels)
 
+    def explain(self, *args, **kwargs):
+        return self(*args, **kwargs)
+
 
 class TokenFrequency(GlobalExplanation):
     def __call__(self,

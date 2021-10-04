@@ -1,12 +1,10 @@
 # Example Usage
 
 ## Dependencies
-`text_explainability` uses instances and machine learning models wrapped with the [InstanceLib](https://pypi.org/project/instancelib/) library.
+`text_explainability` uses instances and machine learning models wrapped with the [InstanceLib](https://pypi.org/project/instancelib/) library. For your convenience, we wrap some `instancelib` functions in `text_explainability.data` and `explainability.model`.
 ```python
-import os
-
-from instancelib.ingest.spreadsheet import read_csv_dataset
-from instancelib.instances.text import MemoryTextInstance
+from text_explainability.data import import_data, train_test_split, from_string
+from text_explainability.model import from_sklearn
 ```
 
 ## Dataset and model
@@ -14,27 +12,20 @@ As a dummy black-box model, we use the example dataset in `./datasets/test.csv` 
 
 ```python
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 
-from instancelib.machinelearning import SkLearnDataClassifier
-
 # Create train/test dataset
-path = os.path.join(os.path.dirname(__file__), './datasets/test.csv')
-test_env = read_csv_dataset(path, data_cols=['fulltext'], label_cols=['label'])
-instanceprovider = test_env.dataset
-labelprovider = test_env.labels
-train, test = test_env.train_test_split(instanceprovider, train_size=0.70)
+env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+train, test = train_test_split(env, train_size=0.70)
+labelprovider = env.labels
 
 # Create sklearn model with pipeline
-p = Pipeline([('vect', CountVectorizer()),
-              ('tfidf', TfidfTransformer(use_idf=False)),
-              ('rf', RandomForestClassifier(random_state=0))
-             ])
+pipeline = Pipeline([('tfidf', TfidfVectorizer(use_idf=True)),
+                     ('rf', RandomForestClassifier(random_state=0))])
 
 # Build and fit (train) model
-model = SkLearnDataClassifier.build(p, test_env)
-model.fit_provider(train, labelprovider)
+model = from_sklearn(pipeline, environment=env, train=train)
 ```
 
 ## Using Text Explainability
@@ -44,10 +35,9 @@ Text Explainability is used for _local explanations_ (explaining a single predic
 Popular local explanations include `LIME`, `KernelSHAP` , local decion trees (`LocalTree`), local decision rules (`LocalRules`) and `FoilTree`. First, let us create a sample to explain:
 
 ```python
-from text_explainability import default_tokenizer
+from text_explainability.data import from_string
 
-data = 'Dit is zeer positieve proef...'
-sample = MemoryTextInstance(0, data, None, tokenized = default_tokenizer(data))
+sample = from_string('Dit is zeer positieve of negatieve proef... Of toch negatief?')
 ```
 
 Next, the prediction of `model` on `sample` can be explained by generating neighborhood data (`text_explainability.data.augmentation.TokenReplacement`), used by `LIME`, `LocalTree`, `FoilTree` and `KernelSHAP`:
@@ -56,7 +46,7 @@ Next, the prediction of `model` on `sample` can be explained by generating neigh
 from text_explainability import LIME, LocalTree, FoilTree, KernelSHAP
 
 # LIME explainer for `sample` on `model`
-explainer = LIME(test_env)
+explainer = LIME(env)
 explainer(sample, model, labels=['neutraal', 'positief']).scores
 
 # SHAP explanation for `sample` on `model`, limited to 4 features
@@ -79,14 +69,14 @@ Global explanations provide information on the dataset and its ground-truth labe
 from text_explainability import TokenFrequency, TokenInformation
 
 # Global word frequency explanation on ground-truth labels
-tf = TokenFrequency(instanceprovider)
+tf = TokenFrequency(env.dataset)
 tf(labelprovider=labelprovider, explain_model=False, k=10)
 
 # Global word frequency explanation on model predictions
 tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
 
 # Token information for dataset
-ti = TokenInformation(instanceprovider)
+ti = TokenInformation(env.dataset)
 ti(labelprovider=labelprovider, explain_model=False, k=50).scores
 
 # Token information for model
@@ -100,14 +90,14 @@ Explanations by example provide information on a dataset (e.g. the test set) or 
 from text_explainability import KMedoids, MMDCritic, LabelwiseMMDCritic
 
 # Extract top-2 prototypes with KMedoids
-KMedoids(instanceprovider).prototypes(n=2)
+KMedoids(env.dataset).prototypes(n=2)
 
 # Extract top-2 prototypes and top-2 criticisms label with MMDCritic
-MMDCritic(instanceprovider)(n_prototypes=2, n_criticisms=2)
+MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=2)
 
 # Extract 1 prototype for each ground-truth label with MMDCritic
-LabelwiseMMDCritic(instanceprovider, labelprovider).prototypes(n=1)
+LabelwiseMMDCritic(env.dataset, labelprovider).prototypes(n=1)
 
 # Extract 1 prototype and 2 criticisms for each predicted label with MMDCritic
-LabelwiseMMDCritic(instanceprovider, model)(n_prototypes=1, n_criticisms=2)
+LabelwiseMMDCritic(env.dataset, model)(n_prototypes=1, n_criticisms=2)
 ```

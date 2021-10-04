@@ -223,7 +223,7 @@ class MMDCritic(PrototypeSampler):
             s1 = np.abs(s1)
 
             if regularizer == 'logdet':
-                diag = np.diagonal(K)[candidate_indices]
+                diag = np.diagonal(K + 1)[candidate_indices]  # TODO: look at hotfix
                 if inverse_of_prev_selected is not None:
                     temp = K[selected, :][:, candidate_indices]
                     temp2 = np.dot(inverse_of_prev_selected, temp) 

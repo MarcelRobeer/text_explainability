@@ -6,4 +6,4 @@ from text_explainability.utils import (default_tokenizer, default_detokenizer,
                                        character_tokenizer, character_detokenizer)
 
 
-__version__ = '0.4.6'
+__version__ = '0.5.0'
