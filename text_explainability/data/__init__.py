@@ -8,6 +8,7 @@ from uuid import uuid4
 from instancelib.environment.text import TextEnvironment
 from instancelib.ingest.spreadsheet import read_csv_dataset, read_excel_dataset
 from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
+from instancelib.typehints import LT
 
 from text_explainability.utils import default_tokenizer
 
@@ -58,8 +59,34 @@ def train_test_split(environment: TextEnvironment,
     return environment.train_test_split(environment.dataset, train_size=train_size)
 
 
+def from_list(instances: Sequence[str], labels: Sequence[LT]) -> TextEnvironment:
+    """Create a TextEnvironment from a list of instances, and list of labels
+
+    Example:
+        >>> from_list(instances=['A positive test.', 'A negative test.', 'Another positive test'],
+        >>>           labels=['pos', 'neg', 'pos'])
+
+    Args:
+        instances (Sequence[str]): List of instances.
+        labels (Sequence[LT]): List of corresponding labels.
+
+    Returns:
+        TextEnvironment: Environment holding data (`.dataset`) and labelprovider (`.labels`).
+    """
+    instances, labels = list(instances), list(labels)
+
+    return TextEnvironment.from_data(indices=list(range(len(instances))),
+                                     data=instances,
+                                     target_labels=list(set(labels)),
+                                     ground_truth=[[label] for label in labels],
+                                     vectors=[])
+
+
 def from_string(string: str, tokenizer: Callable[[str], Sequence[str]] = default_tokenizer) -> MemoryTextInstance:
     """Create a MemoryTextInstance from a string.
+
+    Example:
+        >>> from_string('This is a test example.')
 
     Args:
         string (str): Input string.
