@@ -24,28 +24,30 @@ Several example methods are included, which provide **local explanations** (_exp
 ## Quick tour
 **Local explanation**: explain a models' prediction on a given sample, self-provided or from a dataset.
 ```python
->>> from text_explainability import LIME, LocalTree
->>> # Define sample to explain
->>> sample = 'Explain why this is positive and not negative!'
+from text_explainability import LIME, LocalTree
 
->>> # LIME explanation (local feature importance)
->>> LIME().explain(sample, model).scores
+# Define sample to explain
+sample = 'Explain why this is positive and not negative!'
 
->>> # List of local rules
->>> LocalTree().explain(sample, model).rules
+# LIME explanation (local feature importance)
+LIME().explain(sample, model).scores
+
+# List of local rules, extracted from tree
+LocalTree().explain(sample, model).rules
 ``` 
 
 **Global explanation**: explain the whole dataset (e.g. train set, test set), and what they look like for the ground-truth or predicted labels.
 ```python
->>> from text_explainability import import_data, TokenFrequency, MMDCritic
->>> # Import dataset
->>> env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+from text_explainability import import_data, TokenFrequency, MMDCritic
 
->>> # Top-k most frequent tokens per label
->>> TokenFrequency(env.dataset).explain(labelprovider=env.labels, explain_model=False, k=3)
+# Import dataset
+env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
 
->>> # 2 prototypes and 1 criticisms for the dataset
->>> MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
+# Top-k most frequent tokens per label
+TokenFrequency(env.dataset).explain(labelprovider=env.labels, explain_model=False, k=3)
+
+# 2 prototypes and 1 criticisms for the dataset
+MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
 ```
 
 ## Installation
