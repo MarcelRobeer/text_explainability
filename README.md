@@ -91,7 +91,7 @@ The `text_sensitivity` package is available through [PyPI](https://pypi.org/proj
 ## Citation
 ```bibtex
 @misc{text_explainability,
-  title = {Python package text_explainability},
+  title = {Python package text\_explainability},
   author = {Marcel Robeer},
   howpublished = {\url{https://git.science.uu.nl/m.j.robeer/text_explainability}},
   year = {2021}
