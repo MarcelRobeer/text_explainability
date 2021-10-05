@@ -8,4 +8,4 @@ from text_explainability.data import from_string, import_data, train_test_split
 from text_explainability.model import from_sklearn
 
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'

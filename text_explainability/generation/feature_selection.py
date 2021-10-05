@@ -156,6 +156,10 @@ class FeatureSelector(Readable):
         """
         if criterion not in ['aic', 'bic']:
             raise ValueError(f'Unknown criterion "{criterion}", choose from [aic, bic]')
+        # use n_features
+        if y.ndim > 1:
+            # TODO: multiclass support?
+            y = y[:, 0]
         return np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0]
 
     def _l1_reg(self, X: np.ndarray, y: np.ndarray,
@@ -178,7 +182,7 @@ class FeatureSelector(Readable):
             return np.nonzero(Lasso(alpha=alpha).fit(X, y).coef_)[0]
         # use n_features
         if y.ndim > 1:
-            # To-do: multiclass support?
+            # TODO: multiclass support?
             y = y[:, 0]
         return lars_path(X, y, max_iter=n_features)[1]
 
