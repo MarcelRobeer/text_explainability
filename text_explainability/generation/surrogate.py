@@ -35,7 +35,8 @@ class LinearSurrogate(BaseSurrogate):
     def __init__(self, model):
         """Wrapper around sklearn linear model for usage in local/global surrogate models."""
         super().__init__(model)
-        self.__alpha_original = self._model.alpha
+        if hasattr(self._model, 'alpha'):
+            self.__alpha_original = self._model.alpha
 
     @property
     def coef(self):
@@ -53,10 +54,12 @@ class LinearSurrogate(BaseSurrogate):
         return self._model.score(X, y, sample_weight=weights)
 
     def alpha_zero(self):
-        self._model.alpha = 0
+        if hasattr(self._model, 'alpha'):
+            self._model.alpha = 0
 
     def alpha_reset(self):
-        self._model.alpha = self.__alpha_original
+        if hasattr(self._model, 'alpha'):
+            self._model.alpha = self.__alpha_original
 
     @property
     def fit_intercept(self):
