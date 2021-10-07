@@ -191,7 +191,7 @@ class FeatureSelector(Readable):
                  y: np.ndarray,
                  weights: np.ndarray = None,
                  n_features: int = 10,
-                 method: str = None,
+                 method: Optional[str] = None,
                  alpha: Optional[float] = None) -> np.ndarray:
         """Apply feature selection for dataset X and targets y.
 
@@ -234,3 +234,7 @@ class FeatureSelector(Readable):
             return self._information_criterion(X, y, criterion=method)
         elif method == 'l1_reg':
             return self._l1_reg(X, y, n_features=n_features, alpha=alpha)
+
+    def select(self, *args, **kwargs):
+        """Alias for `FeatureSelector().__call__()`"""
+        return self(*args, **kwargs)

@@ -1,15 +1,15 @@
 from text_explainability.utils import default_tokenizer, default_detokenizer
 
 test_list = [
-    "Dit is een voorbeeld tekst",
-    "Ook deze tekst stelt een voorbeeld voor",
-    "Mag deze tekst ook gebruikt worden als voorbeeld?",
-    "Welke output geeft de augmenter op deze tekst?",
-    "Deze tekst heeft maar één hoofdletter!",
-    "Misschien is dit ook een voorbeeld?",
-    "Dit vind ik sowieso een goed voorbeeld",
-    "Mag ik deze tekst hardop roepen?",
-    "Wij zijn er van overtuigd dat dit een goede test is"
+    'Dit is een voorbeeld tekst',
+    'Ook deze tekst stelt een voorbeeld voor',
+    'Mag deze tekst ook gebruikt worden als voorbeeld?',
+    'Welke output geeft de augmenter op deze tekst?',
+    'Deze tekst heeft maar één hoofdletter!',
+    'Misschien is dit ook een voorbeeld?',
+    'Dit vind ik sowieso een goed voorbeeld',
+    'Mag ik deze tekst hardop roepen?',
+    'Wij zijn er van overtuigd dat dit een goede test is'
 ]
 
 def test_tokenize_detokenize():
@@ -28,4 +28,3 @@ def test_single_word_tokenize():
 def test_single_word_detokenize():
     word = 'TESTWORD'
     assert default_detokenizer([word]) == word, 'Single word detokenize failed'
-
