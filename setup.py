@@ -34,6 +34,7 @@ setuptools.setup( # type: ignore
         'scikit-learn>=0.24.1',
         'sentence-transformers',  # optional in future
         'scikit-learn-extra',  # optional in future
+        'skope-rules>=1.0.1',  # optional in future
     ],
     python_requires = '>=3.8'
 )
