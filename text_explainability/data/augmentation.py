@@ -5,6 +5,7 @@ Todo:
     * Add more complex sampling methods (e.g. top-k replacement by contextual language model, WordNet, ...)
     * Replacement with k tokens at each index
     * Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
+    * Replace seed with SeedMixin
 """
 
 from instancelib.environment.base import AbstractEnvironment
