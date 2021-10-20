@@ -1,10 +1,9 @@
-import pytest
 import numpy as np
+import pytest
+from sklearn.linear_model import Lasso, LinearRegression, Ridge
 
 from text_explainability.generation.feature_selection import FeatureSelector
 from text_explainability.generation.surrogate import LinearSurrogate
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-
 
 TRUE_METHODS_NO_MODEL = ['lasso_path', 'aic', 'bic', 'l1_reg']
 TRUE_METHODS_MODEL = ['forward_selection', 'highest_weights']

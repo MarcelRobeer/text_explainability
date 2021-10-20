@@ -1,9 +1,9 @@
 """Support for i18n internationalization."""
 
 import os
-import i18n
-
 from typing import List
+
+import i18n
 
 FOLDER = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 if not os.path.isdir(f'{FOLDER}{os.path.sep}locale'):

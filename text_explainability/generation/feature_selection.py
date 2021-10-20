@@ -5,13 +5,13 @@ Todo:
     * Convert to factory design pattern
 """
 
-import numpy as np
-
 from typing import Optional
-from sklearn.linear_model import LassoLarsIC, Lasso, lars_path
 
-from text_explainability.generation.surrogate import LinearSurrogate
-from text_explainability.default import Readable
+import numpy as np
+from sklearn.linear_model import Lasso, LassoLarsIC, lars_path
+
+from ..default import Readable
+from .surrogate import LinearSurrogate
 
 
 class FeatureSelector(Readable):

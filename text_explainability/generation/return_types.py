@@ -7,12 +7,12 @@ Todo:
     * Test for bugs
 """
 
-import numpy as np
+from typing import Dict, Optional, Sequence, Tuple, Union
 
-from typing import Union, Optional, Sequence, Dict, Tuple
+import numpy as np
 from instancelib import InstanceProvider
 
-from text_explainability.generation.surrogate import TreeSurrogate, RuleSurrogate
+from .surrogate import RuleSurrogate, TreeSurrogate
 
 
 class BaseReturnType:

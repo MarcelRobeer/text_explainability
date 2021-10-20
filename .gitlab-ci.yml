@@ -13,6 +13,11 @@ flake8:
   script:
     - flake8 . --config .flake8
 
+isort:
+  stage: format
+  script:
+    - python3 -m isort --check --diff text_explainability
+
 run_tests:
   stage: test
   script:
@@ -27,4 +32,4 @@ run_tests:
 bandit:
   stage: security
   script:
-    - bandit -r ./text_sensitvity -x /test
+    - bandit -r ./text_explainability -x /test

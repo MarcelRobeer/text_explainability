@@ -1,10 +1,9 @@
-from instancelib.instances.text import MemoryTextInstance
 import pytest
+from instancelib.instances.text import MemoryTextInstance
+
 from text_explainability.data import from_string
-
-from text_explainability.data.augmentation import TokenReplacement, LeaveOut
+from text_explainability.data.augmentation import LeaveOut, TokenReplacement
 from text_explainability.utils import default_detokenizer
-
 
 SAMPLES = [from_string(string) for string in ['Dit is een voorbeeld.',
                                               'Nog een voorbeeld!',

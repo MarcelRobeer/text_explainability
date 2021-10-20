@@ -1,6 +1,8 @@
 import pytest
 
-from text_explainability.internationalization import set_locale, get_locale, translate_string, translate_list
+from text_explainability.internationalization import (get_locale, set_locale,
+                                                      translate_list,
+                                                      translate_string)
 
 locale = ['nl', 'en']
 ids = [i for i in range(len(locale))]

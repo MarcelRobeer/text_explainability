@@ -1,9 +1,9 @@
 """Encode targets into binary labels for contrastive explanation."""
 
 
-import numpy as np
+from typing import Generator, List, Optional, Sequence, Union
 
-from typing import Optional, Sequence, Union, Generator, List
+import numpy as np
 from instancelib.machinelearning import AbstractClassifier
 
 

@@ -8,21 +8,21 @@ Todo:
     * Replace seed with SeedMixin
 """
 
+import itertools
+import math
+from typing import (Any, Callable, Iterable, Iterator, List, Optional, Tuple,
+                    Union)
+
+import numpy as np
 from instancelib.environment.base import AbstractEnvironment
 from instancelib.environment.text import TextEnvironment
 from instancelib.instances.base import InstanceProvider
-import numpy as np
-import math
-import itertools
-
-from typing import (Callable, Iterable, Any, Iterator, Tuple, Optional, List, Union)
-
 from instancelib.instances.text import TextInstance
-from instancelib.pertubations.base import MultiplePertubator, ChildGenerator
+from instancelib.pertubations.base import ChildGenerator, MultiplePertubator
 
-from text_explainability.default import Readable
-from text_explainability.decorators import text_instance
-from text_explainability.utils import default_detokenizer
+from ..decorators import text_instance
+from ..default import Readable
+from ..utils import default_detokenizer
 
 
 class LocalTokenPertubator(MultiplePertubator[TextInstance], 

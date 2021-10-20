@@ -6,33 +6,29 @@ Todo:
     * Various bugfixes
 """
 
-import numpy as np
 import math
+import sys
 from typing import Callable, Optional, Sequence, Tuple, Union
 
-from instancelib import (AbstractEnvironment, InstanceProvider,
-                         LabelProvider, MemoryLabelProvider, TextEnvironment)
-from instancelib.machinelearning import AbstractClassifier
+import numpy as np
+import six
+from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
+                         MemoryLabelProvider, TextEnvironment)
 from instancelib.instances.text import TextInstance, TextInstanceProvider
+from instancelib.machinelearning import AbstractClassifier
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
-from text_explainability.data.augmentation import (LocalTokenPertubator,
-                                                   LeaveOut)
-from text_explainability.data.weights import (exponential_kernel,
-                                              pairwise_distances)
-from text_explainability.default import Readable
-from text_explainability.generation.feature_selection import FeatureSelector
-from text_explainability.generation.return_types import FeatureAttribution, Rules
-from text_explainability.generation.surrogate import (LinearSurrogate,
-                                                      TreeSurrogate,
-                                                      RuleSurrogate)
-from text_explainability.generation.target_encoding import FactFoilEncoder
-from text_explainability.decorators import text_instance
-from text_explainability.utils import binarize, default_detokenizer
+from .data.augmentation import LeaveOut, LocalTokenPertubator
+from .data.weights import exponential_kernel, pairwise_distances
+from .decorators import text_instance
+from .default import Readable
+from .generation.feature_selection import FeatureSelector
+from .generation.return_types import FeatureAttribution, Rules
+from .generation.surrogate import LinearSurrogate, RuleSurrogate, TreeSurrogate
+from .generation.target_encoding import FactFoilEncoder
+from .utils import binarize, default_detokenizer
 
-import six
-import sys
 sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
 
 from skrules import SkopeRules  # noqa: E402

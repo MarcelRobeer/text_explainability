@@ -1,10 +1,10 @@
 """Function decorators to ensure functions are fool-proof en readable."""
 
 import inspect
-from functools import wraps, partial
+from functools import partial, wraps
 
-from text_explainability.data import from_string
-from text_explainability.utils import default_tokenizer
+from .data import from_string
+from .utils import default_tokenizer
 
 
 def text_instance(func=None, *, tokenize: bool = False):

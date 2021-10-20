@@ -7,9 +7,10 @@ Todo:
     * Extract rules from decision tree (https://mljar.com/blog/extract-rules-decision-tree/)
 """
 
+from typing import Optional, Sequence
+
 import numpy as np
 from sklearn.base import clone
-from typing import Optional, Sequence
 
 from text_explainability.default import Readable
 
@@ -115,8 +116,8 @@ class TreeSurrogate(BaseSurrogate):
                 for i, f in enumerate(self._model.tree_.feature)]
 
     def to_rules(self):
-        from skrules.skope_rules import SkopeRules, BASE_FEATURE_NAME
         from skrules.rule import Rule
+        from skrules.skope_rules import BASE_FEATURE_NAME, SkopeRules
         feature_names = [BASE_FEATURE_NAME + str(i) for i in range(self._model.n_features_)]
         rules = SkopeRules._tree_to_rules(None, tree=self._model, feature_names=feature_names)
         # TODO: add performance metrics and output label

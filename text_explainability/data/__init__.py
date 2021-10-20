@@ -1,8 +1,7 @@
 """Data imports, sampling and generation."""
 
 import os
-
-from typing import Callable, Union, Tuple, Sequence
+from typing import Callable, Sequence, Tuple, Union
 from uuid import uuid4
 
 from instancelib.environment.text import TextEnvironment
@@ -10,7 +9,7 @@ from instancelib.ingest.spreadsheet import read_csv_dataset, read_excel_dataset
 from instancelib.instances.text import MemoryTextInstance, TextInstanceProvider
 from instancelib.typehints import LT
 
-from text_explainability.utils import default_tokenizer
+from ..utils import default_tokenizer
 
 
 def import_data(filename: str, *args, **kwargs) -> TextEnvironment:

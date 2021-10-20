@@ -1,4 +1,4 @@
-from text_explainability.utils import default_tokenizer, default_detokenizer
+from text_explainability.utils import default_detokenizer, default_tokenizer
 
 test_list = [
     'Dit is een voorbeeld tekst',

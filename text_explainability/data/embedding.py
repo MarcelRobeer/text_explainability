@@ -5,12 +5,12 @@ Todo:
     * Add more sentence embedding methods
 """
 
-from typing import Union, Callable
+from typing import Callable, Union
 
 import numpy as np
 from instancelib.instances.memory import MemoryBucketProvider
 
-from text_explainability.default import Readable
+from ..default import Readable
 
 
 def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
@@ -32,7 +32,7 @@ def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
     Returns:
         np.ndarray: Vectors summarized in n dimensions.
     """
-    from sklearn.decomposition import PCA, KernelPCA, IncrementalPCA, NMF
+    from sklearn.decomposition import NMF, PCA, IncrementalPCA, KernelPCA
     from sklearn.manifold import TSNE
 
     methods = {'pca': PCA,
@@ -122,7 +122,8 @@ class SentenceTransformer(Embedder):
         .. _Sentence Transformers:
             https://github.com/UKPLab/sentence-transformers
         """
-        from sentence_transformers import SentenceTransformer as SentTransformer
+        from sentence_transformers import \
+            SentenceTransformer as SentTransformer
         self.model = SentTransformer(model_name)
         super().__init__(lambda x: self.model.encode(x, **kwargs))
 

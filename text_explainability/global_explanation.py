@@ -7,23 +7,23 @@ Todo:
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
-from instancelib import InstanceProvider
-import numpy as np
+from typing import (Any, Callable, Dict, FrozenSet, List, Optional, Sequence,
+                    Tuple, Union)
 
-from typing import (Callable, Optional, List, Dict, Tuple, Any, Sequence, FrozenSet, Union)
+import numpy as np
+from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
-from text_explainability.utils import default_tokenizer
-from text_explainability.default import Readable
-from text_explainability.generation.return_types import FeatureList
-from text_explainability.internationalization import translate_list
-
-from text_explainability.data.sampling import KMedoids, MMDCritic
-from text_explainability.data.sampling import LabelwiseKMedoids, LabelwiseMMDCritic
+from .data.sampling import (KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic,
+                            MMDCritic)
+from .default import Readable
+from .generation.return_types import FeatureList
+from .internationalization import translate_list
+from .utils import default_tokenizer
 
 
 class GlobalExplanation(Readable):

@@ -2,8 +2,9 @@
 
 import re
 import string
+from typing import Iterable, Sequence
+
 import numpy as np
-from typing import Sequence, Iterable
 
 
 def word_tokenizer(input: str, exclude_curly_brackets: bool = False) -> Sequence[str]:

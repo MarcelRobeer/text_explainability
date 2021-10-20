@@ -4,9 +4,10 @@ from typing import Union
 
 from instancelib.environment.text import TextEnvironment
 from instancelib.instances.text import TextInstanceProvider
-from instancelib.machinelearning import AbstractClassifier, SkLearnDataClassifier
+from instancelib.machinelearning import (AbstractClassifier,
+                                         SkLearnDataClassifier)
 
-from text_explainability.data import train_test_split
+from .data import train_test_split
 
 
 def from_sklearn(model,

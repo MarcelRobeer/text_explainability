@@ -7,18 +7,18 @@ Todo:
     * Add ability to perform MMD critic on a subset (e.g. single class)
 """
 
-from typing import Dict, Sequence, Callable, Optional, Union
+from typing import Callable, Dict, Optional, Sequence, Union
 
 import numpy as np
 from instancelib.instances.memory import MemoryBucketProvider
 from instancelib.instances.text import MemoryTextInstance
-from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.labels.base import LabelProvider
+from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.machinelearning.base import AbstractClassifier
 
-from text_explainability.data.embedding import Embedder, TfidfVectorizer
-from text_explainability.data.weights import exponential_kernel
-from text_explainability.default import Readable
+from ..default import Readable
+from .embedding import Embedder, TfidfVectorizer
+from .weights import exponential_kernel
 
 
 class PrototypeSampler(Readable):
