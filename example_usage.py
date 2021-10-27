@@ -1,10 +1,10 @@
 # %% General imports
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
+
 from text_explainability.data import import_data, train_test_split
 from text_explainability.model import from_sklearn
-
-from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
 
 # %% Create train/test dataset
 env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
@@ -20,12 +20,15 @@ model = from_sklearn(pipeline, environment=env, train=train)
 
 # %% Imports
 from text_explainability.data import from_string
-
-from text_explainability.local_explanation import LIME, LocalTree, Anchor, KernelSHAP, FoilTree, LocalRules
-from text_explainability.global_explanation import (TokenFrequency, TokenInformation,
-                                                    MMDCritic, KMedoids, LabelwiseMMDCritic)
-from text_explainability.data.augmentation import TokenReplacement, LeaveOut
-from text_explainability.utils import default_detokenizer, PUNCTUATION
+from text_explainability.data.augmentation import LeaveOut, TokenReplacement
+from text_explainability.global_explanation import (KMedoids,
+                                                    LabelwiseMMDCritic,
+                                                    MMDCritic, TokenFrequency,
+                                                    TokenInformation)
+from text_explainability.local_explanation import (LIME, Anchor, FoilTree,
+                                                   KernelSHAP, LocalRules,
+                                                   LocalTree)
+from text_explainability.utils import PUNCTUATION, default_detokenizer
 
 # %% Create example instance
 sample = from_string('Dit is zeer positieve of negatieve proef... Of toch negatief?')

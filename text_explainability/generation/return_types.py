@@ -7,10 +7,9 @@ Todo:
     * Test for bugs
 """
 
-from math import isinf
+import copy
 from typing import Dict, Optional, Sequence, Tuple, Union
 
-import copy
 import numpy as np
 from instancelib import InstanceProvider
 from instancelib.typehints import LT

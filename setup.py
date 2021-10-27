@@ -1,6 +1,7 @@
-import setuptools
-from os import path
 from distutils.util import convert_path
+from os import path
+
+import setuptools
 
 main_ns = {}
 with open(convert_path('text_explainability/__init__.py')) as ver_file:
