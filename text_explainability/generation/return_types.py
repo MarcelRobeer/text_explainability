@@ -7,10 +7,13 @@ Todo:
     * Test for bugs
 """
 
+from math import isinf
 from typing import Dict, Optional, Sequence, Tuple, Union
 
+import copy
 import numpy as np
 from instancelib import InstanceProvider
+from instancelib.typehints import LT
 
 from .surrogate import RuleSurrogate, TreeSurrogate
 
@@ -28,7 +31,7 @@ class BaseReturnType:
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
         """
-        self._used_features = used_features
+        self._used_features = copy.deepcopy(used_features)
         self._labels = labels
         self._labelset = labelset
 
@@ -147,17 +150,20 @@ class FeatureList(BaseReturnType):
 class DataExplanation:
     def __init__(self,
                  provider: InstanceProvider,
+                 original_id: Optional[LT] = None,
                  sampled: bool = False):
         """Save the sampled/generated instances used to determine an explanation.
 
         Args:
             provider (InstanceProvider): Sampled or generated data, including original instance.
+            original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
         self._provider = provider
-        self._original_instance = self._provider[next(iter(self._provider))]
-        self._neighborhood_instances = self._provider.get_children(self._original_instance)
+        original_id = next(iter(self._provider)) if original_id is None else original_id
+        self._original_instance = copy.deepcopy(self._provider[original_id])
+        self._neighborhood_instances = copy.deepcopy(self._provider.get_children(self._original_instance))
         self.sampled = sampled
 
     @property
@@ -186,6 +192,8 @@ class ReadableDataMixin:
     def used_features(self):
         """Names of features of the original instance."""
         if hasattr(self.original_instance, 'tokenized'):
+            if isinstance(self._used_features, dict):
+                return {k: [self.original_instance.tokenized[i] for i in v] for k, v in self._used_features.items()}
             return [self.original_instance.tokenized[i] for i in self._used_features]
         return list(self._used_features)
 
@@ -206,6 +214,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                  base_score: float = None,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_id: Optional[LT] = None,
                  sampled: bool = False):
         """Create a `FeatureList` with additional information saved.
 
@@ -222,11 +231,13 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
             base_score (float, optional): Base score, to which all scores are relative. Defaults to None.
             labels (Optional[Sequence[int]], optional): Labels for outputs (e.g. classes). Defaults to None.
             labelset (Optional[Sequence[str]], optional): Label names corresponding to labels. Defaults to None.
+            original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
         DataExplanation.__init__(self,
                                  provider=provider,
+                                 original_id=original_id,
                                  sampled=sampled)
         if used_features is None:
             used_features = list(range(len(self.original_instance.tokenized)))
@@ -251,6 +262,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
                  used_features: Optional[Union[Sequence[str], Sequence[int]]] = None,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_id: Optional[LT] = None,
                  sampled: bool = False):
         """Base return type.
 
@@ -261,11 +273,13 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
         """
         DataExplanation.__init__(self,
                                  provider=provider,
+                                 original_id=original_id,
                                  sampled=sampled)
         if used_features is None:
             used_features = list(range(len(self.original_instance.tokenized)))
