@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2021-10-27
+### Fixed
+- Bugfixes in local explanation return types
+
 ## [0.5.3] - 2021-10-19
 ### Fixed
 - Made `alpha` optional in `LinearSurrogate`
@@ -183,6 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.5.4]: https://pypi.org/project/text-explainability/0.5.4/
 [0.5.3]: https://pypi.org/project/text-explainability/0.5.3/
 [0.5.2]: https://pypi.org/project/text-explainability/0.5.2/
 [0.5.1]: https://pypi.org/project/text-explainability/0.5.1/

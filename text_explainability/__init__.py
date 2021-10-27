@@ -12,4 +12,4 @@ from text_explainability.utils import (character_detokenizer,
                                        default_detokenizer, default_tokenizer,
                                        word_detokenizer, word_tokenizer)
 
-__version__ = '0.5.3'
+__version__ = '0.5.4'
