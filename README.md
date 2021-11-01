@@ -85,8 +85,7 @@ See [example_usage.md](example_usage.md) to see an example of how the package ca
 See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each version.
 
 ## Extensions
-`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. 
-The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).
+<a href="https://marcelrobeer.github.io/text_sensitivity/" target="_blank"><img src="https://git.science.uu.nl/m.j.robeer/text_sensitivity/-/raw/main/img/TextLogo-Logo_large_sensitivity.png" alt="T_xt sensitivity logo" width="200px"></a><p>`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).</p>
 
 ## Citation
 ```bibtex
