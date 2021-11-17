@@ -69,7 +69,7 @@ LocalRules()(sample, model, 'negatief', n_samples=100).rules
 
 # %% Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(train)
-tf(labelprovider=labelprovider, explain_model=False, k=10)
+tf(labelprovider=labelprovider, explain_model=False, k=10).scores
 
 # %% Global word frequency explanation on model predictions
 tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)

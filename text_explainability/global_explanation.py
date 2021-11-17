@@ -7,15 +7,14 @@ Todo:
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
-from typing import (Any, Callable, Dict, FrozenSet, List, Optional, Sequence,
-                    Tuple, Union)
+from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+from fastcountvectorizer import FastCountVectorizer
 from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
 from .data.sampling import (KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic,
@@ -23,7 +22,6 @@ from .data.sampling import (KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic,
 from .default import Readable
 from .generation.return_types import FeatureList
 from .internationalization import translate_list
-from .utils import default_tokenizer
 
 
 class GlobalExplanation(Readable):
@@ -103,7 +101,7 @@ class TokenFrequency(GlobalExplanation):
                  labelwise: bool = True,
                  k: Optional[int] = None,
                  filter_words: List[str] = translate_list('stopwords'),
-                 tokenizer: Callable = default_tokenizer,
+                 lower: bool = True,
                  **count_vectorizer_kwargs) -> Dict[str, List[Tuple[str, int]]]:
         """Show the top-k number of tokens for each ground-truth or predicted label.
 
@@ -115,7 +113,8 @@ class TokenFrequency(GlobalExplanation):
             labelwise (bool, optional): Whether to summarize the counts for each label seperately. Defaults to True.
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
-            tokenizer (Callable, optional): [description]. Defaults to default_tokenizer.
+            lower (bool, optional): Whether to make all tokens lowercase. Defaults to True.
+            **count_vectorizer_kwargs: Optional arguments passed to `FastCountVectorizer`.
 
         Returns:
             Dict[str, List[Tuple[str, int]]]: Each label with corresponding top words and their frequency
@@ -123,20 +122,28 @@ class TokenFrequency(GlobalExplanation):
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         def top_k_counts(instances_to_fit):
-            cv = CountVectorizer(tokenizer=tokenizer,
-                                 stop_words=filter_words,
-                                 max_features=k,
-                                 **count_vectorizer_kwargs)
-            counts = cv.fit_transform(instances_to_fit)
-            counts = np.array(counts.sum(axis=0)).reshape(-1)
-            return sorted(((k_, counts[v_]) for k_, v_ in
-                            cv.vocabulary_.items()), key=lambda x: x[1], reverse=True)
+            cv = FastCountVectorizer(**count_vectorizer_kwargs)
+            counts = cv.fit_transform([str.lower(d) for d in instances_to_fit] if lower else instances_to_fit)
+            counts = np.ravel(counts.sum(axis=0))
+            return sorted([(w, counts[v]) for w, v in cv.vocabulary_.items() if k not in filter_words],
+                            key=lambda x: x[1], reverse=True)[:k]
 
         if labelwise:  # TO-DO improve beyond classification, e.g. buckets for regression?
-            return {label: top_k_counts([instances[instances.key_list[idx]].data
-                                         for idx in np.where(labels == label)[0]])
-                    for label in np.unique(labels)}
-        return FeatureList('all', top_k_counts(instances.all_data()))
+            labels = np.unique(labels)
+            label_ids = [i for i, _ in enumerate(labels)]
+
+            def counts_by_label(label):
+                return zip(*top_k_counts([instances[instances.key_list[idx]].data
+                                          for idx in np.where(labels == label)[0]]))
+
+            used_features, scores = zip(*[counts_by_label(label) for label in labels]) 
+
+            return FeatureList(labels=label_ids,
+                               labelset=labels,
+                               used_features=dict(zip(label_ids, used_features)),
+                               scores=dict(zip(label_ids, scores)))
+        used_features, scores = zip(*top_k_counts(instances.all_data()))
+        return FeatureList(used_features=used_features, scores=scores)
 
 
 class TokenInformation(GlobalExplanation):
@@ -147,7 +154,7 @@ class TokenInformation(GlobalExplanation):
                  # labelwise: bool = True,
                  k: Optional[int] = None,
                  filter_words: List[str] = translate_list('stopwords'),
-                 tokenizer: Callable = default_tokenizer,
+                 lower: bool = True,
                  **count_vectorizer_kwargs) -> List[Tuple[str, float]]:
         """Show the top-k token mutual information for a dataset or model.
 
@@ -158,8 +165,8 @@ class TokenInformation(GlobalExplanation):
                 Defaults to True.
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
-            tokenizer (Callable, optional): Function for tokenizing strings. Defaults to default_tokenizer.
-            **count_vectorizer_kwargs: Keyword arguments to pass onto `CountVectorizer`.
+            lower (bool, optional): Whether to make all tokens lowercase. Defaults to True.
+            **count_vectorizer_kwargs: Keyword arguments to pass onto `FastCountVectorizer`.
 
         Returns:
             List[Tuple[str, float]]: k labels, sorted based on their mutual information with 
@@ -167,10 +174,8 @@ class TokenInformation(GlobalExplanation):
         """
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
-        cv = CountVectorizer(tokenizer=tokenizer,
-                             stop_words=filter_words,
-                             **count_vectorizer_kwargs)
-        counts = cv.fit_transform(instances.all_data())
+        cv = FastCountVectorizer(**count_vectorizer_kwargs)
+        counts = cv.fit_transform([str.lower(d) for d in instances.all_data()] if lower else instances.all_data())
 
         # TO-DO improve beyond classification
         # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html
@@ -178,9 +183,10 @@ class TokenInformation(GlobalExplanation):
         mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self._seed)
         feature_names = cv.get_feature_names()
         res = list(map(tuple, zip(feature_names, mif)))
-        res_sorted = list(sorted(res, key=lambda x: x[1], reverse=True))[:k]
-        return FeatureList(used_features=[a for a, b in res_sorted],
-                           scores=[b for a, b in res_sorted])
+        res_sorted = list(sorted([(w, v) for w, v in res if w not in filter_words],
+                                 key=lambda x: x[1], reverse=True))[:k]
+        used_features, scores = zip(*res_sorted)
+        return FeatureList(used_features=used_features, scores=scores)
 
 
 __all__ = [GlobalExplanation, TokenFrequency, TokenInformation,

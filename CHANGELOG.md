@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2021-11-17
+### Changed
+- `TokenFrequency` and `TokenInformation` now use the faster `fastcountvectorizer` implementation
+
+### Fixed
+- Bugfixes in return type of `TokenFrequency` and `TokenInformation`
+
 ## [0.5.4] - 2021-10-27
 ### Fixed
 - Bugfixes in local explanation return types

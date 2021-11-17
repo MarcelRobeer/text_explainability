@@ -5,7 +5,7 @@ import setuptools
 
 main_ns = {}
 with open(convert_path('text_explainability/__init__.py')) as ver_file:
-    exec(ver_file.read(), main_ns)
+    exec(ver_file.read(), main_ns)  # nosec
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
@@ -33,6 +33,7 @@ setuptools.setup( # type: ignore
         'numpy>=1.19.5',
         'python-i18n>=0.3.9',
         'scikit-learn>=0.24.1',
+        'fastcountvectorizer>=0.1.0',
         'sentence-transformers',  # optional in future
         'scikit-learn-extra',  # optional in future
         'skope-rules>=1.0.1',  # optional in future
