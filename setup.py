@@ -30,7 +30,7 @@ setuptools.setup( # type: ignore
     include_package_data = True,
     install_requires = [
         'instancelib>=0.3.2.1',
-        'genbase',
+        'genbase>=0.1.1',
         'numpy>=1.19.5',
         'python-i18n>=0.3.9',
         'scikit-learn>=0.24.1',
