@@ -10,7 +10,7 @@ Todo:
 from typing import Callable, Dict, Optional, Sequence, Union
 
 import numpy as np
-from genbase import Readable
+from genbase import Readable, SeedMixin
 from instancelib.instances.memory import MemoryBucketProvider
 from instancelib.instances.text import MemoryTextInstance
 from instancelib.labels.base import LabelProvider
@@ -59,7 +59,7 @@ class PrototypeSampler(Readable):
         return self.prototypes(*args, **kwargs)
 
 
-class KMedoids(PrototypeSampler):
+class KMedoids(PrototypeSampler, SeedMixin):
     def __init__(self,
                  instances: MemoryBucketProvider,
                  embedder: Embedder = TfidfVectorizer,
@@ -76,7 +76,7 @@ class KMedoids(PrototypeSampler):
             https://scikit-learn-extra.readthedocs.io/en/stable/generated/sklearn_extra.cluster.KMedoids.html
         """
         super().__init__(instances, embedder)
-        self._seed = seed
+        self._seed = self._original_seed = seed
 
     def prototypes(self,
                    n: int = 5,
@@ -99,7 +99,7 @@ class KMedoids(PrototypeSampler):
             https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise_distances.html
         """
         from sklearn_extra.cluster import KMedoids
-        kmedoids = KMedoids(n_clusters=n, metric=metric, random_state=self._seed, **kwargs).fit(self.embedded)
+        kmedoids = KMedoids(n_clusters=n, metric=metric, random_state=self.seed, **kwargs).fit(self.embedded)
         return self._select_from_provider(kmedoids.medoid_indices_)
 
 

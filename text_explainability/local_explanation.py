@@ -12,7 +12,7 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import six
-from genbase import Readable
+from genbase import Readable, SeedMixin
 from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
                          MemoryLabelProvider, TextEnvironment)
 from instancelib.instances.text import TextInstance, TextInstanceProvider
@@ -51,7 +51,7 @@ def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironmen
     return empty_env
 
 
-class LocalExplanation(Readable):
+class LocalExplanation(Readable, SeedMixin):
     def __init__(self,
                  env: Optional[AbstractEnvironment] = None,
                  augmenter: Optional[LocalTokenPertubator] = None,
@@ -79,7 +79,7 @@ class LocalExplanation(Readable):
                 labelset = list(self.env.labels.labelset)
         self.labelset = labelset
         self.augmenter = augmenter
-        self._seed = seed
+        self._seed = self._original_seed = seed
 
     @text_instance(tokenize=True)
     def augment_sample(self,
@@ -200,7 +200,7 @@ class LIME(LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self._seed))
+            local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self.seed))
         self.local_model = local_model
 
     @text_instance(tokenize=True)
@@ -526,7 +526,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self._seed))
+            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self.seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -579,7 +579,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self._seed))
+            local_model = TreeSurrogate(DecisionTreeClassifier(random_state=self.seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -631,7 +631,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         if local_model is None:
             local_model = RuleSurrogate(SkopeRules(max_depth_duplication=2,
                                                    n_estimators=30,
-                                                   random_state=self._seed))
+                                                   random_state=self.seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 

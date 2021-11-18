@@ -14,7 +14,7 @@ from typing import (Any, Callable, Iterable, Iterator, List, Optional, Tuple,
                     Union)
 
 import numpy as np
-from genbase import Readable
+from genbase import Readable, SeedMixin
 from instancelib.environment.base import AbstractEnvironment
 from instancelib.environment.text import TextEnvironment
 from instancelib.instances.base import InstanceProvider
@@ -105,7 +105,7 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
         return self.get_children(instance)
 
 
-class TokenReplacement(LocalTokenPertubator):
+class TokenReplacement(LocalTokenPertubator, SeedMixin):
     def __init__(self,
                  env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
@@ -122,7 +122,7 @@ class TokenReplacement(LocalTokenPertubator):
         """
         super().__init__(env=env, detokenizer=detokenizer)
         self.replacement = replacement
-        self._seed = seed
+        self._seed = self._original_seed = seed
 
     def _replace(self,
                  tokenized_instance: Iterable[str],
@@ -193,7 +193,7 @@ class TokenReplacement(LocalTokenPertubator):
         max_changes = min(instance_len, max_changes)
         if min_changes > max_changes:
             raise ValueError(f'Unable to produce any perturbations since {min_changes=} and {max_changes=}')
-        rand = np.random.RandomState(self._seed)
+        rand = np.random.RandomState(self.seed)
 
         def get_inactive(inactive_range):
             inactive = TokenReplacement.binary_inactive(inactive_range, instance_len)

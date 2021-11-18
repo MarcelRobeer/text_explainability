@@ -11,7 +11,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from fastcountvectorizer import FastCountVectorizer
-from genbase import Readable
+from genbase import Readable, SeedMixin
 from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
@@ -24,7 +24,7 @@ from .generation.return_types import FeatureList
 from .internationalization import translate_list
 
 
-class GlobalExplanation(Readable):
+class GlobalExplanation(Readable, SeedMixin):
     def __init__(self,
                  provider: InstanceProvider[TextInstance, Any, str, Any, str],
                  seed: int = 0):
@@ -36,7 +36,7 @@ class GlobalExplanation(Readable):
         """
         super().__init__()
         self.provider = provider
-        self._seed = 0
+        self._seed = self._original_seed = seed
 
     def get_data(self) -> InstanceProvider:
         """Easy access to data.
@@ -180,7 +180,7 @@ class TokenInformation(GlobalExplanation):
         # TO-DO improve beyond classification
         # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html
         # #sklearn.feature_selection.mutual_info_regression
-        mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self._seed)
+        mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self.seed)
         feature_names = cv.get_feature_names()
         res = list(map(tuple, zip(feature_names, mif)))
         res_sorted = list(sorted([(w, v) for w, v in res if w not in filter_words],

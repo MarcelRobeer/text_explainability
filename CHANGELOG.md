@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Moved `Readable` to `genbase`
+- Use `genbase.SeedMixin` for seeds
 
 ## [0.5.5] - 2021-11-17
 ### Changed
