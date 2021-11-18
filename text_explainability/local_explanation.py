@@ -12,6 +12,7 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import six
+from genbase import Readable
 from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
                          MemoryLabelProvider, TextEnvironment)
 from instancelib.instances.text import TextInstance, TextInstanceProvider
@@ -22,7 +23,6 @@ from sklearn.tree import DecisionTreeClassifier
 from .data.augmentation import LeaveOut, LocalTokenPertubator
 from .data.weights import exponential_kernel, pairwise_distances
 from .decorators import text_instance
-from .default import Readable
 from .generation.feature_selection import FeatureSelector
 from .generation.return_types import FeatureAttribution, Rules
 from .generation.surrogate import LinearSurrogate, RuleSurrogate, TreeSurrogate

@@ -14,6 +14,7 @@ from typing import (Any, Callable, Iterable, Iterator, List, Optional, Tuple,
                     Union)
 
 import numpy as np
+from genbase import Readable
 from instancelib.environment.base import AbstractEnvironment
 from instancelib.environment.text import TextEnvironment
 from instancelib.instances.base import InstanceProvider
@@ -21,7 +22,6 @@ from instancelib.instances.text import TextInstance
 from instancelib.pertubations.base import ChildGenerator, MultiplePertubator
 
 from ..decorators import text_instance
-from ..default import Readable
 from ..utils import default_detokenizer
 
 

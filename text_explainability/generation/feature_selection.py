@@ -8,9 +8,9 @@ Todo:
 from typing import Optional
 
 import numpy as np
+from genbase import Readable
 from sklearn.linear_model import Lasso, LassoLarsIC, lars_path
 
-from ..default import Readable
 from .surrogate import LinearSurrogate
 
 

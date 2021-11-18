@@ -8,9 +8,8 @@ Todo:
 from typing import Callable, Union
 
 import numpy as np
+from genbase import Readable
 from instancelib.instances.memory import MemoryBucketProvider
-
-from ..default import Readable
 
 
 def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],

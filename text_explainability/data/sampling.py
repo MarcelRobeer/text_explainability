@@ -10,13 +10,13 @@ Todo:
 from typing import Callable, Dict, Optional, Sequence, Union
 
 import numpy as np
+from genbase import Readable
 from instancelib.instances.memory import MemoryBucketProvider
 from instancelib.instances.text import MemoryTextInstance
 from instancelib.labels.base import LabelProvider
 from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.machinelearning.base import AbstractClassifier
 
-from ..default import Readable
 from .embedding import Embedder, TfidfVectorizer
 from .weights import exponential_kernel
 
