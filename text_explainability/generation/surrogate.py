@@ -10,9 +10,8 @@ Todo:
 from typing import Optional, Sequence
 
 import numpy as np
+from genbase import Readable
 from sklearn.base import clone
-
-from text_explainability.default import Readable
 
 
 class BaseSurrogate(Readable):

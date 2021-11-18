@@ -11,6 +11,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from fastcountvectorizer import FastCountVectorizer
+from genbase import Readable
 from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
@@ -19,7 +20,6 @@ from sklearn.feature_selection import mutual_info_classif
 
 from .data.sampling import (KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic,
                             MMDCritic)
-from .default import Readable
 from .generation.return_types import FeatureList
 from .internationalization import translate_list
 
