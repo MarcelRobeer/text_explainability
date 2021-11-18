@@ -1,1 +1,0 @@
-recursive-include text_explainability/locale/ *.json
