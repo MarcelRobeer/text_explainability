@@ -59,7 +59,7 @@ def as_2d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 
 
 def as_3d(vectors: Union[np.ndarray, list, MemoryBucketProvider], method: str = 'pca', **kwargs) -> np.ndarray:
     """Summarize vectors in 3 dimensions."""
-    return as_n_dimensional(vectors=vectors, n=2, method=method, **kwargs)
+    return as_n_dimensional(vectors=vectors, n=3, method=method, **kwargs)
 
 
 class Embedder(Readable):

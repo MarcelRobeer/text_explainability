@@ -1,0 +1,11 @@
+[coverage:run]
+omit =
+    setup.py
+    example_usage.py
+    */test/*.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    @abstract
+    raise NotImplementedError
