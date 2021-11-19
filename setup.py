@@ -30,7 +30,7 @@ setuptools.setup( # type: ignore
     include_package_data = True,
     install_requires = [
         'instancelib>=0.3.2.1',
-        'genbase>=0.1.2',
+        'genbase>=0.1.3',
         'scikit-learn>=0.24.1',
         'fastcountvectorizer>=0.1.0',
         'sentence-transformers',  # optional in future

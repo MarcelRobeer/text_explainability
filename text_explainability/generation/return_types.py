@@ -159,6 +159,10 @@ class FeatureList(BaseReturnType):
         """Saved scores (e.g. feature importance)."""
         return self.get_scores(normalize=False)
 
+    @property
+    def content(self):
+        return self.scores
+
     def __str__(self) -> str:
         return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])
 
@@ -337,3 +341,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
     @property
     def rules(self):
         return self._rules
+
+    @property
+    def content(self):
+        return self.rules
