@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from text_explainability.data.embedding import (as_2d, as_3d,
-                                                SentenceTransformer, CountVectorizer, TfidfVectorizer)
-
+from text_explainability.data.embedding import (CountVectorizer,
+                                                SentenceTransformer,
+                                                TfidfVectorizer, as_2d, as_3d)
 
 DIMS = [3, 5, 10, 100, 300]
 DIM_RED_METHODS = ['pca', 'kernel_pca', 'incremental_pca', 'nmf', 'tsne']

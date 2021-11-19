@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from text_explainability.utils import (binarize,
-                                       default_detokenizer, default_tokenizer,
-                                       character_tokenizer, character_detokenizer)
+from text_explainability.utils import (binarize, character_detokenizer,
+                                       character_tokenizer,
+                                       default_detokenizer, default_tokenizer)
 
 test_list = [
     'Dit is een voorbeeld tekst',
