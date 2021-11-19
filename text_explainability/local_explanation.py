@@ -283,7 +283,9 @@ class LIME(LocalExplanation, WeightedExplanation):
                                   scores=feature_importances,
                                   used_features=used_features,
                                   labels=labels,
-                                  labelset=self.labelset)
+                                  labelset=self.labelset,
+                                  type='local_explanation',
+                                  method='lime')
 
 
 class KernelSHAP(LocalExplanation):
@@ -414,7 +416,9 @@ class KernelSHAP(LocalExplanation):
                                   base_score=y_null,
                                   used_features=used_features,
                                   labels=np.arange(y.shape[1]),
-                                  labelset=self.labelset)
+                                  labelset=self.labelset,
+                                  type='local_explanation',
+                                  method='kernel_shap')
 
 
 class Anchor(LocalExplanation):
@@ -554,7 +558,9 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=self.labelset,
-                     sampled=True)
+                     sampled=True,
+                     type='local_explanation',
+                     method='local_tree')
 
 
 class FactFoilMixin:
@@ -613,7 +619,9 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=labelset,
-                     sampled=True)
+                     sampled=True,
+                     type='local_explanation',
+                     method='foil_tree')
 
 
 class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
@@ -662,4 +670,6 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=labelset,
-                     sampled=True)
+                     sampled=True,
+                     type='local_explanation',
+                     method='local_rules')

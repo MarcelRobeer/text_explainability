@@ -118,6 +118,7 @@ class TokenFrequency(GlobalExplanation):
         Returns:
             Dict[str, List[Tuple[str, int]]]: Each label with corresponding top words and their frequency
         """
+        type, subtype = 'global_explanation', 'token_frequency'
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         def top_k_counts(instances_to_fit):
@@ -140,9 +141,14 @@ class TokenFrequency(GlobalExplanation):
             return FeatureList(labels=label_ids,
                                labelset=labels,
                                used_features=dict(zip(label_ids, used_features)),
-                               scores=dict(zip(label_ids, scores)))
+                               scores=dict(zip(label_ids, scores)),
+                               type=type,
+                               subtype=subtype)
         used_features, scores = zip(*top_k_counts(instances.all_data()))
-        return FeatureList(used_features=used_features, scores=scores)
+        return FeatureList(used_features=used_features,
+                           scores=scores,
+                           type=type,
+                           subtype=subtype)
 
 
 class TokenInformation(GlobalExplanation):
@@ -185,7 +191,11 @@ class TokenInformation(GlobalExplanation):
         res_sorted = list(sorted([(w, v) for w, v in res if w not in filter_words],
                                  key=lambda x: x[1], reverse=True))[:k]
         used_features, scores = zip(*res_sorted)
-        return FeatureList(used_features=used_features, scores=scores)
+        return FeatureList(used_features=used_features,
+                           scores=scores,
+                           type='global_explanation',
+                           subtype='token_information',
+                           method='mutual_information')
 
 
 __all__ = [GlobalExplanation, TokenFrequency, TokenInformation,

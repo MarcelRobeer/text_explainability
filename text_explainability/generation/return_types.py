@@ -11,17 +11,21 @@ import copy
 from typing import Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
+from genbase import MetaInfo
 from instancelib import InstanceProvider
 from instancelib.typehints import LT
 
 from .surrogate import RuleSurrogate, TreeSurrogate
 
 
-class BaseReturnType:
+class BaseReturnType(MetaInfo):
     def __init__(self,
                  used_features: Union[Sequence[str], Sequence[int]],
                  labels: Optional[Sequence[int]] = None,
-                 labelset: Optional[Sequence[str]] = None):
+                 labelset: Optional[Sequence[str]] = None,
+                 type: Optional[str] = 'base',
+                 subtype: Optional[str] = None,
+                 **kwargs):
         """Base return type.
 
         Args:
@@ -29,7 +33,11 @@ class BaseReturnType:
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            type (Optional[str]): Type description. Defaults to 'base'.
+            subtype (Optional[str], optional): Subtype description. Defaults to None.
+            **kwargs: Optional meta descriptors.
         """
+        super().__init__(type=type, subtype=subtype, **kwargs)
         self._used_features = copy.deepcopy(used_features)
         self._labels = labels
         self._labelset = labelset
@@ -78,7 +86,10 @@ class FeatureList(BaseReturnType):
                  used_features: Union[Sequence[str], Sequence[int]],
                  scores: Union[Sequence[int], Sequence[float]],
                  labels: Optional[Sequence[int]] = None,
-                 labelset: Optional[Sequence[str]] = None):
+                 labelset: Optional[Sequence[str]] = None,
+                 type: Optional[str] = 'global_explanation',
+                 subtype: Optional[str] = 'feature_list',
+                 **kwargs):
         """Save scores per feature, grouped per label.
 
         Examples of scores are feature importance scores, or counts of features in a dataset.
@@ -89,10 +100,16 @@ class FeatureList(BaseReturnType):
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            type (Optional[str]): Type description. Defaults to 'explanation'.
+            subtype (Optional[str], optional): Subtype description. Defaults to 'feature_list'.
+            **kwargs: Optional meta descriptors.
         """
         super().__init__(used_features=used_features,
                          labels=labels,
-                         labelset=labelset)
+                         labelset=labelset,
+                         type=type,
+                         subtype=subtype,
+                         **kwargs)
         self._scores = scores
 
     def get_raw_scores(self, normalize: bool = False) -> np.ndarray:
@@ -214,7 +231,10 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
                  original_id: Optional[LT] = None,
-                 sampled: bool = False):
+                 sampled: bool = False,
+                 type: Optional[str] = 'local_explanation',
+                 subtype: Optional[str] = 'feature_attribution',
+                 **kwargs):
         """Create a `FeatureList` with additional information saved.
 
         The additional information contains the possibility to add standard deviations, 
@@ -233,6 +253,9 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
             original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
+            type (Optional[str]): Type description. Defaults to 'base'.
+            subtype (Optional[str], optional): Subtype description. Defaults to None.
+            **kwargs: Optional meta descriptors.
         """
         DataExplanation.__init__(self,
                                  provider=provider,
@@ -244,7 +267,10 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                              used_features=used_features,
                              scores=scores,
                              labels=labels,
-                             labelset=labelset)
+                             labelset=labelset,
+                             type=type,
+                             subtype=subtype,
+                             **kwargs)
         self._base_score = base_score
         self._scores_stddev = scores_stddev
 
@@ -262,8 +288,11 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
                  original_id: Optional[LT] = None,
-                 sampled: bool = False):
-        """Base return type.
+                 sampled: bool = False,
+                 type: Optional[str] = 'local_explanation',
+                 subtype: Optional[str] = 'rules',
+                 **kwargs):
+        """Rule-based return type.
 
         Args:
             provider (InstanceProvider): Sampled or generated data, including original instance.
@@ -275,6 +304,9 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
             original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
+            type (Optional[str]): Type description. Defaults to 'base'.
+            subtype (Optional[str], optional): Subtype description. Defaults to None.
+            **kwargs: Optional meta descriptors.
         """
         DataExplanation.__init__(self,
                                  provider=provider,
@@ -285,7 +317,10 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
         BaseReturnType.__init__(self,
                                 used_features=used_features,
                                 labels=labels,
-                                labelset=labelset)
+                                labelset=labelset,
+                                type=type,
+                                subtype=subtype,
+                                **kwargs)
         self._rules = self._extract_rules(rules)
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):

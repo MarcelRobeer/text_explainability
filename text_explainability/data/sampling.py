@@ -11,8 +11,7 @@ from typing import Callable, Dict, Optional, Sequence, Union
 
 import numpy as np
 from genbase import Readable, SeedMixin
-from instancelib.instances.memory import MemoryBucketProvider
-from instancelib.instances.text import MemoryTextInstance
+from instancelib.instances.memory import DataPoint, MemoryBucketProvider
 from instancelib.labels.base import LabelProvider
 from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.machinelearning.base import AbstractClassifier
@@ -40,18 +39,18 @@ class PrototypeSampler(Readable):
     def embedded(self) -> np.ndarray:
         return np.stack(self.instances.bulk_get_vectors(list(self.instances))[-1])
 
-    def _select_from_provider(self, keys: Sequence[int]) -> Sequence[MemoryTextInstance]:
+    def _select_from_provider(self, keys: Sequence[int]) -> Sequence[DataPoint]:
         """Select instances from provider by keys."""
         return [self.instances[i] for i in keys]
 
-    def prototypes(self, n: int = 5) -> Sequence[MemoryTextInstance]:
+    def prototypes(self, n: int = 5) -> Sequence[DataPoint]:
         """Select `n` prototypes.
 
         Args:
             n (int, optional): Number of prototypes to select. Defaults to 5.
 
         Returns:
-            Sequence[MemoryTextInstance]: List of prototype instances.
+            Sequence[DataPoint]: List of prototype instances.
         """
         raise NotImplementedError('Implemented in subclasses')
 
@@ -81,7 +80,7 @@ class KMedoids(PrototypeSampler, SeedMixin):
     def prototypes(self,
                    n: int = 5,
                    metric: Union[str, Callable] = 'cosine',
-                   **kwargs) -> Sequence[MemoryTextInstance]:
+                   **kwargs) -> Sequence[DataPoint]:
         """Select `n` prototypes (most representative samples) using `k-Medoids`_.
 
         Args:
@@ -91,7 +90,7 @@ class KMedoids(PrototypeSampler, SeedMixin):
             **kwargs: Optional arguments passed to `k-Medoids`_ constructor.
 
         Returns:
-            Sequence[MemoryTextInstance]: List of prototype instances.
+            Sequence[DataPoint]: List of prototype instances.
 
         .. _k-Medoids:
             https://scikit-learn-extra.readthedocs.io/en/stable/generated/sklearn_extra.cluster.KMedoids.html
@@ -130,7 +129,7 @@ class MMDCritic(PrototypeSampler):
         self.K = self.kernel(self.embedded, 1.0 / self.embedded.shape[1])
         self.colsum = np.sum(self.K, axis=0) / self.embedded.shape[1]
 
-    def prototypes(self, n: int = 5) -> Sequence[MemoryTextInstance]:
+    def prototypes(self, n: int = 5) -> Sequence[DataPoint]:
         """Select `n` prototypes (most representatitve instances), using `MMD-critic implementation`_.
 
         Args:
@@ -140,7 +139,7 @@ class MMDCritic(PrototypeSampler):
             ValueError: Cannot select more instances than the total number of instances.
 
         Returns:
-            Sequence[MemoryTextInstance]: List of prototype instances.
+            Sequence[DataPoint]: List of prototype instances.
 
         .. _MMD-critic implementation:
             https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
@@ -175,7 +174,7 @@ class MMDCritic(PrototypeSampler):
         self._prototypes = self._select_from_provider(selected_in_order)
         return self._prototypes
 
-    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Sequence[MemoryTextInstance]:
+    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Sequence[DataPoint]:
         """Select `n` criticisms (instances not well represented by prototypes), using `MMD-critic implementation`_. 
 
         Args:
@@ -188,7 +187,7 @@ class MMDCritic(PrototypeSampler):
             ValueError: Unknown regularizer or requested more criticisms than there are samples left.
 
         Returns:
-            Sequence[MemoryTextInstance]: List of criticism instances.
+            Sequence[DataPoint]: List of criticism instances.
 
         .. _MMD-critic implementation:
             https://github.com/maxidl/MMD-critic/blob/main/mmd_critic.py
@@ -255,7 +254,7 @@ class MMDCritic(PrototypeSampler):
     def __call__(self,
                  n_prototypes: int = 5,
                  n_criticisms: int = 5,
-                 regularizer: Optional[str] = None) -> Dict[str, Sequence[MemoryTextInstance]]:
+                 regularizer: Optional[str] = None) -> Dict[str, Sequence[DataPoint]]:
         """Calculate prototypes and criticisms for the provided instances.
 
         Args:
@@ -265,7 +264,7 @@ class MMDCritic(PrototypeSampler):
                 Defaults to None.
 
         Returns:
-            Dict[str, Sequence[MemoryTextInstance]]: Dictionary containing prototypes and criticisms.
+            Dict[str, Sequence[DataPoint]]: Dictionary containing prototypes and criticisms.
         """
         return {'prototypes': self.prototypes(n=n_prototypes),
                 'criticisms': self.criticisms(n=n_criticisms, regularizer=regularizer)}
@@ -329,27 +328,27 @@ class LabelwisePrototypeSampler(Readable):
                           for label in self.labels.labelset}
         self.samplers = self._samplers
 
-    def prototypes(self, n: int = 5) -> Dict[str, Sequence[MemoryTextInstance]]:
+    def prototypes(self, n: int = 5) -> Dict[str, Sequence[DataPoint]]:
         """Select `n` prototypes (most representatitve instances).
 
         Args:
             n (int, optional): Number of prototypes to select. Defaults to 5.
 
         Returns:
-            Dict[str, Sequence[MemoryTextInstance]]: Dictionary with labels and corresponding list of prototypes.
+            Dict[str, Sequence[DataPoint]]: Dictionary with labels and corresponding list of prototypes.
         """
         return {label: sampler.prototypes(n=n)
                 for label, sampler in self._samplers.items()}
 
     def __call__(self,
-                 n: int = 5) -> Dict[str, Dict[str, Sequence[MemoryTextInstance]]]:
+                 n: int = 5) -> Dict[str, Dict[str, Sequence[DataPoint]]]:
         """Generate prototypes for each label.
 
         Args:
             n (int, optional): Number of prototypes to select. Defaults to 5.
 
         Returns:
-            Dict[str, Dict[str, Sequence[MemoryTextInstance]]]: Dictionary with labels and corresponding dictionary 
+            Dict[str, Dict[str, Sequence[DataPoint]]]: Dictionary with labels and corresponding dictionary 
                 containing prototypes.
         """
         return {label: {'prototypes': sampler.prototypes(n=n)}
@@ -407,7 +406,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
                          embedder=embedder,
                          kernel=kernel)
 
-    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Dict[str, Sequence[MemoryTextInstance]]:
+    def criticisms(self, n: int = 5, regularizer: Optional[str] = None) -> Dict[str, Sequence[DataPoint]]:
         """Select `n` criticisms (instances not well represented by prototypes).
 
         Args:
@@ -419,7 +418,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
             Exception: `MMDCritic.prototypes()` must first be run before being able to determine the criticisms.
 
         Returns:
-            Dict[str, Sequence[MemoryTextInstance]]: Dictionary with labels and corresponding list of criticisms.
+            Dict[str, Sequence[DataPoint]]: Dictionary with labels and corresponding list of criticisms.
         """
         return {label: sampler.criticisms(n=n, regularizer=regularizer)
                 for label, sampler in self._samplers.items()}
@@ -427,7 +426,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
     def __call__(self,
                  n_prototypes: int = 5,
                  n_criticisms: int = 5,
-                 regularizer: Optional[str] = None) -> Dict[str, Dict[str, Sequence[MemoryTextInstance]]]:
+                 regularizer: Optional[str] = None) -> Dict[str, Dict[str, Sequence[DataPoint]]]:
         """Generate prototypes and criticisms for each label.
 
         Args:
@@ -437,7 +436,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
                 Defaults to None.
 
         Returns:
-            Dict[str, Dict[str, Sequence[MemoryTextInstance]]]: Dictionary with labels and corresponding dictionary 
+            Dict[str, Dict[str, Sequence[DataPoint]]]: Dictionary with labels and corresponding dictionary 
                 containing prototypes and criticisms.
         """
         return {label: sampler(n_prototypes=n_prototypes, n_criticisms=n_criticisms, regularizer=regularizer)
