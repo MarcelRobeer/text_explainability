@@ -25,6 +25,7 @@ class BaseReturnType(MetaInfo):
                  labelset: Optional[Sequence[str]] = None,
                  type: Optional[str] = 'base',
                  subtype: Optional[str] = None,
+                 callargs: Optional[dict] = None,
                  **kwargs):
         """Base return type.
 
@@ -35,9 +36,10 @@ class BaseReturnType(MetaInfo):
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
             type (Optional[str]): Type description. Defaults to 'base'.
             subtype (Optional[str], optional): Subtype description. Defaults to None.
+            callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        super().__init__(type=type, subtype=subtype, **kwargs)
+        super().__init__(type=type, subtype=subtype, callargs=callargs, **kwargs)
         self._used_features = copy.deepcopy(used_features)
         self._labels = labels
         self._labelset = labelset
@@ -89,6 +91,7 @@ class FeatureList(BaseReturnType):
                  labelset: Optional[Sequence[str]] = None,
                  type: Optional[str] = 'global_explanation',
                  subtype: Optional[str] = 'feature_list',
+                 callargs: Optional[dict] = None,
                  **kwargs):
         """Save scores per feature, grouped per label.
 
@@ -102,6 +105,7 @@ class FeatureList(BaseReturnType):
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
             type (Optional[str]): Type description. Defaults to 'explanation'.
             subtype (Optional[str], optional): Subtype description. Defaults to 'feature_list'.
+            callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
         super().__init__(used_features=used_features,
@@ -109,6 +113,7 @@ class FeatureList(BaseReturnType):
                          labelset=labelset,
                          type=type,
                          subtype=subtype,
+                         callargs=callargs,
                          **kwargs)
         self._scores = scores
 
@@ -238,6 +243,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                  sampled: bool = False,
                  type: Optional[str] = 'local_explanation',
                  subtype: Optional[str] = 'feature_attribution',
+                 callargs: Optional[dict] = None,
                  **kwargs):
         """Create a `FeatureList` with additional information saved.
 
@@ -259,6 +265,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                 Defaults to False.
             type (Optional[str]): Type description. Defaults to 'base'.
             subtype (Optional[str], optional): Subtype description. Defaults to None.
+            callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
         DataExplanation.__init__(self,
@@ -274,6 +281,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
                              labelset=labelset,
                              type=type,
                              subtype=subtype,
+                             callargs=callargs,
                              **kwargs)
         self._base_score = base_score
         self._scores_stddev = scores_stddev
@@ -295,6 +303,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
                  sampled: bool = False,
                  type: Optional[str] = 'local_explanation',
                  subtype: Optional[str] = 'rules',
+                 callargs: Optional[dict] = None,
                  **kwargs):
         """Rule-based return type.
 
@@ -310,6 +319,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
                 Defaults to False.
             type (Optional[str]): Type description. Defaults to 'base'.
             subtype (Optional[str], optional): Subtype description. Defaults to None.
+            callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
         DataExplanation.__init__(self,
@@ -324,6 +334,7 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
                                 labelset=labelset,
                                 type=type,
                                 subtype=subtype,
+                                callargs=callargs,
                                 **kwargs)
         self._rules = self._extract_rules(rules)
 

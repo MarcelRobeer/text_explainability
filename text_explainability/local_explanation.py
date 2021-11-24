@@ -12,7 +12,7 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import six
-from genbase import Readable, SeedMixin
+from genbase import Readable, SeedMixin, add_callargs
 from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
                          MemoryLabelProvider, TextEnvironment)
 from instancelib.instances.text import TextInstance, TextInstanceProvider
@@ -203,6 +203,7 @@ class LIME(LocalExplanation, WeightedExplanation):
             local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self.seed))
         self.local_model = local_model
 
+    @add_callargs
     @text_instance(tokenize=True)
     def __call__(self,
                  sample: TextInstance,
@@ -212,7 +213,8 @@ class LIME(LocalExplanation, WeightedExplanation):
                  n_features: int = 10,
                  feature_selection_method: str = 'auto',
                  weigh_samples: bool = True,
-                 distance_metric: str = 'cosine') -> FeatureAttribution:
+                 distance_metric: str = 'cosine',
+                 **kwargs) -> FeatureAttribution:
         """Calculate feature attribution scores using `LIME Text`_.
 
         Args:
@@ -285,7 +287,8 @@ class LIME(LocalExplanation, WeightedExplanation):
                                   labels=labels,
                                   labelset=self.labelset,
                                   type='local_explanation',
-                                  method='lime')
+                                  method='lime',
+                                  callargs=kwargs.pop('__callargs__', None))
 
 
 class KernelSHAP(LocalExplanation):
@@ -349,12 +352,14 @@ class KernelSHAP(LocalExplanation):
             raise Exception(f'Unknown value "{l1_reg}" for l1_reg')
         return nonzero
 
+    @add_callargs
     @text_instance(tokenize=True)
     def __call__(self,
                  sample: TextInstance,
                  model: AbstractClassifier,
                  n_samples: Optional[int] = None,
-                 l1_reg: Union[int, float, str] = 'auto') -> FeatureAttribution:
+                 l1_reg: Union[int, float, str] = 'auto',
+                 **kwargs) -> FeatureAttribution:
         """Calculate feature attribution scores using `KernelShap`_.
 
         Args:
@@ -418,7 +423,8 @@ class KernelSHAP(LocalExplanation):
                                   labels=np.arange(y.shape[1]),
                                   labelset=self.labelset,
                                   type='local_explanation',
-                                  method='kernel_shap')
+                                  method='kernel_shap',
+                                  callargs=kwargs.pop('__callargs__', None))
 
 
 class Anchor(LocalExplanation):
@@ -485,6 +491,7 @@ class Anchor(LocalExplanation):
 
         raise NotImplementedError('[WIP] Implementing anchor/anchor_base.py')
 
+    @add_callargs
     @text_instance
     def __call__(self,
                  sample: TextInstance,
@@ -494,7 +501,8 @@ class Anchor(LocalExplanation):
                  min_confidence: float = 0.95,
                  delta: float = 0.05,
                  epsilon: float = 0.1,
-                 max_anchor_size: Optional[int] = None):
+                 max_anchor_size: Optional[int] = None,
+                 **kwargs):
         raise NotImplementedError('Only partially implemented')
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_text.py
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_base.py
@@ -534,6 +542,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @add_callargs
     @text_instance
     def __call__(self,
                  sample: TextInstance,
@@ -543,6 +552,8 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
+        callargs = sample_kwargs.pop('__callargs__', None)
+
         provider, original_id, perturbed, y = self.augment_sample(sample,
                                                                   model,
                                                                   n_samples=n_samples,
@@ -560,7 +571,8 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                      labelset=self.labelset,
                      sampled=True,
                      type='local_explanation',
-                     method='local_tree')
+                     method='local_tree',
+                     callargs=callargs)
 
 
 class FactFoilMixin:
@@ -589,6 +601,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @add_callargs
     @text_instance
     def __call__(self,
                  sample: TextInstance,
@@ -599,6 +612,8 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
+        callargs = sample_kwargs.pop('__callargs__', None)
+
         provider, original_id, perturbed, y = self.augment_sample(sample,
                                                                   model,
                                                                   n_samples=n_samples,
@@ -621,7 +636,8 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      labelset=labelset,
                      sampled=True,
                      type='local_explanation',
-                     method='foil_tree')
+                     method='foil_tree',
+                     callargs=callargs)
 
 
 class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
@@ -643,6 +659,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         self.local_model = local_model
         self.explanation_type = explanation_type
 
+    @add_callargs
     @text_instance
     def __call__(self,
                  sample: TextInstance,
@@ -652,6 +669,8 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
                  **sample_kwargs):
+        callargs = sample_kwargs.pop('__callargs__', None)
+
         provider, original_id, perturbed, y = self.augment_sample(sample,
                                                                   model,
                                                                   n_samples=n_samples,
@@ -672,4 +691,5 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      labelset=labelset,
                      sampled=True,
                      type='local_explanation',
-                     method='local_rules')
+                     method='local_rules',
+                     callargs=callargs)

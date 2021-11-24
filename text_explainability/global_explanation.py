@@ -11,7 +11,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from fastcountvectorizer import FastCountVectorizer
-from genbase import Readable, SeedMixin, translate_list
+from genbase import Readable, SeedMixin, add_callargs, translate_list
 from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
@@ -93,6 +93,7 @@ class GlobalExplanation(Readable, SeedMixin):
 
 
 class TokenFrequency(GlobalExplanation):
+    @add_callargs
     def __call__(self,
                  model: Optional[AbstractClassifier] = None,
                  labelprovider: Optional[LabelProvider] = None,
@@ -119,6 +120,8 @@ class TokenFrequency(GlobalExplanation):
             Dict[str, List[Tuple[str, int]]]: Each label with corresponding top words and their frequency
         """
         type, subtype = 'global_explanation', 'token_frequency'
+        callargs = count_vectorizer_kwargs.pop('__callargs__', None)
+
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         def top_k_counts(instances_to_fit):
@@ -143,15 +146,18 @@ class TokenFrequency(GlobalExplanation):
                                used_features=dict(zip(label_ids, used_features)),
                                scores=dict(zip(label_ids, scores)),
                                type=type,
-                               subtype=subtype)
+                               subtype=subtype,
+                               callargs=callargs)
         used_features, scores = zip(*top_k_counts(instances.all_data()))
         return FeatureList(used_features=used_features,
                            scores=scores,
                            type=type,
-                           subtype=subtype)
+                           subtype=subtype,
+                           callargs=callargs)
 
 
 class TokenInformation(GlobalExplanation):
+    @add_callargs
     def __call__(self,
                  model: Optional[AbstractClassifier] = None,
                  labelprovider: Optional[LabelProvider] = None,
@@ -177,6 +183,8 @@ class TokenInformation(GlobalExplanation):
             List[Tuple[str, float]]: k labels, sorted based on their mutual information with 
                 the output (predictive model labels or ground-truth labels)
         """
+        callargs = count_vectorizer_kwargs.pop('__callargs__', None)
+
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         cv = FastCountVectorizer(**count_vectorizer_kwargs)
@@ -195,7 +203,8 @@ class TokenInformation(GlobalExplanation):
                            scores=scores,
                            type='global_explanation',
                            subtype='token_information',
-                           method='mutual_information')
+                           method='mutual_information',
+                           callargs=callargs)
 
 
 __all__ = [GlobalExplanation, TokenFrequency, TokenInformation,
