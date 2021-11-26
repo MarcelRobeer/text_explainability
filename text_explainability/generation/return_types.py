@@ -78,7 +78,7 @@ class BaseReturnType(MetaInfo):
             return self.labelset[idx]
         return idx
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         return f'{self.__class__.__name__}(labels={labels}, used_features={self.used_features})'
 
@@ -168,7 +168,7 @@ class FeatureList(BaseReturnType):
     def content(self):
         return self.scores
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])
 
 
@@ -222,7 +222,7 @@ class ReadableDataMixin:
             return [self.original_instance.tokenized[i] for i in self._used_features]
         return list(self._used_features)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         sampled_or_perturbed = 'sampled' if self.sampled else 'perturbed'
         n = sum(1 for _ in self.neighborhood_instances)
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
