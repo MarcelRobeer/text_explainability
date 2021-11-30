@@ -15,6 +15,7 @@ from genbase import MetaInfo
 from instancelib import InstanceProvider
 from instancelib.typehints import LT
 
+from ..ui.notebook import Render
 from .surrogate import RuleSurrogate, TreeSurrogate
 
 
@@ -39,7 +40,7 @@ class BaseReturnType(MetaInfo):
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        super().__init__(type=type, subtype=subtype, callargs=callargs, **kwargs)
+        super().__init__(type=type, subtype=subtype, callargs=callargs, renderer=Render, **kwargs)
         self._used_features = copy.deepcopy(used_features)
         self._labels = labels
         self._labelset = labelset
@@ -147,6 +148,7 @@ class FeatureList(BaseReturnType):
             Dict[Union[str, int], Tuple[Union[str, int], Union[float, int]]]: Scores per label, if no `labelset`
                 is not set, defaults to 'all'
         """
+        # TODO: change to IDs
         all_scores = self.get_raw_scores(normalize=normalize)
         if self.labels is None:
             return {'all': [(feature, score_)
@@ -166,7 +168,8 @@ class FeatureList(BaseReturnType):
 
     @property
     def content(self):
-        return self.scores
+        return {'features': list(self.original_instance.tokenized),
+                'scores': self.scores}
 
     def __repr__(self) -> str:
         return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])

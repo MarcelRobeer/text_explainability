@@ -67,7 +67,7 @@ class FeatureSelector(Readable):
                     best = feature
                     max_ = score
             used_features.append(best)
-        return np.array(used_features)
+        return np.sort(np.array(used_features))
 
     def _highest_weights(self, X: np.ndarray, y: np.ndarray,
                          weights: np.ndarray = None, n_features: int = 10) -> np.ndarray:
@@ -97,7 +97,7 @@ class FeatureSelector(Readable):
             zip(range(X.shape[1]), weighted_data),
             key=lambda x: np.abs(x[1]),
             reverse=True)
-        return np.array([x[0] for x in feature_weights[:n_features]])
+        return np.sort(np.array([x[0] for x in feature_weights[:n_features]]))
 
     def _lasso_path(self, X: np.ndarray, y: np.ndarray,
                     weights: np.ndarray = None, n_features: int = 10) -> np.ndarray:
@@ -130,7 +130,7 @@ class FeatureSelector(Readable):
             if len(nonzero) <= n_features:
                 break
         used_features = nonzero
-        return np.array(used_features)
+        return np.sort(np.array(used_features))
 
     def _information_criterion(self, X: np.ndarray, y: np.ndarray, criterion='aic') -> np.ndarray:
         """AIC/BIC for feature selection, as used by `SHAP`_.
@@ -160,7 +160,7 @@ class FeatureSelector(Readable):
         if y.ndim > 1:
             # TODO: multiclass support?
             y = y[:, 0]
-        return np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0]
+        return np.sort(np.nonzero(LassoLarsIC(criterion=criterion).fit(X, y).coef_)[0])
 
     def _l1_reg(self, X: np.ndarray, y: np.ndarray,
                 n_features: int = 10, alpha: Optional[float] = None) -> np.ndarray:
@@ -184,7 +184,7 @@ class FeatureSelector(Readable):
         if y.ndim > 1:
             # TODO: multiclass support?
             y = y[:, 0]
-        return lars_path(X, y, max_iter=n_features)[1]
+        return np.sort(lars_path(X, y, max_iter=n_features)[1])
 
     def __call__(self,
                  X: np.ndarray,
