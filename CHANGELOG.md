@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.6] - 2021-11-30
 ### Added
 - Added meta information with `genbase.MetaInfo`
 - Rendering with and extended `genbase.Render`
@@ -206,6 +208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.5.6]: https://pypi.org/project/text-explainability/0.5.6/
 [0.5.5]: https://pypi.org/project/text-explainability/0.5.5/
 [0.5.4]: https://pypi.org/project/text-explainability/0.5.4/
 [0.5.3]: https://pypi.org/project/text-explainability/0.5.3/
