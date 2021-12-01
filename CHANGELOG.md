@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Ensure `MMDCritic`/`KMedoids` returns `Instances`
+- Requires `genbase>=0.1.11`
 
 ### Fixed
 - Bugfix of instance identifier in `PrototypeSampler._select_from_provider()`
