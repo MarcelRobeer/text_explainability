@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] - 2021-12-01
+### Added
+- Return type for `Instances`
+- Rendering of `Instances`
+- Rendering of `FeatureList`
+- Extended rendering of `render_subtitle()`
+
+### Changed
+- Ensure `MMDCritic`/`KMedoids` returns `Instances`
+
+### Fixed
+- Bugfix of instance identifier in `PrototypeSampler._select_from_provider()`
+
 ## [0.5.6] - 2021-11-30
 ### Added
 - Added meta information with `genbase.MetaInfo`
@@ -208,6 +221,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.5.7]: https://pypi.org/project/text-explainability/0.5.7/
 [0.5.6]: https://pypi.org/project/text-explainability/0.5.6/
 [0.5.5]: https://pypi.org/project/text-explainability/0.5.5/
 [0.5.4]: https://pypi.org/project/text-explainability/0.5.4/

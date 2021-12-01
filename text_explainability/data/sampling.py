@@ -41,7 +41,8 @@ class PrototypeSampler(Readable):
 
     def _select_from_provider(self, keys: Sequence[int]) -> Sequence[DataPoint]:
         """Select instances from provider by keys."""
-        return [self.instances[i] for i in keys]
+        id_map = np.array(self.instances)
+        return [self.instances[id_map[i]] for i in keys]
 
     def prototypes(self, n: int = 5) -> Sequence[DataPoint]:
         """Select `n` prototypes.
@@ -149,7 +150,7 @@ class MMDCritic(PrototypeSampler):
 
         K = self.K
         colsum = self.colsum.copy() * 2
-        sample_indices = np.array(list(self.instances))
+        sample_indices = np.arange(0, len(self.instances))
         is_selected = np.zeros_like(sample_indices)
         selected = sample_indices[is_selected > 0]
 

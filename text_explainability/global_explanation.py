@@ -7,7 +7,7 @@ Todo:
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
+from typing import Any, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from fastcountvectorizer import FastCountVectorizer
@@ -18,9 +18,12 @@ from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_selection import mutual_info_classif
 
-from .data.sampling import (KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic,
-                            MMDCritic)
-from .generation.return_types import FeatureList
+from .data.sampling import KMedoids as _Kmedoids
+from .data.sampling import LabelwiseKMedoids as _LabelwiseKMedoids
+from .data.sampling import LabelwiseMMDCritic as _LabelwiseMMDCritic
+from .data.sampling import MMDCritic as _MMDCritic
+from .data.sampling import PrototypeSampler
+from .generation.return_types import FeatureList, Instances
 
 
 class GlobalExplanation(Readable, SeedMixin):
@@ -102,7 +105,7 @@ class TokenFrequency(GlobalExplanation):
                  k: Optional[int] = None,
                  filter_words: List[str] = translate_list('stopwords'),
                  lower: bool = True,
-                 **count_vectorizer_kwargs) -> Dict[str, List[Tuple[str, int]]]:
+                 **count_vectorizer_kwargs) -> FeatureList:
         """Show the top-k number of tokens for each ground-truth or predicted label.
 
         Args:
@@ -117,7 +120,7 @@ class TokenFrequency(GlobalExplanation):
             **count_vectorizer_kwargs: Optional arguments passed to `FastCountVectorizer`.
 
         Returns:
-            Dict[str, List[Tuple[str, int]]]: Each label with corresponding top words and their frequency
+            FeatureList: Each label with corresponding top words and their frequency
         """
         type, subtype = 'global_explanation', 'token_frequency'
         callargs = count_vectorizer_kwargs.pop('__callargs__', None)
@@ -166,7 +169,7 @@ class TokenInformation(GlobalExplanation):
                  k: Optional[int] = None,
                  filter_words: List[str] = translate_list('stopwords'),
                  lower: bool = True,
-                 **count_vectorizer_kwargs) -> List[Tuple[str, float]]:
+                 **count_vectorizer_kwargs) -> FeatureList:
         """Show the top-k token mutual information for a dataset or model.
 
         Args:
@@ -180,7 +183,7 @@ class TokenInformation(GlobalExplanation):
             **count_vectorizer_kwargs: Keyword arguments to pass onto `FastCountVectorizer`.
 
         Returns:
-            List[Tuple[str, float]]: k labels, sorted based on their mutual information with 
+           FeatureList: k labels, sorted based on their mutual information with 
                 the output (predictive model labels or ground-truth labels)
         """
         callargs = count_vectorizer_kwargs.pop('__callargs__', None)
@@ -207,5 +210,78 @@ class TokenInformation(GlobalExplanation):
                            callargs=callargs)
 
 
-__all__ = [GlobalExplanation, TokenFrequency, TokenInformation,
-           KMedoids, MMDCritic, LabelwiseKMedoids, LabelwiseMMDCritic]
+class PrototypeWrapper:
+    def __init__(self,
+                 prototype_sampler: PrototypeSampler,
+                 *args,
+                 method: Optional[str] = None,
+                 subtype: str = 'prototypes',
+                 **kwargs):
+        self.prototype_sampler = prototype_sampler(*args, **kwargs)
+        self.type = 'global_explanation'
+        self.subtype = subtype
+        self.method = method
+        self.labelwise = False
+
+    @add_callargs
+    def __call__(self, *args, **kwargs) -> Instances:
+        callargs = kwargs.pop('__callargs__', None)
+        instances = self.prototype_sampler.__call__(*args, **kwargs)
+        return Instances(instances=instances if isinstance(instances, dict) else {'prototypes': instances},
+                         type=self.type,
+                         subtype=self.subtype,
+                         method=self.method,
+                         callargs=callargs,
+                         labelwise=self.labelwise)
+
+    @add_callargs
+    def prototypes(self, *args, **kwargs) -> Instances:
+        callargs = kwargs.pop('__callargs__', None)
+        return Instances(instances={'prototypes': self.prototype_sampler.prototypes(*args, **kwargs)},
+                         type=self.type,
+                         subtype='prototypes',
+                         method=self.method,
+                         callargs=callargs,
+                         labelwise=self.labelwise)
+
+
+class KMedoids(PrototypeWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(_Kmedoids, *args, method='kmedoids', subtype='prototypes', **kwargs)
+
+
+class LabelwiseKMedoids(PrototypeWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(_LabelwiseKMedoids, *args, method='kmedoids', subtype='prototypes', **kwargs)
+        self.labelwise = True
+
+
+class PrototypeCriticismWrapper(PrototypeWrapper):
+    def __init__(self,
+                 prototype_sampler: PrototypeSampler,
+                 *args,
+                 method: Optional[str] = None,
+                 subtype: str = 'prototypes_&_criticisms',
+                 **kwargs):
+        super().__init__(prototype_sampler, *args, method=method, subtype=subtype, **kwargs)
+
+    @add_callargs
+    def criticisms(self, *args, **kwargs) -> Instances:
+        callargs = kwargs.pop('__callargs__', None)
+        return Instances(instances={'criticisms': self.prototype_sampler.criticisms(*args, **kwargs)},
+                         type=self.type,
+                         subtype='criticisms',
+                         method=self.method,
+                         callargs=callargs,
+                         labelwise=self.labelwise)
+
+
+class MMDCritic(PrototypeCriticismWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(_MMDCritic, *args, method='mmdcritic', subtype='prototypes_&_criticisms', **kwargs)
+
+
+class LabelwiseMMDCritic(PrototypeCriticismWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(_LabelwiseMMDCritic, *args, method='mmdcritic', subtype='prototypes_&_criticisms', **kwargs)
+        self.labelwise = True

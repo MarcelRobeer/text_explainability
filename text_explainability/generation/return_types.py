@@ -21,7 +21,6 @@ from .surrogate import RuleSurrogate, TreeSurrogate
 
 class BaseReturnType(MetaInfo):
     def __init__(self,
-                 used_features: Union[Sequence[str], Sequence[int]],
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
                  type: Optional[str] = 'base',
@@ -31,7 +30,6 @@ class BaseReturnType(MetaInfo):
         """Base return type.
 
         Args:
-            used_features (Union[Sequence[str], Sequence[int]]): Used features per label.
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
@@ -41,7 +39,6 @@ class BaseReturnType(MetaInfo):
             **kwargs: Optional meta descriptors.
         """
         super().__init__(type=type, subtype=subtype, callargs=callargs, renderer=Render, **kwargs)
-        self._used_features = copy.deepcopy(used_features)
         self._labels = labels
         self._labelset = labelset
 
@@ -56,11 +53,6 @@ class BaseReturnType(MetaInfo):
     def labelset(self):
         """Get label names property."""
         return self._labelset
-
-    @property
-    def used_features(self):
-        """Get used features property."""
-        return self._used_features
 
     def label_by_index(self, idx: int) -> Union[str, int]:
         """Access label name by index, if `labelset` is set.
@@ -81,10 +73,19 @@ class BaseReturnType(MetaInfo):
 
     def __repr__(self) -> str:
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
-        return f'{self.__class__.__name__}(labels={labels}, used_features={self.used_features})'
+        if hasattr(self, 'used_features'):
+            return f'{self.__class__.__name__}(labels={labels}, used_features={self.used_features})'
+        return f'{self.__class__.__name__}(label={labels})'
 
 
-class FeatureList(BaseReturnType):
+class UsedFeaturesMixin:
+    @property
+    def used_features(self):
+        """Get used features property."""
+        return self._used_features
+
+
+class FeatureList(BaseReturnType, UsedFeaturesMixin):
     def __init__(self,
                  used_features: Union[Sequence[str], Sequence[int]],
                  scores: Union[Sequence[int], Sequence[float]],
@@ -109,13 +110,13 @@ class FeatureList(BaseReturnType):
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        super().__init__(used_features=used_features,
-                         labels=labels,
+        super().__init__(labels=labels,
                          labelset=labelset,
                          type=type,
                          subtype=subtype,
                          callargs=callargs,
                          **kwargs)
+        self._used_features = copy.deepcopy(used_features)
         self._scores = scores
 
     def get_raw_scores(self, normalize: bool = False) -> np.ndarray:
@@ -168,14 +169,13 @@ class FeatureList(BaseReturnType):
 
     @property
     def content(self):
-        return {'features': list(self.original_instance.tokenized),
-                'scores': self.scores}
+        return self.scores
 
     def __repr__(self) -> str:
         return '\n'.join([f'{a}: {str(b)}' for a, b in self.scores.items()])
 
 
-class DataExplanation:
+class LocalDataExplanation:
     def __init__(self,
                  provider: InstanceProvider,
                  original_id: Optional[LT] = None,
@@ -233,7 +233,7 @@ class ReadableDataMixin:
             f'used_features={self.used_features}, n_{sampled_or_perturbed}_instances={n})'
 
 
-class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
+class FeatureAttribution(ReadableDataMixin, FeatureList, LocalDataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
                  scores: Sequence[float],
@@ -271,10 +271,10 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        DataExplanation.__init__(self,
-                                 provider=provider,
-                                 original_id=original_id,
-                                 sampled=sampled)
+        LocalDataExplanation.__init__(self,
+                                      provider=provider,
+                                      original_id=original_id,
+                                      sampled=sampled)
         if used_features is None:
             used_features = list(range(len(self.original_instance.tokenized)))
         FeatureList.__init__(self,
@@ -294,8 +294,13 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, DataExplanation):
         """Saved feature attribution scores."""
         return self.get_scores(normalize=False)
 
+    @property
+    def content(self):
+        return {'features': list(self.original_instance.tokenized),
+                'scores': self.scores}
 
-class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
+
+class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExplanation):
     def __init__(self,
                  provider: InstanceProvider,
                  rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate],
@@ -325,20 +330,20 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        DataExplanation.__init__(self,
-                                 provider=provider,
-                                 original_id=original_id,
-                                 sampled=sampled)
-        if used_features is None:
-            used_features = list(range(len(self.original_instance.tokenized)))
+        LocalDataExplanation.__init__(self,
+                                      provider=provider,
+                                      original_id=original_id,
+                                      sampled=sampled)
         BaseReturnType.__init__(self,
-                                used_features=used_features,
                                 labels=labels,
                                 labelset=labelset,
                                 type=type,
                                 subtype=subtype,
                                 callargs=callargs,
                                 **kwargs)
+        if used_features is None:
+            used_features = list(range(len(self.original_instance.tokenized)))
+        self._used_features = copy.deepcopy(used_features)
         self._rules = self._extract_rules(rules)
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
@@ -359,3 +364,23 @@ class Rules(ReadableDataMixin, BaseReturnType, DataExplanation):
     @property
     def content(self):
         return self.rules
+
+
+class Instances(BaseReturnType):
+    def __init__(self,
+                 instances,
+                 type: Optional[str] = 'global_explanation',
+                 subtype: Optional[str] = 'prototypes',
+                 callargs: Optional[dict] = None,
+                 **kwargs):
+        super().__init__(labels=None,
+                         labelset=None,
+                         type=type,
+                         subtype=subtype,
+                         callargs=callargs,
+                         **kwargs)
+        self.instances = instances
+
+    @property
+    def content(self):
+        return self.instances if isinstance(self.instances, dict) else {'instances': self.instances}
