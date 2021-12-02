@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `get_meta_descriptors()` to get type/subtype/method from meta
 
+### Changed
+- Requires `genbase>=0.1.13`
+
 ### Fixed
 - Bugfix in `MMDCritic` for prototype indices
 - Bugfix in `TRANSLATION_DICT`
@@ -230,6 +233,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.5.8]: https://pypi.org/project/text-explainability/0.5.8/
 [0.5.7]: https://pypi.org/project/text-explainability/0.5.7/
 [0.5.6]: https://pypi.org/project/text-explainability/0.5.6/
 [0.5.5]: https://pypi.org/project/text-explainability/0.5.5/
