@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.8] - 2021-12-02
+### Added
+- `get_meta_descriptors()` to get type/subtype/method from meta
+
+### Fixed
+- Bugfix in `MMDCritic` for prototype indices
+- Bugfix in `TRANSLATION_DICT`
+
 ## [0.5.7] - 2021-12-01
 ### Added
 - Return type for `Instances`

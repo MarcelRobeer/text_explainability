@@ -1,6 +1,6 @@
 """Extension of `genbase.ui.notebook` for custom rendering of `text_explainability."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import pandas as pd
 from genbase.ui import format_instances, get_color
@@ -25,6 +25,24 @@ def plotly_fallback(function):
     def inner(*args, **kwargs):
         return function(*args, **kwargs) if not plotly_available() else default_renderer(*args, **kwargs)
     return function
+
+
+def get_meta_descriptors(meta: dict) -> Tuple[str]:
+    """Get type, subtype & method from `meta`.
+
+    Args:
+        meta (dict): [description]
+
+    Returns:
+        Tuple[str]: type, subtype, method
+    """
+    def fmt(x):
+        return str(x).strip().lower().replace(' ', '_')
+
+    def get_from_meta(key: str) -> str:
+        return fmt(meta[key]) if key in meta else ''
+
+    return get_from_meta('type'), get_from_meta('subtype'), get_from_meta('method')
 
 
 def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
@@ -147,15 +165,7 @@ class Render(BaseRender):
         """
 
     def get_renderer(self, meta: dict):
-        def fmt(x):
-            return str(x).strip().lower().replace(' ', '_')
-
-        def get_from_meta(key: str) -> str:
-            return fmt(meta[key]) if key in meta else ''
-
-        type = get_from_meta('type')
-        subtype = get_from_meta('subtype')
-        method = get_from_meta('method')  # noqa: F841
+        type, subtype, _ = get_meta_descriptors(meta)
 
         if type == 'global_explanation':
             if 'frequency' in subtype.split('_'):
@@ -173,20 +183,13 @@ class Render(BaseRender):
         return super().format_title(title, h=h, **renderargs).replace('_', ' ').title()
 
     def render_subtitle(self, meta: dict, content, **renderargs) -> str:
-        def fmt(x):
-            return str(x).strip().lower().replace(' ', '_')
-
-        def get_from_meta(key: str) -> str:
-            return fmt(meta[key]) if key in meta else ''
-
-        def fmt_method(name: str) -> str:
-            name, url = TRANSLATION_DICT.pop(str.lower(name), (name, ''))
-            return f'<a href="{url}" target="_blank">{name}</a>' if url else name
-
-        type = get_from_meta('type')
-        subtype = get_from_meta('subtype')
+        type, subtype, _ = get_meta_descriptors(meta)
         labelwise = meta['labelwise'] if 'labelwise' in meta else False
         callargs = meta['callargs'] if 'callargs' in meta else ''
+
+        def fmt_method(name: str) -> str:
+            name, url = TRANSLATION_DICT[str.lower(name)] if str.lower(name) in TRANSLATION_DICT else (name, '')
+            return f'<a href="{url}" target="_blank">{name}</a>' if url else name
 
         html = []
         if 'method' in meta:
@@ -204,7 +207,3 @@ class Render(BaseRender):
             if labelwise:
                 html.append('Grouped by label.')
         return self.format_subtitle('<br>'.join(html)) if html else ''
-
-    def render_content(self, meta: dict, content, **renderargs) -> str:
-        renderer = self.get_renderer(meta)
-        return renderer(meta, content, **renderargs)

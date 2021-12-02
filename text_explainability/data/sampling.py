@@ -203,7 +203,8 @@ class MMDCritic(PrototypeSampler):
             raise ValueError('Cannot select more than instances excluding prototypes ',
                              f'({len(self.instances) - len(self._prototypes)})')
 
-        prototypes = np.array([p.identifier for p in self._prototypes])
+        id_map = {instance: id for id, instance in enumerate(self.instances)}
+        prototypes = np.array([id_map[p.identifier] for p in self._prototypes])
 
         K = self.K
         colsum = self.colsum
@@ -224,7 +225,7 @@ class MMDCritic(PrototypeSampler):
             s1 = np.abs(s1)
 
             if regularizer == 'logdet':
-                diag = np.diagonal(K + 1)[candidate_indices]  # TODO: look at hotfix
+                diag = np.diagonal(K + 1)[candidate_indices]
                 if inverse_of_prev_selected is not None:
                     temp = K[selected, :][:, candidate_indices]
                     temp2 = np.dot(inverse_of_prev_selected, temp) 

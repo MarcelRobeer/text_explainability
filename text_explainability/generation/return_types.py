@@ -38,7 +38,8 @@ class BaseReturnType(MetaInfo):
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
             **kwargs: Optional meta descriptors.
         """
-        super().__init__(type=type, subtype=subtype, callargs=callargs, renderer=Render, **kwargs)
+        renderer = kwargs.pop('renderer', Render)
+        super().__init__(type=type, subtype=subtype, callargs=callargs, renderer=renderer, **kwargs)
         self._labels = labels
         self._labelset = labelset
 
