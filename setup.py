@@ -30,9 +30,10 @@ setuptools.setup( # type: ignore
     include_package_data = True,
     install_requires = [
         'instancelib>=0.3.2.1',
-        'genbase>=0.1.13',
+        'genbase>=0.1.17',
         'scikit-learn>=0.24.1',
         'fastcountvectorizer>=0.1.0',
+        'plotly>=5.4.0',
         'sentence-transformers',  # optional in future
         'scikit-learn-extra',  # optional in future
         'skope-rules>=1.0.1',  # optional in future
