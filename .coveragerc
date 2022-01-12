@@ -1,5 +1,7 @@
 [coverage:run]
 omit =
+    */site-packages/*
+    */.eggs/*
     setup.py
     example_usage.py
     */test/*.py

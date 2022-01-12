@@ -1,5 +1,4 @@
 import pytest
-from instancelib.instances.text import MemoryTextInstance
 
 from text_explainability.data import from_string
 from text_explainability.data.augmentation import LeaveOut, TokenReplacement
@@ -40,11 +39,38 @@ def test_replacement_applied_detokenized(sample):
 
 
 @pytest.mark.parametrize('sample', SAMPLES)
-def test_replacement_n_samples(sample):
+@pytest.mark.parametrize('sequential', [True, False])
+@pytest.mark.parametrize('contiguous', [True, False])
+def test_replacement_n_samples(sample, sequential, contiguous):
     n_samples = 100
-    repl = TokenReplacement(None, default_detokenizer)(sample, n_samples=n_samples)
+    repl = TokenReplacement(None, default_detokenizer)(sample,
+                                                       n_samples=n_samples,
+                                                       sequential=sequential,
+                                                       contiguous=contiguous)
     assert sum(1 for _ in list(repl)) <= n_samples, 'Replacement yielded too many samples'
 
+@pytest.mark.parametrize('sample', SAMPLES)
+@pytest.mark.parametrize('sequential', [True, False])
+@pytest.mark.parametrize('contiguous', [True, False])
+def test_replacement_n_samples(sample, sequential, contiguous):
+    repl = TokenReplacement(None, default_detokenizer)(sample,
+                                                       n_samples=5,
+                                                       sequential=sequential,
+                                                       contiguous=contiguous,
+                                                       add_background_instance=True)
+    assert any(sum(repl[r].map_to_original) == 0 for r in repl), 'Background instance not successfully appended to end'
+
+@pytest.mark.parametrize('sample', SAMPLES)
+def test_replacement_list(sample):
+    replacement = ['one', 'or', 'more', 'words', 'and', 'a', 'very', 'long', 'replacement']
+    n_samples = 100
+    repl = TokenReplacement(None, default_detokenizer, replacement=replacement)(sample, n_samples=n_samples)
+    assert sum(1 for _ in list(repl)) <= n_samples, 'Replacement yielded too many samples'
+
+@pytest.mark.parametrize('sample', SAMPLES)
+def test_replacement_list_too_short(sample):
+    with pytest.raises(ValueError):
+        TokenReplacement(None, default_detokenizer, replacement=['x'])(sample)
 
 @pytest.mark.parametrize('sample', SAMPLES)
 def test_deletion_n_samples(sample):
@@ -52,10 +78,8 @@ def test_deletion_n_samples(sample):
     repl = LeaveOut(None, default_detokenizer)(sample, n_samples=n_samples)
     assert sum(1 for _ in list(repl)) <= n_samples, 'Deletion yielded too many samples'
 
-
 def test_EMPTY_instance_replacement():
     assert sum(1 for _ in list(TokenReplacement(None, default_detokenizer)(EMPTY))) <= 1, 'Empty input yielded too many samples (TokenReplacement)'
-
 
 def test_EMPTY_instance_replacement():
     assert sum(1 for _ in list(LeaveOut(None, default_detokenizer)(EMPTY))) <= 1, 'Empty input yielded too many samples (LeaveOut)'

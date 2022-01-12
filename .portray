@@ -14,7 +14,7 @@ markdown_extensions = ["toc",
                        "pymdownx.details",
                        "mdx_truly_sane_lists"]
 extra_css = ["docs/css/extra.css"]
-copyright = "Copyright &copy; 2021 Marcel Robeer"
+copyright = "Copyright &copy; 2021-2022 Marcel Robeer"
 
 [tool.portray.mkdocs.theme]
 logo = "https://i.ibb.co/pvkkWqZ/Text-Logo-Logo-white.png"

@@ -5,25 +5,15 @@ from text_explainability.utils import (binarize, character_detokenizer,
                                        character_tokenizer,
                                        default_detokenizer, default_tokenizer)
 
-test_list = [
-    'Dit is een voorbeeld tekst',
-    'Ook deze tekst stelt een voorbeeld voor',
-    'Mag deze tekst ook gebruikt worden als voorbeeld?',
-    'Welke output geeft de augmenter op deze tekst?',
-    'Deze tekst heeft maar één hoofdletter!',
-    'Misschien is dit ook een voorbeeld?',
-    'Dit vind ik sowieso een goed voorbeeld',
-    'Mag ik deze tekst hardop roepen?',
-    'Wij zijn er van overtuigd dat dit een goede test is',
-    'Some text in English to try out!',
-    'And some more amazing text...'
-]
+
+from text_explainability.test.__test import TEST_INSTANCES
+
 
 @pytest.mark.parametrize('tokenizer', [(default_tokenizer, default_detokenizer),
                                        (character_tokenizer, character_detokenizer)])
 def test_tokenize_detokenize(tokenizer):
     tok, detok = tokenizer
-    assert all(t == detok(tok(t)) for t in test_list), 'Tokenization + detokenization should be non-destructive'
+    assert all(t == detok(tok(t)) for t in TEST_INSTANCES), 'Tokenization + detokenization should be non-destructive'
 
 @pytest.mark.parametrize('tokenizer', [default_tokenizer, character_tokenizer])
 def test_empty_tokenize(tokenizer):

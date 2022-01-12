@@ -76,15 +76,9 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
             *args: Arguments to be passed on to `perturb()` function.
             **kwargs: Keyword arguments to be passed on to `perturb()` function.
 
-        Raises:
-            ValueError: 'Tokenize your instance before applying a perturbation'
-
         Yields:
             Iterator[Sequence[TextInstance]]: Neighborhood data instances.
         """
-        if not hasattr(instance, 'tokenized'):
-            raise ValueError('Tokenize your instance before applying a perturbation')
-
         if instance.data not in self.env.all_instances.all_data():
             provider = self.env.create_empty_provider()
             provider.add(instance)
@@ -191,8 +185,6 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)
         max_changes = min(instance_len, max_changes)
-        if min_changes > max_changes:
-            raise ValueError(f'Unable to produce any perturbations since {min_changes=} and {max_changes=}')
         rand = np.random.RandomState(self.seed)
 
         def get_inactive(inactive_range):
@@ -208,7 +200,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                         for start in range(instance_len - size + 1):
                             yield get_inactive(range(start, start + size))
                     else:
-                        for start in rand.choice(instance_len - size + 1, replace=False):
+                        for start in rand.choice(instance_len - size + 1, size=n_samples, replace=False):
                             yield get_inactive(range(start, start + size))
                         break
             else:  # used by SHAP

@@ -1,0 +1,21 @@
+id,fulltext,label
+0,'This is a positive example...',positive
+1,'This is a negative example.',negative
+2,'A negative instance?',negative
+3,'It cannot be more positive!',positive
+4,'And to make it multi-class: a neutral instance.',neutral
+5,'Even more positivity',positive
+6,'This message is completely irrelevant.',neutral
+7,'This also has nothing to do with it.',neutral
+8,'This one even less!',neutral
+9,'We distribute negative examples equally',negative
+10,'Positivity is contagious',positive
+11,'A negative example',negative
+12,'A positive example',positive
+13,'His approach was nothing short of positive.',positive
+14,'This is positive nor negative.',neutral
+15,'A positive approach.',positive
+16,'A negative approach',negative
+17,'A neutral approach',neutral
+18,'Negativity is undesirable...',neutral
+19,'I feel very positive sometimes!',positive

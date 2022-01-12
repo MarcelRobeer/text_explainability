@@ -18,7 +18,6 @@ def test_pairwise_distances_dims(dim_a, dim_b):
     b = np.random.rand(dim_b, 20)
     assert pairwise_distances(a, b).shape == (dim_a * dim_b,), 'Shape should depend on a and b'
 
-
 @pytest.mark.parametrize('dim_a', DIMS)
 def test_pairwise_distances_dims(dim_a):
     a = np.random.rand(dim_a, 20)

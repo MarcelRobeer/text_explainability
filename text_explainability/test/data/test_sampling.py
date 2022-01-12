@@ -28,7 +28,7 @@ N2 = [i + len(DATA) for i in [1, 2, 3, 4, 5, 99, 100]]
 @pytest.mark.parametrize('seed', SEEDS)
 @pytest.mark.parametrize('n', N1)
 def test_kmedoids_generate_n(embedder, seed, n):
-    assert len(KMedoids(from_list(DATA, LABELS).dataset, embedder=embedder, seed=seed).prototypes(n=n)) == n
+    assert len(KMedoids(from_list(DATA, LABELS).dataset, embedder=embedder, seed=seed)(n=n)) == n
 
 
 @pytest.mark.parametrize('n', N2)
@@ -70,3 +70,38 @@ def test_mmdcritic_n_criticisms_too_high(n):
         mmdcritic = MMDCritic(from_list(DATA, LABELS).dataset)
         mmdcritic.prototypes(n=1)
         mmdcritic.criticisms(n=n)
+
+
+@pytest.mark.parametrize('n', N1)
+@pytest.mark.parametrize('regularizer', [None, 'iterative', 'logdet'])
+def test_mmdcritic_regularizer(n, regularizer):
+    mmdcritic = MMDCritic(from_list(DATA, LABELS).dataset)
+    mmdcritic.prototypes(n=1)
+    mmdcritic.criticisms(n=n, regularizer=regularizer)
+
+
+@pytest.mark.parametrize('n', N1)
+def test_mmdcritic_prototypes_and_criticisms(n):
+    n = max(n // 2, 1)
+    mmdcritic = MMDCritic(from_list(DATA, LABELS).dataset)
+    res = mmdcritic(n_prototypes=n, n_criticisms=n)
+    assert 'prototypes' in res
+    assert len(res['prototypes']) == n
+    assert 'criticisms' in res
+    assert len(res['criticisms']) == n 
+
+
+@pytest.mark.parametrize('method', [LabelwiseKMedoids, LabelwiseMMDCritic])
+def test_labels_in_labelwise(method):
+    provider = from_list(DATA, LABELS)
+    labelwise = method(provider.dataset, provider.labels).prototypes(n=1)
+    assert all(key in provider.labels.labelset for key in labelwise)
+    assert all(label in labelwise.keys() for label in provider.labels.labelset)
+
+def test_labels_in_criticisms():
+    provider = from_list(DATA, LABELS)
+    labelwise = LabelwiseMMDCritic(provider.dataset, provider.labels)
+    labelwise.prototypes(n=1)
+    res = labelwise.criticisms(n=1)
+    assert all(key in provider.labels.labelset for key in res)
+    assert all(label in res.keys() for label in provider.labels.labelset)
