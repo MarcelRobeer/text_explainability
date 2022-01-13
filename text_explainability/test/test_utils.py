@@ -1,12 +1,10 @@
 import numpy as np
 import pytest
 
+from text_explainability.test.__test import TEST_INSTANCES
 from text_explainability.utils import (binarize, character_detokenizer,
                                        character_tokenizer,
                                        default_detokenizer, default_tokenizer)
-
-
-from text_explainability.test.__test import TEST_INSTANCES
 
 
 @pytest.mark.parametrize('tokenizer', [(default_tokenizer, default_detokenizer),

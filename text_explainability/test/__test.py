@@ -1,11 +1,9 @@
-from sklearn.pipeline import Pipeline
+from instancelib import TextEnvironment
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import LogisticRegression
-
-from instancelib import TextEnvironment
+from sklearn.pipeline import Pipeline
 
 from text_explainability.model import from_sklearn
-
 
 TEST_INSTANCES = [
     'Dit is een voorbeeld tekst',

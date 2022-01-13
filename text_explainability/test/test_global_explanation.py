@@ -1,10 +1,9 @@
 import pytest
 
-from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
-
 from text_explainability.generation.return_types import FeatureList
-from text_explainability.global_explanation import TokenFrequency, TokenInformation
-
+from text_explainability.global_explanation import (TokenFrequency,
+                                                    TokenInformation)
+from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
 
 METHODS = [TokenFrequency, TokenInformation]
 

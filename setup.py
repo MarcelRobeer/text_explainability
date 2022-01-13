@@ -4,7 +4,7 @@ from os import path
 import setuptools
 
 main_ns = {}
-with open(convert_path('text_explainability/__init__.py')) as ver_file:
+with open(convert_path('text_explainability/_version.py')) as ver_file:
     exec(ver_file.read(), main_ns)  # nosec
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:

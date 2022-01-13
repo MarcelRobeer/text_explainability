@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Requires `genbase>=0.1.17`
 - Renamed `pyproject.toml` to `.portray` to avoid build errors
 
+### Fixed
+- Bugfix when installing package, by moving `__version___` to `/_version.py`
+
 ## [0.5.8] - 2021-12-02
 ### Added
 - `get_meta_descriptors()` to get type/subtype/method from meta

@@ -1,12 +1,10 @@
 import pytest
 
+from text_explainability.global_explanation import (TokenFrequency,
+                                                    TokenInformation)
+from text_explainability.local_explanation import LIME, KernelSHAP
 from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
-
 from text_explainability.ui.notebook import Render
-
-from text_explainability.global_explanation import TokenFrequency, TokenInformation
-from text_explainability.local_explanation import KernelSHAP, LIME
-
 
 G_CONFIGS = [method(TEST_ENVIRONMENT.dataset).__call__(labelprovider=TEST_ENVIRONMENT.labels, explain_model=False) for method in [TokenFrequency, TokenInformation]]
 L_CONFIGS = [method(TEST_ENVIRONMENT).__call__(sample='Test!!', n_samples=10, model=TEST_MODEL) for method in [KernelSHAP, LIME]]

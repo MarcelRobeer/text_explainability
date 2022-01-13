@@ -1,9 +1,10 @@
 import pytest
 
+from text_explainability.generation.return_types import (FeatureAttribution,
+                                                         Rules)
+from text_explainability.local_explanation import (LIME, KernelSHAP,
+                                                   LocalRules, LocalTree)
 from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
-
-from text_explainability.local_explanation import LIME, KernelSHAP, LocalRules, LocalTree
-from text_explainability.generation.return_types import FeatureAttribution, Rules
 
 
 @pytest.mark.parametrize('label', ['punctuation', 'no_punctuation'])
