@@ -39,6 +39,6 @@ setuptools.setup( # type: ignore
     ],
     extras_require = {
         'fast': ['fastcountvectorizer>=0.1.0'],
-    }
+    },
     python_requires = '>=3.8',
 )
