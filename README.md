@@ -51,18 +51,18 @@ MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
 ```
 
 ## Installation
-See [installation.md](docs/installation.md) for an extended installation guide.
+See the [installation](docs/installation.md) instructions for an extended installation guide.
 
 | Method | Instructions |
 |--------|--------------|
-| `pip` | Install from [PyPI](https://pypi.org/project/text-explainability/) via `pip3 install text_explainability`. |
+| `pip` | Install from [PyPI](https://pypi.org/project/text-explainability/) via `pip3 install text_explainability`. To speed up the explanation generation process use `pip3 install text_explainability[fast]`. |
 | Local | Clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
 
 ## Documentation
 Full documentation of the latest version is provided at [https://marcelrobeer.github.io/text_explainability/](https://marcelrobeer.github.io/text_explainability/).
 
 ## Example usage
-See [example_usage.md](example_usage.md) to see an example of how the package can be used, or run the lines in `example_usage.py` to do explore it interactively.
+See [example usage](example_usage.md) to see an example of how the package can be used, or run the lines in `example_usage.py` to do explore it interactively.
 
 ## Explanation methods included
 `text_explainability` includes methods for model-agnostic _local explanation_ and _global explanation_. Each of these methods can be fully customized to fit the explainees' needs.

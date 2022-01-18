@@ -10,7 +10,6 @@ Todo:
 from typing import Any, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
-from fastcountvectorizer import FastCountVectorizer
 from genbase import Readable, SeedMixin, add_callargs, translate_list
 from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
@@ -24,6 +23,12 @@ from .data.sampling import LabelwiseMMDCritic as _LabelwiseMMDCritic
 from .data.sampling import MMDCritic as _MMDCritic
 from .data.sampling import PrototypeSampler
 from .generation.return_types import FeatureList, Instances
+
+
+try:
+    from fastcountvectorizer import FastCountVectorizer as CountVectorizer  # use fastcountvectorizer if available
+except ImportError:
+    from sklearn.feature_extraction.text import CountVectorizer
 
 
 class GlobalExplanation(Readable, SeedMixin):
@@ -117,7 +122,7 @@ class TokenFrequency(GlobalExplanation):
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
             lower (bool, optional): Whether to make all tokens lowercase. Defaults to True.
-            **count_vectorizer_kwargs: Optional arguments passed to `FastCountVectorizer`.
+            **count_vectorizer_kwargs: Optional arguments passed to `CountVectorizer`/`FastCountVectorizer`.
 
         Returns:
             FeatureList: Each label with corresponding top words and their frequency
@@ -128,7 +133,7 @@ class TokenFrequency(GlobalExplanation):
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         def top_k_counts(instances_to_fit):
-            cv = FastCountVectorizer(**count_vectorizer_kwargs)
+            cv = CountVectorizer(**count_vectorizer_kwargs)
             counts = cv.fit_transform([str.lower(d) for d in instances_to_fit] if lower else instances_to_fit)
             counts = np.ravel(counts.sum(axis=0))
             return sorted([(w, counts[v]) for w, v in cv.vocabulary_.items() if k not in filter_words],
@@ -180,7 +185,7 @@ class TokenInformation(GlobalExplanation):
             k (Optional[int], optional): Limit to the top-k words per label, or all words if None. Defaults to None.
             filter_words (List[str], optional): Words to filter out from top-k. Defaults to ['de', 'het', 'een'].
             lower (bool, optional): Whether to make all tokens lowercase. Defaults to True.
-            **count_vectorizer_kwargs: Keyword arguments to pass onto `FastCountVectorizer`.
+            **count_vectorizer_kwargs: Keyword arguments to pass onto `CountVectorizer`/`FastCountVectorizer`.
 
         Returns:
            FeatureList: k labels, sorted based on their mutual information with 
@@ -190,7 +195,7 @@ class TokenInformation(GlobalExplanation):
 
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
-        cv = FastCountVectorizer(**count_vectorizer_kwargs)
+        cv = CountVectorizer(**count_vectorizer_kwargs)
         counts = cv.fit_transform([str.lower(d) for d in instances.all_data()] if lower else instances.all_data())
 
         # TO-DO improve beyond classification

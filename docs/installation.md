@@ -24,6 +24,8 @@ Installing collected packages: text-explainability
 Successfully installed text-explainability
 ```
 
+> Speeding up the explanation-generation process can be done by using `pip3 install text_explainability[fast]` or having `fastcountvectorizer` installed.
+
 #### Locally
 1. Download the folder from `GitLab/GitHub`:
     - Clone this repository, or 
