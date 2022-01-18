@@ -24,9 +24,10 @@ from .data.sampling import MMDCritic as _MMDCritic
 from .data.sampling import PrototypeSampler
 from .generation.return_types import FeatureList, Instances
 
-
 try:
-    from fastcountvectorizer import FastCountVectorizer as CountVectorizer  # use fastcountvectorizer if available
+    from fastcountvectorizer import \
+        FastCountVectorizer as \
+        CountVectorizer  # use fastcountvectorizer if available
 except ImportError:
     from sklearn.feature_extraction.text import CountVectorizer
 
