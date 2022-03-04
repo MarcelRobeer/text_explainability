@@ -7,9 +7,8 @@ from text_explainability.data import import_data, train_test_split, from_string
 from text_explainability.model import import_model
 
 # %% Create train/test dataset
-env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+env = import_data('./datasets/test.csv', data_cols='fulltext', label_cols='label')
 env = train_test_split(env, train_size=0.70)
-labelprovider = env.labels
 
 # %% Create sklearn model with pipeline
 pipeline = Pipeline([('tfidf', TfidfVectorizer(use_idf=True)),
@@ -56,7 +55,7 @@ explainer(sample, model, labels=['neutraal', 'positief']).scores
 LocalTree()(sample, model, weigh_samples=False).rules
 
 # %% SHAP explanation for `sample` on `model`, limited to 4 features
-KernelSHAP(labelset=labelprovider)(sample, model, n_samples=100, l1_reg=4)
+KernelSHAP(labelset=env.labels)(sample, model, n_samples=100, l1_reg=4)
 
 # %% Anchor explanation for `sample` on `model`
 #Anchor(label_names=['neg', 'net', 'pos'])(sample, model)
@@ -68,15 +67,15 @@ FoilTree()(sample, model, 'positief').rules
 LocalRules()(sample, model, 'negatief', n_samples=100).rules
 
 # %% Global word frequency explanation on ground-truth labels
-tf = TokenFrequency(train)
-tf(labelprovider=labelprovider, explain_model=False, k=10).scores
+tf = TokenFrequency(env['train'])
+tf(labelprovider=env.labels, explain_model=False, k=10).scores
 
 # %% Global word frequency explanation on model predictions
 tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
 
 # %% Token information for dataset
-ti = TokenInformation(train)
-ti(labelprovider=labelprovider, explain_model=False, k=25).scores
+ti = TokenInformation(env['train'])
+ti(labelprovider=env.labels, explain_model=False, k=25).scores
 
 # %% Token information for model
 ti(model=model, explain_model=True, k=25, filter_words=PUNCTUATION)
@@ -88,10 +87,10 @@ KMedoids(env.dataset).prototypes(n=2)
 MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=2)
 
 # %% Extract 1 prototype for each ground-truth label with MMDCritic
-LabelwiseMMDCritic(env.dataset, labelprovider).prototypes(n=1)
+LabelwiseMMDCritic(env.dataset, env.labels).prototypes(n=1)
 
 # %% Extract 1 prototype and 2 criticisms for each ground-truth label with MMDCritic
-LabelwiseMMDCritic(env.dataset, labelprovider)(n_prototypes=1, n_criticisms=2)
+LabelwiseMMDCritic(env.dataset, env.labels)(n_prototypes=1, n_criticisms=2)
 
 # %% Extract 1 prototype and 1 criticism for each predicted label with MMDCritic
 LabelwiseMMDCritic(env.dataset, model)(n_prototypes=1, n_criticisms=1)

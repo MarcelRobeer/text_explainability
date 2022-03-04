@@ -16,9 +16,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 
 # Create train/test dataset
-env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
+env = import_data('./datasets/test.csv', data_cols='fulltext', label_cols='label')
 env = train_test_split(env, train_size=0.70)
-labelprovider = env.labels
 
 # Create sklearn model with pipeline
 pipeline = Pipeline([('tfidf', TfidfVectorizer(use_idf=True)),
@@ -70,14 +69,14 @@ from text_explainability import TokenFrequency, TokenInformation
 
 # Global word frequency explanation on ground-truth labels
 tf = TokenFrequency(env.dataset)
-tf(labelprovider=labelprovider, explain_model=False, k=10).scores
+tf(labelprovider=env.labels, explain_model=False, k=10).scores
 
 # Global word frequency explanation on model predictions
 tf(model=model, explain_model=True, k=3, filter_words=PUNCTUATION)
 
 # Token information for dataset
 ti = TokenInformation(env.dataset)
-ti(labelprovider=labelprovider, explain_model=False, k=50).scores
+ti(labelprovider=env.labels, explain_model=False, k=50).scores
 
 # Token information for model
 ti(model=model, explain_model=True, k=50, filter_words=PUNCTUATION)
