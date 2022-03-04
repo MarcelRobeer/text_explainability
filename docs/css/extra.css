@@ -1,0 +1,66 @@
+[data-md-color-scheme="light"] {
+    /* Primary color shades */
+    --md-primary-fg-color: #1976D2;
+    --md-primary-fg-color--light: #0D47A1;
+    --md-primary-fg-color--dark: #64B5F6;
+    --md-primary-bg-color: hsla(0, 0%, 100%, 1);
+    --md-primary-bg-color--light: hsla(0, 0%, 100%, 0.7);
+    --md-default-fg-color--light: #99999F;
+    --md-text-link-color: #1565C0;
+
+    /* Accent color shades */
+    --md-accent-fg-color: #283593;
+  
+    /* Code block color shades */
+    --md-code-bg-color: hsla(0, 0%, 96%, 1);
+    --md-code-fg-color: hsla(200, 18%, 26%, 1);
+    --md-code-hl-comment-color: #25A767;
+
+    /* Footer */
+    --md-footer-bg-color: #44444E;
+}
+
+[data-md-color-scheme="dark"] {
+    /* Primary color shades */
+    --md-typeset-color: #F0F4F8;
+    --md-primary-fg-color: #243B53;
+    --md-primary-fg-color--light: #334E68;
+    --md-primary-fg-color--dark: #102A43;
+    --md-default-fg-color: rgba(255, 255, 255 ,0.87);
+    --md-default-fg-color--light: #BCCCDC;
+    --md-default-fg-color--lighter: rgba(255, 255, 255 ,0.32);
+    --md-default-fg-color--lightest: rgba(255, 255, 255 ,0.07);
+    --md-default-bg-color: #262626;
+    --md-default-bg-color--light: hsla(0,0%,80%,0.7);
+    --md-default-bg-color--lighter: hsla(0,0%,80%,0.3);
+    --md-default-bg-color--lightest: hsla(0,0%,80%,0.12);
+
+    /* Accent color shades */
+    --md-typeset-a-color: #40C4FF !important; 
+    --md-text-link-color: #40C4FF;
+    --md-accent-fg-color: #00B0FF;
+    --md-accent-fg-color--transparent: hsla(189, 100%, 37%, 0.1);
+    --md-accent-bg-color: hsla(0, 0%, 100%, 1);
+    --md-accent-bg-color--light: hsla(0, 0%, 100%, 0.7);
+  
+    /* Code block color shades */
+    --md-code-bg-color: #102A43;
+    --md-code-hl-keyword-color: #82B1FF;
+    --md-code-hl-function-color: #B388FF;
+    --md-code-hl-string-color: #B9F6CA;
+    --md-code-hl-number-color: #FF8A80;
+    --md-code-hl-comment-color: #2FD381;
+    --md-code-hl-punctuation-color: hsla(200, 18%, 78%, 1) !important;
+    --md-code-fg-color: hsla(200, 18%, 78%, 1);
+
+    /* Footer */
+    --md-footer-bg-color: #44444E;
+}
+
+.highlight .gp {
+    color: #d52a2a;
+}
+
+.md-typeset table:not([class]) {
+    box-shadow: 0 0.2rem 0.5rem rgb(255 255 255 / 5%), 0 0 0.05rem rgb(255 255 255 / 10%);
+}

@@ -19,7 +19,7 @@ A generic explainability architecture for explaining text machine learning model
 
 Several example methods are included, which provide **local explanations** (_explaining the prediction of a single instance_, e.g. `LIME` and `SHAP`) or **global explanations** (_explaining the dataset, or model behavior on the dataset_, e.g. `TokenFrequency` and `MMDCritic`). By replacing the default modules (e.g. local data generation, global data sampling or improved embedding methods), these methods can be improved upon or new methods can be introduced.
 
-&copy; Marcel Robeer, 2021
+&copy; Marcel Robeer, 2021-2022
 
 ## Quick tour
 **Local explanation**: explain a models' prediction on a given sample, self-provided or from a dataset.
