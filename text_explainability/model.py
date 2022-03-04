@@ -1,3 +1,3 @@
-from genbase.model import from_sklearn
+from genbase.model import import_model
 
-__all__ = ['from_sklearn']
+__all__ = ['import_model']

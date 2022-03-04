@@ -7,7 +7,7 @@ from text_explainability.global_explanation import (KMedoids,
                                                     TokenInformation)
 from text_explainability.local_explanation import (LIME, Anchor, KernelSHAP,
                                                    LocalRules, LocalTree)
-from text_explainability.model import from_sklearn
+from text_explainability.model import import_model
 from text_explainability.utils import (character_detokenizer,
                                        character_tokenizer,
                                        default_detokenizer, default_tokenizer,

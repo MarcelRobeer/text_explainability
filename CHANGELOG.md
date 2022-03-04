@@ -5,11 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0] - 2022-03-04
 ### Added
 - More tests to increase test coverage
 
 ### Changed
-- Requires `genbase>=0.1.17`
+- Requires `genbase>=0.2.2`
 - Renamed `pyproject.toml` to `.portray` to avoid build errors
 - Made `fastcountvectorizer` optional
 
@@ -243,6 +245,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.6.0]: https://pypi.org/project/text-explainability/0.6.0/
 [0.5.8]: https://pypi.org/project/text-explainability/0.5.8/
 [0.5.7]: https://pypi.org/project/text-explainability/0.5.7/
 [0.5.6]: https://pypi.org/project/text-explainability/0.5.6/

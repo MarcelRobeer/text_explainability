@@ -94,7 +94,7 @@ class GlobalExplanation(Readable, SeedMixin):
         labels = model.predict(instances) if explain_model \
                  else [next(iter(labelprovider.get_labels(k))) for k in instances]
         if len(labels) > 0 and isinstance(labels[0], tuple) and isinstance(labels[0][-1], frozenset):
-            labels = ['-'.join(list(x)) for id, x in labels]
+            labels = ['-'.join(list(x)) for _, x in labels]
         return instances, np.array(labels)
 
     def explain(self, *args, **kwargs):
@@ -141,14 +141,14 @@ class TokenFrequency(GlobalExplanation):
                             key=lambda x: x[1], reverse=True)[:k]
 
         if labelwise:  # TO-DO improve beyond classification, e.g. buckets for regression?
-            labels = np.unique(labels)
-            label_ids = [i for i, _ in enumerate(labels)]
+            label_names = np.unique(labels)
+            label_ids = [i for i, _ in enumerate(label_names)]
 
             def counts_by_label(label):
                 return zip(*top_k_counts([instances[instances.key_list[idx]].data
-                                          for idx in np.where(labels == label)[0]]))
+                                         for idx in np.where(labels == label)[0]]))
 
-            used_features, scores = zip(*[counts_by_label(label) for label in labels]) 
+            used_features, scores = zip(*[counts_by_label(label) for label in label_names]) 
 
             return FeatureList(labels=label_ids,
                                labelset=labels,

@@ -3,12 +3,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 
-from text_explainability.data import import_data, train_test_split
-from text_explainability.model import from_sklearn
+from text_explainability.data import import_data, train_test_split, from_string
+from text_explainability.model import import_model
 
 # %% Create train/test dataset
 env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
-train, test = train_test_split(env, train_size=0.70)
+env = train_test_split(env, train_size=0.70)
 labelprovider = env.labels
 
 # %% Create sklearn model with pipeline
@@ -16,7 +16,7 @@ pipeline = Pipeline([('tfidf', TfidfVectorizer(use_idf=True)),
                      ('rf', RandomForestClassifier(random_state=0))])
 
 # %% Wrap sklearn model
-model = from_sklearn(pipeline, environment=env, train=train)
+model = import_model(pipeline, environment=env)
 
 # %% Imports
 from text_explainability.data import from_string

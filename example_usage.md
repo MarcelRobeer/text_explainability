@@ -4,7 +4,7 @@
 `text_explainability` uses instances and machine learning models wrapped with the [InstanceLib](https://pypi.org/project/instancelib/) library. For your convenience, we wrap some `instancelib` functions in `text_explainability.data` and `explainability.model`.
 ```python
 from text_explainability.data import import_data, train_test_split, from_string
-from text_explainability.model import from_sklearn
+from text_explainability.model import import_model
 ```
 
 ## Dataset and model
@@ -17,7 +17,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 # Create train/test dataset
 env = import_data('./datasets/test.csv', data_cols=['fulltext'], label_cols=['label'])
-train, test = train_test_split(env, train_size=0.70)
+env = train_test_split(env, train_size=0.70)
 labelprovider = env.labels
 
 # Create sklearn model with pipeline
@@ -25,7 +25,7 @@ pipeline = Pipeline([('tfidf', TfidfVectorizer(use_idf=True)),
                      ('rf', RandomForestClassifier(random_state=0))])
 
 # Build and fit (train) model
-model = from_sklearn(pipeline, environment=env, train=train)
+model = import_model(pipeline, environment=env)
 ```
 
 ## Using Text Explainability
