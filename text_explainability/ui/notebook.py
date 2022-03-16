@@ -11,7 +11,7 @@ from genbase.ui.plot import plotly_available
 MAIN_COLOR = '#1976D2'
 TRANSLATION_DICT = {'lime': ('LIME', 'https://christophm.github.io/interpretable-ml-book/lime.html'),
                     'shap': ('SHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
-                    'kernelshap': ('KernelSHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
+                    'kernel_shap': ('KernelSHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
                     'mutual_information': ('mutual information', 'https://en.wikipedia.org/wiki/Mutual_information'),
                     'kmedoids': ('KMedoids', 'https://christophm.github.io/interpretable-ml-book/proto.html'),
                     'mmdcritic': ('MMDCritic', 'https://christophm.github.io/interpretable-ml-book/proto.html')}

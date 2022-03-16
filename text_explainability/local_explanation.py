@@ -90,7 +90,8 @@ class LocalExplanation(Readable, SeedMixin):
                        n_samples: int = 50,
                        add_background_instance: bool = False,
                        predict: bool = True,
-                       avoid_proba: bool = False
+                       avoid_proba: bool = False,
+                       **kwargs,
                        ) -> Union[Tuple[InstanceProvider, np.ndarray], 
                                   Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
         """Augment a single sample to generate neighborhood data.

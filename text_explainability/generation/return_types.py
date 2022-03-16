@@ -155,7 +155,7 @@ class FeatureList(BaseReturnType, UsedFeaturesMixin):
         if self.labels is None:
             return {'all': [(feature, score_)
                     for feature, score_ in zip(self.used_features, all_scores)]}
-        elif isinstance(self.used_features, dict):
+        if isinstance(self.used_features, dict):
             return {self.label_by_index(label): [(feature, score_)
                     for feature, score_ in zip(self.used_features[label], all_scores[i])]
                     for i, label in enumerate(self.labels)}

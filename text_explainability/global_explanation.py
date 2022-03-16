@@ -151,7 +151,7 @@ class TokenFrequency(GlobalExplanation):
             used_features, scores = zip(*[counts_by_label(label) for label in label_names]) 
 
             return FeatureList(labels=label_ids,
-                               labelset=labels,
+                               labelset=label_names,
                                used_features=dict(zip(label_ids, used_features)),
                                scores=dict(zip(label_ids, scores)),
                                type=type,

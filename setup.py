@@ -30,7 +30,7 @@ setuptools.setup( # type: ignore
     include_package_data = True,
     install_requires = [
         'instancelib>=0.4.1.0',
-        'genbase>=0.2.2',
+        'genbase>=0.2.4',
         'scikit-learn>=0.24.1',
         'plotly>=5.4.0',
         'sentence-transformers',  # optional in future
