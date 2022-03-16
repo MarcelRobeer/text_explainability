@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.1] - 2022-03-16
 ### Changed
 - Requires `genbase>=0.2.4`
+- Requires `instancelib>=0.4.3.1`
 
 ### Fixed
 - Typo fixes and small bugs
