@@ -11,7 +11,7 @@ from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
 def test_labels(label):
     assert label in LIME(TEST_ENVIRONMENT).__call__(sample='Explain this instance!', model=TEST_MODEL, labels=label).scores
 
-@pytest.mark.parametrize('method', [LIME, KernelSHAP])
+@pytest.mark.parametrize('method', [LIME])
 def test_feature_attribution(method):
     assert isinstance(method(TEST_ENVIRONMENT).__call__(sample='Test!!!', model=TEST_MODEL), FeatureAttribution), 'Wrong return type'
 
