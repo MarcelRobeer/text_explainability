@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 
-from text_explainability.data import import_data, train_test_split, from_string
+from text_explainability.data import from_string, import_data, train_test_split
 from text_explainability.model import import_model
 
 # %% Create train/test dataset

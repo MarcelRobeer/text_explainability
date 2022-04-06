@@ -29,9 +29,9 @@ setuptools.setup( # type: ignore
     packages = setuptools.find_packages(), # type : ignore
     include_package_data = True,
     install_requires = [
-        'instancelib>=0.4.3.1',
-        'genbase>=0.2.4',
-        'scikit-learn>=0.24.1',
+        'instancelib>=0.4.4.1',
+        'genbase>=0.2.8',
+        'scikit-learn>=1.0.2',
         'plotly>=5.4.0',
         'sentence-transformers',  # optional in future
         'scikit-learn-extra',  # optional in future

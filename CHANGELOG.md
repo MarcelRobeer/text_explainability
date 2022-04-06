@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2022-04-06
+### Changed
+- Requires `genbase>=0.2.8`
+- Requires `scikit-learn>=1.0.2`
+
+### Fixed
+- Bugfixes in `MMDCritic`
+
 ## [0.6.1] - 2022-03-16
 ### Changed
 - Requires `genbase>=0.2.4`
@@ -253,6 +261,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.6.2]: https://pypi.org/project/text-explainability/0.6.2/
 [0.6.1]: https://pypi.org/project/text-explainability/0.6.1/
 [0.6.0]: https://pypi.org/project/text-explainability/0.6.0/
 [0.5.8]: https://pypi.org/project/text-explainability/0.5.8/

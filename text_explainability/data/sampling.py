@@ -17,7 +17,7 @@ from instancelib.labels.memory import MemoryLabelProvider
 from instancelib.machinelearning.base import AbstractClassifier
 
 from .embedding import Embedder, TfidfVectorizer
-from .weights import exponential_kernel
+from .weights import rbf_kernel
 
 
 class PrototypeSampler(Readable):
@@ -107,14 +107,14 @@ class MMDCritic(PrototypeSampler):
     def __init__(self,
                  instances: MemoryBucketProvider,
                  embedder: Embedder = TfidfVectorizer,
-                 kernel: Callable = exponential_kernel):
+                 kernel: Callable = rbf_kernel):
         """Select prototypes and criticisms based on embedding distances using `MMD-Critic`_.
 
         Args:
             instances (MemoryBucketProvider): Instances to select from (e.g. training set, all instance from class 0).
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
                 Defaults to TfidfVectorizer.
-            kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
+            kernel (Callable, optional): Kernel to calculate distances. Defaults to rbf_kernel.
 
         .. _MMD-critic:
             https://christophm.github.io/interpretable-ml-book/proto.html
@@ -126,12 +126,15 @@ class MMDCritic(PrototypeSampler):
         self._criticisms = None
 
     def _calculate_kernel(self):
-        """Calculate kernel `K` and column totals `colsum`."""
+        """Calculate kernel `__K` and column totals `__colsum`."""
         self.K = self.kernel(self.embedded, 1.0 / self.embedded.shape[1])
-        self.colsum = np.sum(self.K, axis=0) / self.embedded.shape[1]
+        self.colsum = np.sum(self.K, axis=0) / self.embedded.shape[0]
+
+    def to_config(self):
+        return {'kernel': self.kernel, 'prototypes': self.prototypes, 'criticisms': self.criticisms}
 
     def prototypes(self, n: int = 5) -> Sequence[DataPoint]:
-        """Select `n` prototypes (most representatitve instances), using `MMD-critic implementation`_.
+        """Select `n` prototypes (most representative instances), using `MMD-critic implementation`_.
 
         Args:
             n (int, optional): Number of prototypes to select. Defaults to 5.
@@ -148,7 +151,6 @@ class MMDCritic(PrototypeSampler):
         if n > len(self.instances):
             raise ValueError(f'Cannot select more than all instances ({len(self.instances)}.')
 
-        K = self.K
         colsum = self.colsum.copy() * 2
         sample_indices = np.arange(0, len(self.instances))
         is_selected = np.zeros_like(sample_indices)
@@ -158,11 +160,11 @@ class MMDCritic(PrototypeSampler):
             candidate_indices = sample_indices[is_selected == 0]
             s1 = colsum[candidate_indices]
 
-            diag = np.diagonal(K)[candidate_indices]
+            diag = np.diagonal(self.K)[candidate_indices]
             if selected.shape[0] == 0:
                 s1 -= np.abs(diag)
             else:
-                temp = K[selected, :][:, candidate_indices]
+                temp = self.K[selected, :][:, candidate_indices]
                 s2 = np.sum(temp, axis=0) * 2 + diag
                 s2 /= (selected.shape[0] + 1)
                 s1 -= s2
@@ -206,8 +208,6 @@ class MMDCritic(PrototypeSampler):
         id_map = {instance: id for id, instance in enumerate(self.instances)}
         prototypes = np.array([id_map[p.identifier] for p in self._prototypes])
 
-        K = self.K
-        colsum = self.colsum
         sample_indices = np.arange(0, len(self.instances))
         is_selected = np.zeros_like(sample_indices)
         selected = sample_indices[is_selected > 0]
@@ -216,18 +216,18 @@ class MMDCritic(PrototypeSampler):
         inverse_of_prev_selected = None
         for i in range(n):
             candidate_indices = sample_indices[is_selected == 0]
-            s1 = colsum[candidate_indices]
+            s1 = self.colsum[candidate_indices]
 
-            temp = K[prototypes, :][:, candidate_indices]
+            temp = self.K[prototypes, :][:, candidate_indices]
             s2 = np.sum(temp, axis=0)
             s2 /= prototypes.shape[0]
             s1 -= s2
             s1 = np.abs(s1)
 
             if regularizer == 'logdet':
-                diag = np.diagonal(K + 1)[candidate_indices]
+                diag = np.diagonal(self.K + 1)[candidate_indices]
                 if inverse_of_prev_selected is not None:
-                    temp = K[selected, :][:, candidate_indices]
+                    temp = self.K[selected, :][:, candidate_indices]
                     temp2 = np.dot(inverse_of_prev_selected, temp) 
                     reg = temp2 * temp
                     regcolsum = np.sum(reg, axis=0)
@@ -247,7 +247,7 @@ class MMDCritic(PrototypeSampler):
                 prototypes = np.concatenate([prototypes, np.expand_dims(best_sample_index, 0)])
 
             if regularizer == 'logdet':
-                inverse_of_prev_selected = np.linalg.pinv(K[selected, :][:, selected])
+                inverse_of_prev_selected = np.linalg.pinv(self.K[selected, :][:, selected])
 
         selected_in_order = selected[is_selected[(is_selected > 0) & (is_selected != (n + 1))].argsort()]      
         self._criticisms = self._select_from_provider(selected_in_order)
@@ -388,7 +388,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
                  instances: MemoryBucketProvider,
                  labels: Union[Sequence[str], Sequence[int], LabelProvider],
                  embedder: Embedder = TfidfVectorizer,
-                 kernel: Callable = exponential_kernel):
+                 kernel: Callable = rbf_kernel):
         """Select prototypes and criticisms for each label based on embedding distances using `MMD-Critic`_.
 
         Args:
@@ -397,7 +397,7 @@ class LabelwiseMMDCritic(LabelwisePrototypeSampler):
                 the groups (e.g. classes) in which to subdivide the instances.
             embedder (Embedder, optional): Method to embed instances (if the `.vector` property is not yet set). 
                 Defaults to TfidfVectorizer.
-            kernel (Callable, optional): Kernel to calculate distances. Defaults to exponential_kernel.
+            kernel (Callable, optional): Kernel to calculate distances. Defaults to rbf_kernel.
 
         .. _MMD-critic:
             https://christophm.github.io/interpretable-ml-book/proto.html
