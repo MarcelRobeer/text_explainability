@@ -7,14 +7,24 @@ exclude =
     example_usage.py
     .eggs
     build
+    docs
     text_explainability/test
     text_explainability/locale
 extend-ignore =
-    D413
+    D101
+    D102
+    D105
+    D107
     D205
     D400
+    D401
+    D402
+    D412
+    D413
     E127
     W291
+ignore-decorators =
+    property
 select = C,E,F,W,B,B950,D,RST
 
 max-line-length=120

@@ -20,6 +20,7 @@ class TargetEncoder:
 
     @property
     def labelset(self):
+        """Labels."""
         return self.__labelset
 
     @labelset.setter
@@ -82,6 +83,12 @@ class TargetEncoder:
 
 class FactFoilEncoder(TargetEncoder):
     def __init__(self, foil: int, labelset: Optional[Sequence[str]] = None):
+        """Encode target into foil (target class) fact (non-foil class).
+
+        Args:
+            foil (int): Index of target class.
+            labelset (Optional[Sequence[str]], optional): Names of labels. Defaults to None.
+        """
         super().__init__(labelset)
         self.foil = foil
 

@@ -36,7 +36,8 @@ def character_detokenizer(input: Iterable[str]) -> str:
     return ''.join(input)
 
 
-def binarize(X: np.ndarray):
+def binarize(X: np.ndarray) -> np.ndarray:
+    """Turn an `np.ndarray` into 0s and 1s."""
     return (X > 0).astype(int)
 
 

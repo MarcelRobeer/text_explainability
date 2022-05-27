@@ -18,10 +18,12 @@ TRANSLATION_DICT = {'lime': ('LIME', 'https://christophm.github.io/interpretable
 
 
 def default_renderer(meta: dict, content: dict, **renderargs) -> str:
+    """Default renderer fallback."""
     return f'<p>{content}</p>'
 
 
 def plotly_fallback(function):
+    """Return a graphics renderer, with fallback if plotly is not available."""
     def inner(*args, **kwargs):
         return function(*args, **kwargs) if not plotly_available() else default_renderer(*args, **kwargs)
     return function
@@ -46,6 +48,7 @@ def get_meta_descriptors(meta: dict) -> Tuple[str]:
 
 
 def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
+    """Render feature attribution return types."""
     min_value = renderargs.pop('min_value', -1.0)
     max_value = renderargs.pop('max_value', 1.0)
     colorscale = renderargs.pop('colorscale', [(0.0, '#e57373'), (0.5, '#eee'), (1.0, '#81c784')])
@@ -82,6 +85,7 @@ def featurelist_renderer(meta: dict,
                          vertical: bool = False,
                          sorted: bool = True,
                          **renderargs) -> str:
+    """Render token information/frequency return types."""
     import plotly.express as px
     from genbase.ui.plot import ExpressPlot
 
@@ -102,6 +106,7 @@ def featurelist_renderer(meta: dict,
 
 
 def frequency_renderer(meta: dict, content: dict, **renderargs) -> str:
+    """Render token_frequency return type."""
     return featurelist_renderer(meta,
                                 content,
                                 first_element='token',
@@ -112,6 +117,7 @@ def frequency_renderer(meta: dict, content: dict, **renderargs) -> str:
 
 
 def information_renderer(meta: dict, content: dict, **renderargs) -> str:
+    """Render token_information return type."""
     return featurelist_renderer(meta,
                                 content,
                                 first_element='token',
@@ -122,6 +128,7 @@ def information_renderer(meta: dict, content: dict, **renderargs) -> str:
 
 
 def prototype_renderer(meta: dict, content: dict, **renderargs) -> str:
+    """Render prototypes return type."""
     def render_one(instance_type: str, instances) -> str:
         return f'<h4>{instance_type.title()}</h4><p>{format_instances(instances)}</p>'
 
@@ -137,7 +144,7 @@ def prototype_renderer(meta: dict, content: dict, **renderargs) -> str:
 
 
 class Render(BaseRender):
-    def __init__(self, *configs):
+    def __init__(self, *configs):  # noqa: D103
         super().__init__(*configs) 
         self.main_color = MAIN_COLOR
         self.package_link = 'https://git.io/text_explainability'
@@ -164,7 +171,7 @@ class Render(BaseRender):
             }
         """
 
-    def get_renderer(self, meta: dict):
+    def get_renderer(self, meta: dict):  # noqa: D103
         type, subtype, _ = get_meta_descriptors(meta)
 
         if type == 'global_explanation':
@@ -179,10 +186,10 @@ class Render(BaseRender):
                 return feature_attribution_renderer
         return default_renderer
 
-    def format_title(self, title: str, h: str = 'h1', **renderargs) -> str:
+    def format_title(self, title: str, h: str = 'h1', **renderargs) -> str:  # noqa: D103
         return super().format_title(title, h=h, **renderargs).replace('_', ' ').title()
 
-    def render_subtitle(self, meta: dict, content, **renderargs) -> str:
+    def render_subtitle(self, meta: dict, content, **renderargs) -> str:  # noqa: D103
         type, subtype, _ = get_meta_descriptors(meta)
         labelwise = meta['labelwise'] if 'labelwise' in meta else False
         callargs = meta['callargs'] if 'callargs' in meta else ''

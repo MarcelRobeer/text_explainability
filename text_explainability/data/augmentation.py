@@ -148,7 +148,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
             elif isinstance(self.replacement, str):
                 self._replacement = {i: [self.replacement] for i in range(len(tokenized_instance))}
             elif isinstance(self.replacement, list):
-                self._replacement =  {i: self.replacement for i in range(len(tokenized_instance))}
+                self._replacement = {i: self.replacement for i in range(len(tokenized_instance))}
             elif isinstance(self.replacement, dict) and tokenized_instance is not None:
                 instance_len = sum(1 for _ in tokenized_instance)
                 replacement_len = len(self.replacement)

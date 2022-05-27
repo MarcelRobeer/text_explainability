@@ -16,19 +16,43 @@ from sklearn.base import clone
 
 class BaseSurrogate(Readable):
     def __init__(self, model):
+        """Base wrapper around a `sklearn` predictor.
+
+        Args:
+            model: `sklearn` model to wrap.
+        """
         super().__init__()
         self._model = clone(model)
 
-    def fit(self, X, y, weights=None):
+    def fit(self, X, y, weights=None) -> 'BaseSurrogate':
+        """Fit `sklearn` model.
+
+        Args:
+            X: Training data.
+            y: Target labels corresponding to training data.
+            weights (optional): Relative weight of each instance. Defaults to None.
+
+        Returns:
+            BaseSurrogate: Fitted model.
+        """
         self._model.fit(X, y, sample_weight=weights)
         return self
 
-    def predict(self, X):
+    def predict(self, X) -> np.ndarray:
+        """Predict a batch of instances.
+
+        Args:
+            X: Instances.
+
+        Returns:
+            np.ndarray: Predicted instances.
+        """
         return self._model.predict(X)
 
     @property
     def feature_importances(self):
-        raise NotImplementedError
+        """Surrogate model feature importances."""
+        raise NotImplementedError("Implemented in subclasses.")
 
 
 class LinearSurrogate(BaseSurrogate):
@@ -40,29 +64,36 @@ class LinearSurrogate(BaseSurrogate):
 
     @property
     def coef(self):
+        """Model coefficients."""
         return self._model.coef_
 
     @property
     def feature_importances(self):
+        """Model feature importances (same as `LinearSurrogate.coef`)."""
         return self.coef
 
     @property
     def intercept(self):
+        """Model intercept."""
         return self._model.intercept_
 
     def score(self, X, y, weights=None):
+        """Score instances."""
         return self._model.score(X, y, sample_weight=weights)
 
     def alpha_zero(self):
+        """Reset model alpha to zero."""
         if hasattr(self._model, 'alpha'):
             self._model.alpha = 0
 
     def alpha_reset(self):
+        """Reset model alpha to the initial value."""
         if hasattr(self._model, 'alpha'):
             self._model.alpha = self.__alpha_original
 
     @property
     def fit_intercept(self):
+        """Model fit intercept."""
         return self._model.fit_intercept
 
     @fit_intercept.setter

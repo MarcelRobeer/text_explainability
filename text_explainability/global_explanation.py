@@ -1,7 +1,6 @@
 """Global explanations explain the whole dataset or model behavior on that dataset.
 
 Todo:
-
     * More support for sampling methods
     * add support for other tasks than classification (e.g. regression, multi-label classification)
     * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
