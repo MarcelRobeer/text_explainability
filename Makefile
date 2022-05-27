@@ -1,4 +1,4 @@
-.PHONY: docs html coverage
+.PHONY: docs html coverage quality
 
 package := text_explainability
 check_dirs := $(package)
@@ -18,6 +18,11 @@ docs:
 html:
 	sphinx-build -M clean $(source_dir) $(build_dir)
 	sphinx-build -M html $(source_dir) $(build_dir)
+
+# Code style quality
+quality:
+	flake8 --config .flake8 text_explainability
+	python3 -m isort --line-length 120 --check-only -diff text_explainability
 
 # Coverage
 coverage:

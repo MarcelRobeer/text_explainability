@@ -6,12 +6,16 @@ Todo:
 """
 
 from typing import Optional
+from warnings import simplefilter
 
 import numpy as np
 from genbase import Readable
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Lasso, LassoLarsIC, lars_path
 
 from .surrogate import LinearSurrogate
+
+simplefilter('ignore', category=ConvergenceWarning)
 
 
 class FeatureSelector(Readable):

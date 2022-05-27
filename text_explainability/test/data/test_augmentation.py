@@ -70,7 +70,7 @@ def test_replacement_list(sample):
 @pytest.mark.parametrize('sample', SAMPLES)
 def test_replacement_list_too_short(sample):
     with pytest.raises(ValueError):
-        TokenReplacement(None, default_detokenizer, replacement=['x'])(sample)
+        TokenReplacement(None, default_detokenizer, replacement={0: ['x']})(sample)
 
 @pytest.mark.parametrize('sample', SAMPLES)
 def test_deletion_n_samples(sample):

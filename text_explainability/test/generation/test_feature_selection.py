@@ -1,5 +1,4 @@
 import numpy as np
-import py
 import pytest
 from sklearn.linear_model import Lasso, LinearRegression, Ridge
 
