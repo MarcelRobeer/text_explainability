@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- More complex neighborhood data augmentation
+- Rule return type
+
+### Changed
+- Non-duplicate generation of neighborhood data
+- Replaced `skoperules` with `imodels` for future compatibility
+
+### Fixed
+- Fallback to `default_tokenizer()` for `sklearn.CountVectorizer` and `sklearn.TfidfVectorizer`
 
 ## [0.6.2] - 2022-04-06
 ### Changed

@@ -7,12 +7,11 @@ Todo:
 """
 
 import math
-import sys
 from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
-import six
 from genbase import Readable, SeedMixin, add_callargs
+from imodels import SkopeRulesClassifier
 from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
                          MemoryLabelProvider, TextEnvironment)
 from instancelib.instances.text import TextInstance, TextInstanceProvider
@@ -28,10 +27,6 @@ from .generation.return_types import FeatureAttribution, Rules
 from .generation.surrogate import LinearSurrogate, RuleSurrogate, TreeSurrogate
 from .generation.target_encoding import FactFoilEncoder
 from .utils import binarize, default_detokenizer
-
-sys.modules['sklearn.externals.six'] = six  # ensure backward compatibility
-
-from skrules import SkopeRules  # noqa: E402
 
 
 def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:
@@ -607,7 +602,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
     def __call__(self,
                  sample: TextInstance,
                  model: AbstractClassifier,
-                 foil_fn: Union[FactFoilEncoder, int, str],
+                 foil_fn: Union[FactFoilEncoder, int, str] = 0,
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
@@ -654,9 +649,9 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         LocalExplanation.__init__(self, env=env, augmenter=augmenter, labelset=labelset, seed=seed)
         WeightedExplanation.__init__(self, kernel=kernel, kernel_width=kernel_width)
         if local_model is None:
-            local_model = RuleSurrogate(SkopeRules(max_depth_duplication=2,
-                                                   n_estimators=30,
-                                                   random_state=self.seed))
+            local_model = RuleSurrogate(SkopeRulesClassifier(max_depth_duplication=2,
+                                                             n_estimators=30,
+                                                             random_state=self.seed))
         self.local_model = local_model
         self.explanation_type = explanation_type
 
@@ -665,7 +660,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
     def __call__(self,
                  sample: TextInstance,
                  model: AbstractClassifier,
-                 foil_fn: Union[FactFoilEncoder, int, str],
+                 foil_fn: Union[FactFoilEncoder, int, str] = 0,
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
@@ -685,6 +680,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
         self.local_model.fit(perturbed, y_, weights=weights)
+        self.local_model.feature_names = sample.tokenized
 
         return Rules(provider,
                      original_id=original_id,

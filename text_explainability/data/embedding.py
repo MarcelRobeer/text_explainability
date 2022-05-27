@@ -11,6 +11,8 @@ import numpy as np
 from genbase import Readable
 from instancelib.instances.memory import MemoryBucketProvider
 
+from ..utils import default_tokenizer
+
 
 def as_n_dimensional(vectors: Union[np.ndarray, list, MemoryBucketProvider],
                      n: int = 2,
@@ -138,6 +140,8 @@ class CountVectorizer(Embedder):
             https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html
         """
         from sklearn.feature_extraction.text import CountVectorizer as Count
+        if "tokenizer" not in kwargs:
+            kwargs["tokenizer"] = default_tokenizer
         self.model = Count(**kwargs)
         super().__init__(lambda x: self.model.fit_transform(x).toarray())
 
@@ -153,5 +157,7 @@ class TfidfVectorizer(Embedder):
             https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
         """
         from sklearn.feature_extraction.text import TfidfVectorizer as Tfidf
+        if "tokenizer" not in kwargs:
+            kwargs["tokenizer"] = default_tokenizer
         self.model = Tfidf(**kwargs)
         super().__init__(lambda x: self.model.fit_transform(x).toarray())

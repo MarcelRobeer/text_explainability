@@ -35,7 +35,7 @@ setuptools.setup( # type: ignore
         'plotly>=5.4.0',
         'sentence-transformers',  # optional in future
         'scikit-learn-extra',  # optional in future
-        'skope-rules>=1.0.1',  # optional in future
+        'imodels>=1.2.7',
     ],
     extras_require = {
         'fast': ['fastcountvectorizer>=0.1.0'],

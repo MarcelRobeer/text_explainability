@@ -1,0 +1,190 @@
+a.icon-home {
+    color: #000;
+    font-size: 120%;
+}
+
+.wy-side-nav-search {
+    padding: 0;
+}
+
+.wy-form {
+    background-color: #e8e8e8;
+    border-top: 1px solid #e1e4e5;
+    border-bottom: 1px solid #e1e4e5;
+}
+
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: #646776;
+}
+
+.wy-nav-top a, .wy-nav-top a:visited, .wy-nav-top a:hover {
+    color: #646776;
+    font-weight: 700;
+}
+
+.wy-nav-top i {
+    color: #646776;
+}
+
+.wy-nav-side {
+    border-right: 1px solid #e1e4e5;
+}
+
+.wy-side-nav-search, .wy-nav-top, .wy-nav-side {
+    background: #f8f8f8;
+}
+
+a, .wy-menu-vertical a, .wy-menu-vertical a:visited {
+    color: #4974ad;
+}
+
+.wy-menu-vertical li.toctree-l1.current>a {
+    font-weight: 700;
+    border: none;
+    background-color: #eee;
+}
+
+a:hover, .wy-menu-vertical a:hover {
+    color: #354a8a;
+}
+
+a:visited {
+    color: #312781;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: #efeff4;
+}
+
+.wy-side-nav-search input[type=text] {
+    background: transparent;
+    border: none;
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid #eeebee;
+    border-top: 1px solid #eeebee;
+    box-sizing: border-box;
+    color: #646776;
+    padding: 0.75rem 1.25rem;
+    width: 100%;
+    z-index: 10;
+}
+
+.rst-content code.literal, .rst-content tt.literal {
+    color: #312781;
+}
+
+.rst-content .toctree-wrapper>p.caption, h1, h2, h3, h4, h5, h6, legend {
+    font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, "Helvetica Neue", sans-serif;
+}
+
+html.writer-html4 .rst-content dl:not(.docutils)>dt,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt {
+    margin: 6px 3px;
+    color: #312781;
+    border-top: 0;
+    background: #dbdaed;
+}
+
+html.writer-html4 .rst-content dl:not(.docutils) dl:not(.field-list)>dt,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list)>dt {
+    border-left: 0;
+}
+
+html.writer-html4 .rst-content dl:not(.docutils) .sig-name,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) .sig-name,
+html.writer-html4 .rst-content dl:not(.docutils) .descclassname,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) .descclassname,
+html.writer-html4 .rst-content dl:not(.docutils) .descname,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) .descname {
+    color: #1a1445;
+}
+
+.btn {
+    border: none;
+}
+
+.flip-horizontal {
+    -moz-transform: scale(-1, 1);
+    -o-transform: scale(-1, 1);
+    -webkit-transform: scale(-1, 1);
+    transform: scale(-1, 1);
+}
+
+.page-info .context {
+    align-items: center;
+    color: #646776;
+    display: flex;
+    font-size: 80%;
+    padding-bottom: 0.1rem;
+    text-decoration: none;
+}
+
+.rst-footer-buttons a > span {
+    color: #646776;
+    flex-shrink: 0;
+    height: 0.75rem;
+    margin: 0 0.5rem;
+    width: 0.75rem;
+}
+
+.page-info {
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: anywhere;
+}
+
+a.next-page, a.prev-page {
+    align-items: center;
+    display: flex;
+    text-decoration: none;
+}
+
+.next-page .page-info {
+    align-items: flex-end;
+}
+
+.rst-footer-buttons a.next-page {
+    clear: right;
+    float: right;
+    max-width: 50%;
+    text-align: right;
+}
+
+.rst-footer-buttons a.prev-page {
+    clear: left;
+    float: left;
+    max-width: 50%;
+}
+
+footer .footer p {
+    font-size: .9em;
+}
+
+.wy-menu-vertical li.current>a .toctree-expand:before,
+.wy-menu-vertical li.on a .toctree-expand:before {
+    font-size: 120%;
+    content: "" !important;
+}
+
+.wy-menu-vertical li .toctree-expand:before {
+    font-size: 120%;
+    content: "" !important;
+}
+
+.rst-content .section ol li>*,
+.rst-content .section ul li>* {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.wy-side-nav-search > div.version {
+    color: #646776;
+}
+
+section#quick-tour > img {
+    max-width: 420px;
+    margin: -0.5rem auto 2rem auto;
+    display: block;
+}

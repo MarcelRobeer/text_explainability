@@ -23,13 +23,15 @@ from .data.sampling import LabelwiseMMDCritic as _LabelwiseMMDCritic
 from .data.sampling import MMDCritic as _MMDCritic
 from .data.sampling import PrototypeSampler
 from .generation.return_types import FeatureList, Instances
+from .utils import default_tokenizer
 
-try:
-    from fastcountvectorizer import \
-        FastCountVectorizer as \
-        CountVectorizer  # use fastcountvectorizer if available
-except ImportError:
-    from sklearn.feature_extraction.text import CountVectorizer
+# try:
+#     from fastcountvectorizer import \
+#         FastCountVectorizer as \
+#         CountVectorizer  # use fastcountvectorizer if available
+# except ImportError:
+#     from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class GlobalExplanation(Readable, SeedMixin):
@@ -134,6 +136,8 @@ class TokenFrequency(GlobalExplanation):
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
         def top_k_counts(instances_to_fit):
+            if 'tokenizer' not in count_vectorizer_kwargs:
+                count_vectorizer_kwargs['tokenizer'] = default_tokenizer
             cv = CountVectorizer(**count_vectorizer_kwargs)
             counts = cv.fit_transform([str.lower(d) for d in instances_to_fit] if lower else instances_to_fit)
             counts = np.ravel(counts.sum(axis=0))
@@ -196,6 +200,8 @@ class TokenInformation(GlobalExplanation):
 
         instances, labels = self.get_instances_labels(model, labelprovider, explain_model=explain_model)
 
+        if 'tokenizer' not in count_vectorizer_kwargs:
+            count_vectorizer_kwargs['tokenizer'] = default_tokenizer
         cv = CountVectorizer(**count_vectorizer_kwargs)
         counts = cv.fit_transform([str.lower(d) for d in instances.all_data()] if lower else instances.all_data())
 

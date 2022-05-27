@@ -5,12 +5,11 @@ Todo:
     * Add more complex sampling methods (e.g. top-k replacement by contextual language model, WordNet, ...)
     * Replacement with k tokens at each index
     * Ensure inactive[i] is set to 0 if the replacement token is the same as the original token[i]
-    * Replace seed with SeedMixin
 """
 
 import itertools
 import math
-from typing import (Any, Callable, Iterable, Iterator, List, Optional, Tuple,
+from typing import (Any, Dict, Callable, Iterable, Iterator, List, Optional, Tuple,
                     Union)
 
 import numpy as np
@@ -21,8 +20,8 @@ from instancelib.instances.base import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.pertubations.base import ChildGenerator, MultiplePertubator
 
-from ..decorators import text_instance
-from ..utils import default_detokenizer
+from text_explainability.decorators import text_instance
+from text_explainability.utils import default_detokenizer
 
 
 class LocalTokenPertubator(MultiplePertubator[TextInstance], 
@@ -45,9 +44,9 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
 
     @staticmethod
     def binary_inactive(inactive, length) -> np.ndarray:
-        res = np.ones(length, dtype=int)
+        res = np.zeros(length, dtype=int)
         inactive = [res for res in inactive]
-        res[inactive] = 0
+        res[inactive] = 1
         return res
 
     def perturb(self, tokenized_instance: Iterable[str], 
@@ -103,20 +102,72 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
     def __init__(self,
                  env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
-                 replacement: Optional[Union[str, List[str]]] = 'UNKWRDZ',
+                 replacement: Optional[Union[str, List[str], Dict[int, Optional[Union[str, List[str]]]]]] = 'UNKWRDZ',
                  seed: int = 0):
         """Perturb a tokenized instance by replacing with a set token (e.g. 'UNKWRDZ') or deleting it.
+
+        Examples:
+            Randomly replace at least two tokens with the replacement word 'UNK':
+
+            >>> from text_explainability.augmentation import TokenReplacement
+            >>> TokenReplacement(replacement='UNK').perturb(['perturb', 'this', 'into', 'multiple'],
+            >>>                                             n_samples=3,
+            >>>                                             min_changes=2)
+
+            Perturb each token with ['UNK', None]:
+
+            >>> from text_explainability.augmentation import TokenReplacement
+            >>> TokenReplacement(replacement=['UNK', None]).perturb(['perturb', 'this', 'into', 'multiple'], ...)
+
+            Perturb with synonyms:
+
+            >>> from text_explainability.augmentation import TokenReplacement
+            >>> replacement = {0: ['change', 'adjust'], 1: None, 2: 'to', 3: 'more'}
+            >>> TokenReplacement(replacement=replacement).perturb(['perturb', 'this', 'into', 'multiple'], ...)
 
         Args:
             detokenizer (Callable[[Iterable[str]], str]): Mapping back from a tokenized instance to a string used in a 
                 predictor.
-            replacement (Optional[Union[str, List[str]]], optional): Replacement string, or set to None
-                if you want to delete the word entirely. Defaults to 'UNKWRDZ'.
+            replacement (Optional[Union[str, List[str], Dict[int, Optional[Union[str, List[str]]]]]], optional): 
+                Replacement string, list or dictionary, or set to None if you want to delete the word entirely. 
+                Defaults to 'UNKWRDZ'.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
+
         """
         super().__init__(env=env, detokenizer=detokenizer)
         self.replacement = replacement
+        self.__update_replacement()
         self._seed = self._original_seed = seed
+
+    def __update_replacement(self, tokenized_instance: Optional[Iterable[str]] = None):
+        if not hasattr(self, '_replacement'):
+            self._replacement = None
+        elif not isinstance(self._replacement, dict) or len(self._replacement) != len(tokenized_instance):
+            if not self.replacement or self.replacement is None:
+                self._replacement = {i: [None] for i in range(len(tokenized_instance))}
+            elif isinstance(self.replacement, str):
+                self._replacement = {i: [self.replacement] for i in range(len(tokenized_instance))}
+            elif isinstance(self.replacement, list):
+                self._replacement =  {i: self.replacement for i in range(len(tokenized_instance))}
+            elif isinstance(self.replacement, dict) and tokenized_instance is not None:
+                instance_len = sum(1 for _ in tokenized_instance)
+                replacement_len = len(self.replacement)
+                if not (replacement_len >= instance_len):
+                    raise ValueError(f'Too few replacements in `self.replacement`, got {replacement_len} ',
+                                     f'and expected {instance_len}')
+                self._replacement = {k: v if isinstance(v, list) else [v] for k, v in self.replacement.items()}
+
+    def __required_changes(self,
+                           tokenized_instance: Iterable[str],
+                           contiguous: bool,
+                           min_changes: int,
+                           max_changes: int) -> int:
+        instance_len = len(list(tokenized_instance))
+        if contiguous:  # (T+1)(B-A+1) + A(A-1)/2 - B(B+1)/2
+            return int((instance_len + 1) * (max_changes - min_changes + 1) +
+                       min_changes * (min_changes - 1) / 2 -
+                       max_changes * (max_changes + 1) / 2)
+        return sum(math.comb(instance_len, i) for i in range(min_changes, max_changes + 1))
 
     def _replace(self,
                  tokenized_instance: Iterable[str],
@@ -132,18 +183,15 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
 
         Returns:
             Iterable[str]: Tokenized instance with perturbation applied.
-        """
-        if not self.replacement or self.replacement is None:
-            return [token for token, i in zip(tokenized_instance, keep) if i == 1]
-        if isinstance(self.replacement, list):
-            instance_len = sum(1 for _ in tokenized_instance)
-            replacement_len = len(self.replacement)
-            if not (replacement_len >= instance_len):
-                raise ValueError(f'Too few replacements in `self.replacement`, got {replacement_len} ',
-                                 f'and expected {instance_len}')
-            return [self.replacement[i] if j == 0 else token
-                    for i, (token, j) in enumerate(zip(tokenized_instance, keep))]
-        return [self.replacement if i == 0 else token for token, i in zip(tokenized_instance, keep)]
+        """        
+        for idx, (token, i) in enumerate(zip(tokenized_instance, keep)):
+            if i == 0:
+                yield token
+            else:
+                repl = self._replacement[idx]
+                res = self._rand.choice(repl) if i < 0 or i > len(repl) else repl[i - 1]
+                if res is not None:
+                    yield res 
 
     def perturb(self,
                 tokenized_instance: Iterable[str],
@@ -179,20 +227,24 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
             ValueError: min_changes cannot be greater than max_changes.
 
         Yields:
-            Iterator[Sequence[Iterable[str], Iterable[int]]]: Pertubed text instances and indices where
+            Iterator[Sequence[Iterable[str], Iterable[int]]]: Perturbed text instances and indices where
                 perturbation were applied.
         """
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)
         max_changes = min(instance_len, max_changes)
-        rand = np.random.RandomState(self.seed)
+        self._rand = np.random.RandomState(self.seed)
+        self.__update_replacement(tokenized_instance)
+
+        # avoid duplication in case n_samples >= required_changes
+        required_changes = self.__required_changes(tokenized_instance, contiguous, min_changes, max_changes)
 
         def get_inactive(inactive_range):
             inactive = TokenReplacement.binary_inactive(inactive_range, instance_len)
-            return self._replace(tokenized_instance, inactive), inactive
+            return list(self._replace(tokenized_instance, np.where(inactive > 0, -1, inactive))), inactive
 
-        if sequential:
-            if contiguous:  # n-grams of length size, up to n_samples
+        if sequential or n_samples >= required_changes:
+            if contiguous:  # n-grams of length size, up to n_samples 
                 for size in range(min_changes, max_changes + 1):
                     n_contiguous = instance_len - size
                     if n_contiguous <= n_samples:
@@ -200,7 +252,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                         for start in range(instance_len - size + 1):
                             yield get_inactive(range(start, start + size))
                     else:
-                        for start in rand.choice(instance_len - size + 1, size=n_samples, replace=False):
+                        for start in self._rand.choice(instance_len - size + 1, size=n_samples, replace=False):
                             yield get_inactive(range(start, start + size))
                         break
             else:  # used by SHAP
@@ -212,25 +264,23 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                             yield get_inactive(disable)
                     else:  # fill up remainder with random samples of length size
                         for _ in range(n_samples):
-                            yield get_inactive(rand.choice(instance_len, size, replace=False))
+                            yield get_inactive(self._rand.choice(instance_len, size, replace=False))
                         break
         else:
-            sample = rand.randint(min_changes, max_changes + 1, n_samples)
+            sample = self._rand.randint(min_changes, max_changes + 1, n_samples)
 
             for size in sample:
                 if contiguous:  # use n-grams
-                    start = rand.choice(max_changes - size + 1, replace=False)
+                    start = self._rand.choice(max_changes - size + 1, replace=False)
                     inactive = TokenReplacement.binary_inactive(range(start, start + size), instance_len)
-                # used by LIME, 
-                # https://github.com/marcotcr/lime/blob/a2c7a6fb70bce2e089cb146a31f483bf218875eb/lime/lime_text.py#L436
-                else: 
-                    inactive = TokenReplacement.binary_inactive(rand.choice(instance_len, size, replace=False),
+                else:  # used by LIME
+                    inactive = TokenReplacement.binary_inactive(self._rand.choice(instance_len, size, replace=False),
                                                                 instance_len)
                 yield self._replace(tokenized_instance, inactive), inactive
 
         if add_background_instance:
             inactive = np.zeros(instance_len)
-            yield self._replace(tokenized_instance, inactive), inactive
+            yield list(self._replace(tokenized_instance, inactive)), inactive
 
 
 class LeaveOut(TokenReplacement):

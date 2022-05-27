@@ -115,11 +115,10 @@ class TreeSurrogate(BaseSurrogate):
                 for i, f in enumerate(self._model.tree_.feature)]
 
     def to_rules(self):
-        from skrules.rule import Rule
-        from skrules.skope_rules import BASE_FEATURE_NAME, SkopeRules
-        feature_names = [BASE_FEATURE_NAME + str(i) for i in range(self._model.n_features_)]
-        rules = SkopeRules._tree_to_rules(None, tree=self._model, feature_names=feature_names)
-        # TODO: add performance metrics and output label
+        from imodels.util.convert import tree_to_rules
+        from imodels.util.rule import Rule
+        rules = tree_to_rules(tree=self._model, feature_names=[str(i) for i in range(self._model.n_features_)])
+        # # TODO: add performance metrics and output label
         self._rules = [tuple(rule) for rule in [Rule(r) for r in rules]]
         return self._rules
 
@@ -133,7 +132,13 @@ class RuleSurrogate(BaseSurrogate):
 
     @property
     def rules(self):
-        return self._model.rules_
+        feature_dict = dict(zip(self._model.feature_placeholders, self._model.feature_names))
+
+        def transform(rule):
+            return ' AND '.join(f'"{feature_dict[k1]}" {"present" if k2 == ">" else "absent"}'
+                                for (k1, k2) in rule.agg_dict.keys())
+
+        return [transform(rule) for rule in self._model.rules_without_feature_names_]
 
     @property
     def feature_names(self):

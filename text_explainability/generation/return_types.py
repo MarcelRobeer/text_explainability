@@ -349,13 +349,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
         if isinstance(rules, (TreeSurrogate, RuleSurrogate)):
-            from skrules.rule import replace_feature_name
-            from skrules.skope_rules import BASE_FEATURE_NAME
-            feature_dict = {BASE_FEATURE_NAME + str(i): feat
-                            for i, feat in enumerate(self.used_features)}
-            return [(replace_feature_name(rule, feature_dict), perf)
-                     for rule, perf in rules.rules]
-        print(rules)
+            return rules.rules
         raise NotImplementedError('TODO: Support lists of rules')
 
     @property
