@@ -20,13 +20,9 @@ model = import_model(pipeline, environment=env)
 # %% Imports
 from text_explainability.data import from_string
 from text_explainability.data.augmentation import LeaveOut, TokenReplacement
-from text_explainability.global_explanation import (KMedoids,
-                                                    LabelwiseMMDCritic,
-                                                    MMDCritic, TokenFrequency,
+from text_explainability.global_explanation import (KMedoids, LabelwiseMMDCritic, MMDCritic, TokenFrequency,
                                                     TokenInformation)
-from text_explainability.local_explanation import (LIME, Anchor, FoilTree,
-                                                   KernelSHAP, LocalRules,
-                                                   LocalTree)
+from text_explainability.local_explanation import LIME, Anchor, FoilTree, KernelSHAP, LocalRules, LocalTree
 from text_explainability.utils import PUNCTUATION, default_detokenizer
 
 # %% Create example instance

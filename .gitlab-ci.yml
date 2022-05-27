@@ -16,7 +16,7 @@ flake8:
 isort:
   stage: format
   script:
-    - python3 -m isort --check --diff text_explainability
+    - python3 -m isort --check --line-length 120 --diff text_explainability
 
 run_tests:
   stage: test

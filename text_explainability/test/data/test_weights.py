@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-from text_explainability.data.weights import (exponential_kernel,
-                                              pairwise_distances)
+from text_explainability.data.weights import exponential_kernel, pairwise_distances
 
 DIMS = [5, 10, 50, 100, 200]
 

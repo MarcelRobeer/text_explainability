@@ -12,8 +12,7 @@ from typing import Callable, Optional, Sequence, Tuple, Union
 import numpy as np
 from genbase import Readable, SeedMixin, add_callargs
 from imodels import SkopeRulesClassifier
-from instancelib import (AbstractEnvironment, InstanceProvider, LabelProvider,
-                         MemoryLabelProvider, TextEnvironment)
+from instancelib import AbstractEnvironment, InstanceProvider, LabelProvider, MemoryLabelProvider, TextEnvironment
 from instancelib.instances.text import TextInstance, TextInstanceProvider
 from instancelib.machinelearning import AbstractClassifier
 from sklearn.linear_model import Ridge

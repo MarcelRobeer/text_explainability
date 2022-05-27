@@ -4,8 +4,7 @@ import pytest
 
 from text_explainability.data import from_list
 from text_explainability.data.embedding import CountVectorizer, TfidfVectorizer
-from text_explainability.data.sampling import (KMedoids, LabelwiseKMedoids,
-                                               LabelwiseMMDCritic, MMDCritic)
+from text_explainability.data.sampling import KMedoids, LabelwiseKMedoids, LabelwiseMMDCritic, MMDCritic
 
 DATA = ['This is an example sentence...',
         'Another example',

@@ -1,7 +1,6 @@
 import pytest
 
-from text_explainability.global_explanation import (TokenFrequency,
-                                                    TokenInformation)
+from text_explainability.global_explanation import TokenFrequency, TokenInformation
 from text_explainability.local_explanation import LIME, KernelSHAP
 from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
 from text_explainability.ui.notebook import Render

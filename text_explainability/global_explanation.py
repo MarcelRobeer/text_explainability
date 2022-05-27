@@ -14,6 +14,13 @@ from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
+# try:
+#     from fastcountvectorizer import \
+#         FastCountVectorizer as \
+#         CountVectorizer  # use fastcountvectorizer if available
+# except ImportError:
+#     from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
 from .data.sampling import KMedoids as _Kmedoids
@@ -23,14 +30,6 @@ from .data.sampling import MMDCritic as _MMDCritic
 from .data.sampling import PrototypeSampler
 from .generation.return_types import FeatureList, Instances
 from .utils import default_tokenizer
-
-# try:
-#     from fastcountvectorizer import \
-#         FastCountVectorizer as \
-#         CountVectorizer  # use fastcountvectorizer if available
-# except ImportError:
-#     from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 class GlobalExplanation(Readable, SeedMixin):

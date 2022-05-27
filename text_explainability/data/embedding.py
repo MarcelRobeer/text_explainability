@@ -123,8 +123,7 @@ class SentenceTransformer(Embedder):
         .. _Sentence Transformers:
             https://github.com/UKPLab/sentence-transformers
         """
-        from sentence_transformers import \
-            SentenceTransformer as SentTransformer
+        from sentence_transformers import SentenceTransformer as SentTransformer
         self.model = SentTransformer(model_name)
         super().__init__(lambda x: self.model.encode(x, **kwargs))
 
