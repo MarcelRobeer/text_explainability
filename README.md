@@ -11,7 +11,7 @@ A generic explainability architecture for explaining text machine learning model
 [![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://pypi.org/project/text-explainability/)
 [![Build_passing](https://img.shields.io/badge/build-passing-brightgreen)](https://git.science.uu.nl/m.j.robeer/text_explainability/-/pipelines)
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
-[![Docs_passing](https://img.shields.io/badge/docs-external-blueviolet)](https://marcelrobeer.github.io/text_explainability)
+[![Documentation Status](https://readthedocs.org/projects/text-explainability/badge/?version=latest)](https://text-explainability.readthedocs.io/en/latest/?badge=latest)
 [![Code style: black](https://img.shields.io/badge/code%20style-flake8-aa0000)](https://github.com/PyCQA/flake8)
 
 ---
@@ -60,7 +60,7 @@ See the [installation](docs/installation.md) instructions for an extended instal
 | Local | Clone this repository and install via `pip3 install -e .` or locally run `python3 setup.py install`.
 
 ## Documentation
-Full documentation of the latest version is provided at [https://marcelrobeer.github.io/text_explainability/](https://marcelrobeer.github.io/text_explainability/).
+Full documentation of the latest version is provided at [https://text-explainability.readthedocs.io/](https://text-explainability.readthedocs.io/).
 
 ## Example usage
 See [example usage](example_usage.md) to see an example of how the package can be used, or run the lines in `example_usage.py` to do explore it interactively.
