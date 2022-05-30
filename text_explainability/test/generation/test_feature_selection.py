@@ -1,9 +1,15 @@
+from warnings import simplefilter
+
 import numpy as np
 import pytest
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Lasso, LinearRegression, Ridge
 
 from text_explainability.generation.feature_selection import FeatureSelector
 from text_explainability.generation.surrogate import LinearSurrogate
+
+simplefilter(action='ignore', category=ConvergenceWarning)
+
 
 TRUE_METHODS_NO_MODEL = ['lasso_path', 'aic', 'bic', 'l1_reg']
 TRUE_METHODS_MODEL = ['forward_selection', 'highest_weights']
@@ -11,7 +17,6 @@ TRUE_METHODS = TRUE_METHODS_NO_MODEL + TRUE_METHODS_MODEL
 PARTIAL_METHODS = [method for method in TRUE_METHODS if method not in ['aic', 'bic', 'l1_reg']]
 LOCAL_MODELS = [LinearSurrogate(model) for model in [LinearRegression(), Ridge(), Lasso()]]
 FAKE_DATA = np.random.binomial(1, .5, size=(100, 20))
-
 
 
 @pytest.mark.parametrize('method', TRUE_METHODS)

@@ -2,8 +2,8 @@
 
 Todo:
     * More support for sampling methods
-    * add support for other tasks than classification (e.g. regression, multi-label classification)
-    * partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
+    * Add support for other tasks than classification (e.g. regression, multi-label classification)
+    * Partial dependence plots? https://scikit-learn.org/stable/modules/classes.html#module-sklearn.inspection
 """
 
 from typing import Any, FrozenSet, List, Optional, Sequence, Tuple, Union
@@ -14,12 +14,6 @@ from instancelib import InstanceProvider
 from instancelib.instances.text import TextInstance
 from instancelib.labels import LabelProvider
 from instancelib.machinelearning import AbstractClassifier
-# try:
-#     from fastcountvectorizer import \
-#         FastCountVectorizer as \
-#         CountVectorizer  # use fastcountvectorizer if available
-# except ImportError:
-#     from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 

@@ -1,9 +1,5 @@
+from genbase_test_helpers import TEST_MODEL
 from instancelib import TextEnvironment
-from sklearn.feature_extraction.text import HashingVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-
-from text_explainability.model import import_model
 
 TEST_INSTANCES = [
     'Dit is een voorbeeld tekst',
@@ -27,5 +23,4 @@ TEST_ENVIRONMENT = TextEnvironment.from_data(target_labels={'punctuation', 'no_p
                                              ground_truth=TEST_LABELS,
                                              vectors=None)
 
-TEST_MODEL = import_model(model=Pipeline([('vect', HashingVectorizer()), ('nb', LogisticRegression())]),
-                          environment=TEST_ENVIRONMENT)
+__all__ = ['TEST_INSTANCES', 'TEST_LABELS', 'TEST_ENVIRONMENT', 'TEST_MODEL']

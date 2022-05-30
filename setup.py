@@ -38,7 +38,8 @@ setuptools.setup( # type: ignore
         'imodels>=1.2.7',
     ],
     extras_require = {
-        'fast': ['fastcountvectorizer>=0.1.0'],
+        'fast': ['fastcountvectorizer>=0.1.0'],  # currently not supported due to tokenization issues
+        'dev': ['genbase-test-helpers>=0.1.1'],
     },
     python_requires = '>=3.8',
 )

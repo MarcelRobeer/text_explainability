@@ -3,7 +3,6 @@
 Todo:
 
     * Implement Anchors
-    * Various bugfixes
 """
 
 import math
@@ -332,6 +331,9 @@ class KernelSHAP(LocalExplanation):
         """
         feature_selector = FeatureSelector()
         nonzero = np.arange(default_features)
+
+        if l1_reg == 'auto' and X.shape[1] <= X.shape[0]:
+            l1_reg = int(X.shape[1])
 
         if isinstance(l1_reg, str) and l1_reg.startswith('n_features('):
             l1_reg = int(l1_reg[len('n_features('):-1])
