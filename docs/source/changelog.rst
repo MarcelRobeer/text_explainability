@@ -10,6 +10,9 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 `Unreleased <https://git.science.uu.nl/m.j.robeer/text_explainability>`_
 ----------------------------------------------------------------------------
 
+`0.6.3 <https://pypi.org/project/text-explainability/0.6.3/>`_ - 2022-05-30
+-------------------------------------------------------------------------------
+
 Added
 ^^^^^
 
@@ -29,6 +32,7 @@ Fixed
 
 
 * Fallback to ``default_tokenizer()`` for ``sklearn.CountVectorizer`` and ``sklearn.TfidfVectorizer``
+* Bugfixes in feature selection when ``n_features`` >= ``n_samples``
 
 `0.6.2 <https://pypi.org/project/text-explainability/0.6.2/>`_ - 2022-04-06
 -------------------------------------------------------------------------------

@@ -17,14 +17,14 @@ from instancelib.machinelearning import AbstractClassifier
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeClassifier
 
-from .data.augmentation import LeaveOut, LocalTokenPertubator
-from .data.weights import exponential_kernel, pairwise_distances
-from .decorators import text_instance
-from .generation.feature_selection import FeatureSelector
-from .generation.return_types import FeatureAttribution, Rules
-from .generation.surrogate import LinearSurrogate, RuleSurrogate, TreeSurrogate
-from .generation.target_encoding import FactFoilEncoder
-from .utils import binarize, default_detokenizer
+from ..data.augmentation import LeaveOut, LocalTokenPertubator
+from ..data.weights import exponential_kernel, pairwise_distances
+from ..decorators import text_instance
+from ..generation.feature_selection import FeatureSelector
+from ..generation.return_types import FeatureAttribution, Rules
+from ..generation.surrogate import LinearSurrogate, RuleSurrogate, TreeSurrogate
+from ..generation.target_encoding import FactFoilEncoder
+from ..utils import binarize, default_detokenizer
 
 
 def default_env(env: Optional[AbstractEnvironment] = None) -> AbstractEnvironment:

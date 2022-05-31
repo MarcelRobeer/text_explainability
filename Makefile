@@ -9,7 +9,7 @@ source_dir := $(docs_dir)/source
 # Build documentation files
 docs:
 	cp img/TextLogo.png $(source_dir)/_static
-	sphinx-apidoc --module-first --no-toc --force --templatedir=$(source_dir)/_templates/ -o $(source_dir)/api .
+	sphinx-apidoc --module-first --no-toc --force --templatedir=$(source_dir)/_templates/ -o $(source_dir)/api text_explainability
 	m2r CHANGELOG.md --dry-run > $(source_dir)/changelog.rst
 	m2r example_usage.md --dry-run > $(source_dir)/example-usage.rst
 	m2r INSTALLATION.md --dry-run > $(source_dir)/installation.rst

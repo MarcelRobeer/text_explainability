@@ -17,13 +17,13 @@ from instancelib.machinelearning import AbstractClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import mutual_info_classif
 
-from .data.sampling import KMedoids as _Kmedoids
-from .data.sampling import LabelwiseKMedoids as _LabelwiseKMedoids
-from .data.sampling import LabelwiseMMDCritic as _LabelwiseMMDCritic
-from .data.sampling import MMDCritic as _MMDCritic
-from .data.sampling import PrototypeSampler
-from .generation.return_types import FeatureList, Instances
-from .utils import default_tokenizer
+from ..data.sampling import KMedoids as _Kmedoids
+from ..data.sampling import LabelwiseKMedoids as _LabelwiseKMedoids
+from ..data.sampling import LabelwiseMMDCritic as _LabelwiseMMDCritic
+from ..data.sampling import MMDCritic as _MMDCritic
+from ..data.sampling import PrototypeSampler
+from ..generation.return_types import FeatureList, Instances
+from ..utils import default_tokenizer
 
 
 class GlobalExplanation(Readable, SeedMixin):
@@ -251,6 +251,13 @@ class PrototypeWrapper:
 
 class KMedoids(PrototypeWrapper):
     def __init__(self, *args, **kwargs):
+        """Get prototypes using method `k-Medoids`_.
+
+        For arguments see `text_explainability.data.sampling.KMedoids`.
+
+        .. _k-Medoids:
+            https://scikit-learn-extra.readthedocs.io/en/stable/generated/sklearn_extra.cluster.KMedoids.html
+        """
         super().__init__(_Kmedoids, *args, method='kmedoids', subtype='prototypes', **kwargs)
 
 
