@@ -116,9 +116,9 @@ Extensions
 
 .. image:: https://git.science.uu.nl/m.j.robeer/text_sensitivity/-/raw/main/img/TextLogo-Logo_large_sensitivity.png
     :alt: text_sensitivity logo
-    :target: https://marcelrobeer.github.io/text_sensitivity/
+    :target: https://text-sensitivity.readthedocs.io
     
-``text_explainability`` can be extended to also perform *sensitivity testing*\ , checking for machine learning model robustness and fairness. The ``text_sensitivity`` package is available through `PyPI <https://pypi.org/project/text-sensitivity/>`_ and fully documented at `https://marcelrobeer.github.io/text_sensitivity/ <https://marcelrobeer.github.io/text_sensitivity/>`_.
+``text_explainability`` can be extended to also perform *sensitivity testing*\ , checking for machine learning model robustness and fairness. The ``text_sensitivity`` package is available through `PyPI <https://pypi.org/project/text-sensitivity/>`_ and fully documented at `https://text-sensitivity.readthedocs.io/ <https://text-sensitivity.readthedocs.io/>`_.
 
 Citation
 --------
