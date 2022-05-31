@@ -135,8 +135,8 @@ Citation
 
 .. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 .. _pip: https://pypi.org/project/text_explainability/
-.. _git: https://github.com/MarcelRobeer/text_explainability
-.. _`text_explainability @ GIT`: https://github.com/MarcelRobeer/text_explainability
+.. _git: https://git.science.uu.nl/m.j.robeer/text_sensitivity
+.. _`text_explainability @ GIT`: https://git.science.uu.nl/m.j.robeer/text_sensitivity
 
 .. toctree::
    :maxdepth: 1
