@@ -147,7 +147,7 @@ class Render(BaseRender):
     def __init__(self, *configs):  # noqa: D103
         super().__init__(*configs) 
         self.main_color = MAIN_COLOR
-        self.package_link = 'https://git.io/text_explainability'
+        self.package_link = 'https://text-explainability.readthedocs.io/'
         self.extra_css = """
             .token {
                 display: inline-block;

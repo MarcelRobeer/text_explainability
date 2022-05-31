@@ -25,7 +25,7 @@ setuptools.setup( # type: ignore
         'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
         'Topic :: Scientific/Engineering :: Artificial Intelligence'
     ],
-    url = 'https://git.science.uu.nl/m.j.robeer/text_explainability',
+    url = 'https://text-explainability.readthedocs.io/',
     packages = setuptools.find_packages(), # type : ignore
     include_package_data = True,
     install_requires = [
