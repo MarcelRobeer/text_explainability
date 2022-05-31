@@ -52,7 +52,7 @@ MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
 ```
 
 ## Installation
-See the [installation](docs/installation.md) instructions for an extended installation guide.
+See the [installation](docs/INSTALLATION.md) instructions for an extended installation guide.
 
 | Method | Instructions |
 |--------|--------------|
@@ -86,7 +86,7 @@ See [example usage](example_usage.md) to see an example of how the package can b
 See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each version.
 
 ## Extensions
-<a href="https://marcelrobeer.github.io/text_sensitivity/" target="_blank"><img src="https://git.science.uu.nl/m.j.robeer/text_sensitivity/-/raw/main/img/TextLogo-Logo_large_sensitivity.png" alt="T_xt sensitivity logo" width="200px"></a><p>`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://marcelrobeer.github.io/text_sensitivity/](https://marcelrobeer.github.io/text_sensitivity/).</p>
+<a href="https://marcelrobeer.github.io/text_sensitivity/" target="_blank"><img src="https://git.science.uu.nl/m.j.robeer/text_sensitivity/-/raw/main/img/TextLogo-Logo_large_sensitivity.png" alt="T_xt sensitivity logo" width="200px"></a><p>`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://text-sensitivity.rtfd.io/](https://text-sensitivity.rtfd.io/).</p>
 
 ## Citation
 ```bibtex

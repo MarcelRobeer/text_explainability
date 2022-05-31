@@ -9,7 +9,7 @@ source_dir := $(docs_dir)/source
 # Build documentation files
 docs:
 	cp img/TextLogo.png $(source_dir)/_static
-	sphinx-apidoc --module-first --no-toc --force --templatedir=$(source_dir)/_templates/ -o $(source_dir)/api text_explainability
+	sphinx-apidoc --module-first --no-toc --force --templatedir=$(source_dir)/_templates/ -o $(source_dir)/api $(package)
 	m2r CHANGELOG.md --dry-run > $(source_dir)/changelog.rst
 	m2r example_usage.md --dry-run > $(source_dir)/example-usage.rst
 	m2r INSTALLATION.md --dry-run > $(source_dir)/installation.rst
@@ -21,8 +21,8 @@ html:
 
 # Code style quality
 quality:
-	flake8 --config .flake8 text_explainability
-	python3 -m isort --line-length 120 --check-only -diff text_explainability
+	flake8 --config .flake8 $(package)
+	python3 -m isort --line-length 120 --check-only -diff $(package)
 
 # Coverage
 coverage:
