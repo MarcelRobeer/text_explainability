@@ -22,7 +22,7 @@
 <div role="navigation" aria-label="{{ _('Page navigation') }}">
   <ul class="wy-breadcrumbs">
     {%- block breadcrumbs %}
-      <li><a href="{{ pathto(master_doc) }}" class="icon fa-search flip-horizontal"></a>{{ _(' ') }}<span class="icon fa-angle-right" aria-hidden="true"></span>&nbsp;</li>
+      <li><a href="{{ pathto(master_doc) }}" class="icon fa-text"></a>{{ _(' ') }}<span class="icon fa-angle-right" aria-hidden="true"></span>&nbsp;</li>
         {%- for doc in parents %}
           <li><a href="{{ doc.link|e }}">{{ doc.title }}</a> <span class="icon fa-angle-right" aria-hidden="true"></span></li>
         {%- endfor %}
