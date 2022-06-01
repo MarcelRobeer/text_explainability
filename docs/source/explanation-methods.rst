@@ -1,4 +1,4 @@
-Explanation methods included
+Explanation Methods Included
 ============================
 
 ``text_explainability`` includes methods for model-agnostic *local explanation* and *global explanation*. Each of these methods can be fully customized to fit the explainees' needs.
