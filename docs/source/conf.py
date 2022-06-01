@@ -56,7 +56,14 @@ html_theme_options = {
     "display_version": True,
     "style_external_links": True,
     "logo_only": True,
-    "gitlab_url": "https://github.com/MarcelRobeer/text_explainability",
+}
+html_context = {
+    "display_gitlab": True,
+    "gitlab_host": "git.science.uu.nl",
+    "gitlab_user": "m.j.robeer",
+    "gitlab_repo": "text_explainability",
+    "gitlab_version": "main",
+    "conf_py_path": "/docs/source/",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
