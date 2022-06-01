@@ -76,11 +76,11 @@ a, .wy-menu-vertical a, .wy-menu-vertical a:visited {
 }
 
 a:hover, .wy-menu-vertical a:hover {
-    color: #354a8a;
+    color: #356CA1;
 }
 
 a:visited {
-    color: #312781;
+    color: #263899;
 }
 
 .wy-menu-vertical a:hover {
@@ -103,7 +103,7 @@ a:visited {
 }
 
 .rst-content code.literal, .rst-content tt.literal {
-    color: #312781;
+    color: #263899;
 }
 
 .rst-content .toctree-wrapper>p.caption, h1, h2, h3, h4, h5, h6, legend {
@@ -113,7 +113,7 @@ a:visited {
 html.writer-html4 .rst-content dl:not(.docutils)>dt,
 html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt {
     margin: 6px 3px;
-    color: #312781;
+    color: #263899;
     border-top: 0;
     background: #dbdaed;
 }
