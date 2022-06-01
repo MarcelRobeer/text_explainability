@@ -202,8 +202,8 @@ footer .footer p {
     color: #646776;
 }
 
-.highlight .nl {
-    color: #6ECF67;
+.highlight .nl, .highlight .na {
+    color: #368930;
 }
 
 #quick-tour > img {
