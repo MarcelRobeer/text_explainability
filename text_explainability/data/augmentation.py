@@ -275,7 +275,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                 else:  # used by LIME
                     inactive = TokenReplacement.binary_inactive(self._rand.choice(instance_len, size, replace=False),
                                                                 instance_len)
-                yield self._replace(tokenized_instance, inactive), inactive
+                yield list(self._replace(tokenized_instance, inactive)), inactive
 
         if add_background_instance:
             inactive = np.zeros(instance_len)

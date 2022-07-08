@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2022-07-08
+### Fixed
+- Bugfix that returned generator for local neighborhood data generation (`explabox` issue #2)
+
 ## [0.6.3] - 2022-05-30
 ### Added
 - More complex neighborhood data augmentation
@@ -274,6 +278,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.6.4]: https://pypi.org/project/text-explainability/0.6.4/
 [0.6.3]: https://pypi.org/project/text-explainability/0.6.3/
 [0.6.2]: https://pypi.org/project/text-explainability/0.6.2/
 [0.6.1]: https://pypi.org/project/text-explainability/0.6.1/

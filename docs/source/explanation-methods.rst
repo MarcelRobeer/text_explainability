@@ -32,19 +32,19 @@ Explanation Methods Included
      - [\ `Robeer2018 <https://github.com/MarcelRobeer/ContrastiveExplanation>`_\ ]
    * - *Global explanation*
      - ``TokenFrequency``
-     - Show the top-k* number of tokens for each ground-truth or predicted label.
+     - Show the top-*k* number of tokens for each ground-truth or predicted label.
      - 
    * - 
      - ``TokenInformation``
-     - Show the top-k* token mutual information for a dataset or model.
+     - Show the top-*k* token mutual information for a dataset or model.
      - `wikipedia/mutual_information <https://en.wikipedia.org/wiki/Mutual_information>`_
    * - 
      - ``KMedoids``
-     - Embed instances and find top-n* prototypes (can also be performed for each label using ``LabelwiseKMedoids``\ ).
+     - Embed instances and find top-*n* prototypes (can also be performed for each label using ``LabelwiseKMedoids``\ ).
      - `interpretable-ml/prototypes <https://christophm.github.io/interpretable-ml-book/proto.html>`_
    * - 
      - ``MMDCritic``
-     - Embed instances and find top-n* prototypes and top-n* criticisms (can also be performed for each label using ``LabelwiseMMDCritic``\ ).
+     - Embed instances and find top-*n* prototypes and top-*n* criticisms (can also be performed for each label using ``LabelwiseMMDCritic``\ ).
      - [\ `Kim2016 <https://papers.nips.cc/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html>`_\ ], `interpretable-ml/prototypes <https://christophm.github.io/interpretable-ml-book/proto.html>`_
 
 
