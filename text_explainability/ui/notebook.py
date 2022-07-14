@@ -57,6 +57,8 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
         return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
 
     original_scores = [f'<kbd>{k}</kbd> {v:.10f}' for k, v in content["original_scores"].items()]
+    original_scores = [f'<b>{score}</b>' if value == max(content["original_scores"].values()) else score
+                       for score, value in zip(original_scores, content["original_scores"].items())]
     html = f'<p>The model predicted the following scores for the instance:</p> {format_list(original_scores)}'
 
     features, scores = content['features'], content['scores']
