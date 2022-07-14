@@ -23,6 +23,7 @@ class BaseReturnType(MetaInfo):
     def __init__(self,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_scores: Optional[Sequence[float]] = None,
                  type: Optional[str] = 'base',
                  subtype: Optional[str] = None,
                  callargs: Optional[dict] = None,
@@ -33,6 +34,7 @@ class BaseReturnType(MetaInfo):
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            original_scores (Optional[Sequence[float]], optional): Probability scores for each class. Defaults to None.
             type (Optional[str]): Type description. Defaults to 'base'.
             subtype (Optional[str], optional): Subtype description. Defaults to None.
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
@@ -42,6 +44,7 @@ class BaseReturnType(MetaInfo):
         super().__init__(type=type, subtype=subtype, callargs=callargs, renderer=renderer, **kwargs)
         self._labels = labels
         self._labelset = labelset
+        self._original_scores = original_scores
 
     @property
     def labels(self):
@@ -54,6 +57,12 @@ class BaseReturnType(MetaInfo):
     def labelset(self):
         """Get label names property."""
         return self._labelset
+
+    @property
+    def original_scores(self):
+        if self._original_scores is None:
+            return self._original_scores
+        return {self.label_by_index(k): v for k, v in enumerate(self._original_scores)}
 
     def label_by_index(self, idx: int) -> Union[str, int]:
         """Access label name by index, if `labelset` is set.
@@ -75,8 +84,9 @@ class BaseReturnType(MetaInfo):
     def __repr__(self) -> str:
         labels = [self.label_by_index(label) for label in self.labels] if self.labels is not None else None
         if hasattr(self, 'used_features'):
-            return f'{self.__class__.__name__}(labels={labels}, used_features={self.used_features})'
-        return f'{self.__class__.__name__}(label={labels})'
+            return f'{self.__class__.__name__}' + \
+                f'(labels={labels}, scores={self.original_scores}, used_features={self.used_features})'
+        return f'{self.__class__.__name__}(labels={labels}, scores={self.original_scores})'
 
 
 class UsedFeaturesMixin:
@@ -92,6 +102,7 @@ class FeatureList(BaseReturnType, UsedFeaturesMixin):
                  scores: Union[Sequence[int], Sequence[float]],
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_scores: Optional[Sequence[float]] = None,
                  type: Optional[str] = 'global_explanation',
                  subtype: Optional[str] = 'feature_list',
                  callargs: Optional[dict] = None,
@@ -106,6 +117,7 @@ class FeatureList(BaseReturnType, UsedFeaturesMixin):
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            original_scores (Optional[Sequence[float]], optional): Probability scores for each class. Defaults to None.
             type (Optional[str]): Type description. Defaults to 'explanation'.
             subtype (Optional[str], optional): Subtype description. Defaults to 'feature_list'.
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
@@ -113,6 +125,7 @@ class FeatureList(BaseReturnType, UsedFeaturesMixin):
         """
         super().__init__(labels=labels,
                          labelset=labelset,
+                         original_scores=original_scores,
                          type=type,
                          subtype=subtype,
                          callargs=callargs,
@@ -243,6 +256,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, LocalDataExplanation):
                  base_score: float = None,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_scores: Optional[Sequence[float]] = None,
                  original_id: Optional[LT] = None,
                  sampled: bool = False,
                  type: Optional[str] = 'local_explanation',
@@ -264,6 +278,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, LocalDataExplanation):
             base_score (float, optional): Base score, to which all scores are relative. Defaults to None.
             labels (Optional[Sequence[int]], optional): Labels for outputs (e.g. classes). Defaults to None.
             labelset (Optional[Sequence[str]], optional): Label names corresponding to labels. Defaults to None.
+            original_scores (Optional[Sequence[float]], optional): Probability scores for each class. Defaults to None.
             original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
@@ -283,6 +298,7 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, LocalDataExplanation):
                              scores=scores,
                              labels=labels,
                              labelset=labelset,
+                             original_scores=original_scores,
                              type=type,
                              subtype=subtype,
                              callargs=callargs,
@@ -298,7 +314,8 @@ class FeatureAttribution(ReadableDataMixin, FeatureList, LocalDataExplanation):
     @property
     def content(self):
         return {'features': list(self.original_instance.tokenized),
-                'scores': self.scores}
+                'scores': self.scores,
+                'original_scores': self.original_scores}
 
 
 class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExplanation):
@@ -308,6 +325,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
                  used_features: Optional[Union[Sequence[str], Sequence[int]]] = None,
                  labels: Optional[Sequence[int]] = None,
                  labelset: Optional[Sequence[str]] = None,
+                 original_scores: Optional[Sequence[float]] = None,
                  original_id: Optional[LT] = None,
                  sampled: bool = False,
                  type: Optional[str] = 'local_explanation',
@@ -323,6 +341,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
             labels (Optional[Sequence[int]], optional): Label indices to include, if none provided 
                 defaults to 'all'. Defaults to None.
             labelset (Optional[Sequence[str]], optional): Lookup for label names. Defaults to None.
+            original_scores (Optional[Sequence[float]], optional): Probability scores for each class. Defaults to None.
             original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
@@ -338,6 +357,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
         BaseReturnType.__init__(self,
                                 labels=labels,
                                 labelset=labelset,
+                                original_scores=original_scores,
                                 type=type,
                                 subtype=subtype,
                                 callargs=callargs,
@@ -358,18 +378,21 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
 
     @property
     def content(self):
-        return self.rules
+        return {'rules': self.rules,
+                'original_scores': self.original_scores}
 
 
 class Instances(BaseReturnType):
     def __init__(self,
                  instances,
+                 original_scores: Optional[Sequence[float]] = None,
                  type: Optional[str] = 'global_explanation',
                  subtype: Optional[str] = 'prototypes',
                  callargs: Optional[dict] = None,
                  **kwargs):
         super().__init__(labels=None,
                          labelset=None,
+                         original_scores=original_scores,
                          type=type,
                          subtype=subtype,
                          callargs=callargs,

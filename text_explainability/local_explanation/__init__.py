@@ -104,7 +104,7 @@ class LocalExplanation(Readable, SeedMixin):
                 Defaults to False.
 
         Returns:
-            Union[Tuple[InstanceProvider, np.ndarray], Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
+            Union[Tuple[InstanceProvider, np.ndarray], Tuple[InstanceProvider, np.ndarray, np.ndarray, np.ndarray]]:
                 Provider, how instances were perturbed and optionally the corresponding predictions for each instance.
         """
         provider = self.env.create_empty_provider()
@@ -126,6 +126,7 @@ class LocalExplanation(Readable, SeedMixin):
         if predict:
             ys = model.predict_proba_raw(provider)
             y = np.vstack([y_ for _, y_ in ys]).squeeze()
+            y_orig = y[0]
             if avoid_proba:
                 y = np.argmax(y, axis=1)
 
@@ -133,7 +134,7 @@ class LocalExplanation(Readable, SeedMixin):
         perturbed = np.stack([instance.map_to_original for instance in provider.get_all()])
 
         if predict:
-            return provider, original_id, perturbed, y
+            return provider, original_id, perturbed, y, y_orig
         return provider, original_id, perturbed
 
     def explain(self, *args, **kwargs):
@@ -243,8 +244,8 @@ class LIME(LocalExplanation, WeightedExplanation):
                 labels = [self.labelset.index(label) for label in labels]
 
         # Generate neighborhood samples
-        provider, original_id, perturbed, y = self.augment_sample(sample, model, sequential=False,
-                                                                  contiguous=False, n_samples=n_samples)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample, model, sequential=False,
+                                                                          contiguous=False, n_samples=n_samples)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         if weigh_samples:
@@ -279,6 +280,7 @@ class LIME(LocalExplanation, WeightedExplanation):
                                   scores=feature_importances,
                                   used_features=used_features,
                                   labels=labels,
+                                  original_scores=y_orig.tolist(),
                                   labelset=self.labelset,
                                   type='local_explanation',
                                   method='lime',
@@ -378,9 +380,9 @@ class KernelSHAP(LocalExplanation):
             n_samples = 2 * sample_len + 2 ** 11
         n_samples = min(n_samples, 2 ** 30)
 
-        provider, original_id, perturbed, y = self.augment_sample(sample, model, sequential=True,
-                                                                  contiguous=False, n_samples=n_samples,
-                                                                  add_background_instance=True)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample, model, sequential=True,
+                                                                          contiguous=False, n_samples=n_samples,
+                                                                          add_background_instance=True)
 
         # TODO: exclude non-varying feature groups
         y_null, y = y[-1], y[1:-1]
@@ -419,6 +421,7 @@ class KernelSHAP(LocalExplanation):
                                   used_features=used_features,
                                   labels=np.arange(y.shape[1]),
                                   labelset=self.labelset,
+                                  original_scores=y_orig.tolist(),
                                   type='local_explanation',
                                   method='kernel_shap',
                                   callargs=kwargs.pop('__callargs__', None))
@@ -551,11 +554,11 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
 
-        provider, original_id, perturbed, y = self.augment_sample(sample,
-                                                                  model,
-                                                                  n_samples=n_samples,
-                                                                  avoid_proba=True,
-                                                                  **sample_kwargs)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
+                                                                          model,
+                                                                          n_samples=n_samples,
+                                                                          avoid_proba=True,
+                                                                          **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
@@ -566,6 +569,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=self.labelset,
+                     original_scores=y_orig.tolist(),
                      sampled=True,
                      type='local_explanation',
                      method='local_tree',
@@ -611,11 +615,11 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
 
-        provider, original_id, perturbed, y = self.augment_sample(sample,
-                                                                  model,
-                                                                  n_samples=n_samples,
-                                                                  avoid_proba=True,
-                                                                  **sample_kwargs)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
+                                                                          model,
+                                                                          n_samples=n_samples,
+                                                                          avoid_proba=True,
+                                                                          **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         # Encode foil as 0 and rest as 1
@@ -631,6 +635,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=labelset,
+                     original_scores=y_orig.tolist(),
                      sampled=True,
                      type='local_explanation',
                      method='foil_tree',
@@ -668,11 +673,11 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
 
-        provider, original_id, perturbed, y = self.augment_sample(sample,
-                                                                  model,
-                                                                  n_samples=n_samples,
-                                                                  avoid_proba=True,
-                                                                  **sample_kwargs)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
+                                                                          model,
+                                                                          n_samples=n_samples,
+                                                                          avoid_proba=True,
+                                                                          **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         # Encode foil as 0 and rest as 1
@@ -687,6 +692,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=labelset,
+                     original_scores=y_orig.tolist(),
                      sampled=True,
                      type='local_explanation',
                      method='local_rules',

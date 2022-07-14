@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import pandas as pd
 from genbase.ui import format_instances, get_color
 from genbase.ui.notebook import Render as BaseRender
-from genbase.ui.notebook import format_label
+from genbase.ui.notebook import format_label, format_list
 from genbase.ui.plot import plotly_available
 
 MAIN_COLOR = '#1976D2'
@@ -56,6 +56,9 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
     def gc(x):
         return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
 
+    original_scores = [f'<kbd>{k}</kbd> {v:.10f}' for k, v in content["original_scores"].items()]
+    html = f'<p>The model predicted the following scores for the instance:</p> {format_list(original_scores)}'
+
     features, scores = content['features'], content['scores']
 
     def render_one(tokens_and_scores: list):
@@ -69,12 +72,11 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
                         for (token, score) in scores_])
 
     if isinstance(scores, dict):
-        html = ''
         for class_name, score in scores.items():
             html += format_label(class_name, label_name='Class')
             html += render_one(score)
         return html
-    return render_one(scores)
+    return html + render_one(scores)
 
 
 @plotly_fallback
@@ -138,7 +140,7 @@ def prototype_renderer(meta: dict, content: dict, **renderargs) -> str:
             html += render_one(k, v)
         return html
 
-    if all(k in ['instances', 'prototypes', 'criticisms'] for k in content.keys()):
+    if all(isinstance(v, list) for v in content.values()):
         return render_class(None, content)
     return ''.join(render_class(class_name, instances) for class_name, instances in content.items())
 
