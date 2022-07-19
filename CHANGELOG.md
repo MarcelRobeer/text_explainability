@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.5] - 2022-07-19
 ### Added
 - Show predicted scores for each class in feature attribution
 - First version of rule rendering
@@ -284,6 +286,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.6.5]: https://pypi.org/project/text-explainability/0.6.5/
 [0.6.4]: https://pypi.org/project/text-explainability/0.6.4/
 [0.6.3]: https://pypi.org/project/text-explainability/0.6.3/
 [0.6.2]: https://pypi.org/project/text-explainability/0.6.2/
