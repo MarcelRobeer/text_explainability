@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import pandas as pd
 from genbase.ui import format_instances, get_color
 from genbase.ui.notebook import Render as BaseRender
-from genbase.ui.notebook import format_label, format_list
+from genbase.ui.notebook import format_label
 from genbase.ui.plot import plotly_available
 
 MAIN_COLOR = '#1976D2'
