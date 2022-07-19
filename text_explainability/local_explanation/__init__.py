@@ -582,7 +582,7 @@ class FactFoilMixin:
             foil_fn = FactFoilEncoder.from_str(foil_fn, labelset)
         elif isinstance(foil_fn, int):
             foil_fn = FactFoilEncoder(foil_fn, labelset)
-        return foil_fn(y)
+        return foil_fn(y), foil_fn.foil
 
 
 class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
@@ -624,7 +624,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
 
         # Encode foil as 0 and rest as 1
         labelset = self.labelset if self.labelset else model
-        y_ = self.to_fact_foil(y, labelset, foil_fn)
+        y_, foil = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
         self.local_model.max_rule_size = max_rule_size
@@ -635,6 +635,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=labelset,
+                     labels=[foil],
                      original_scores=y_orig.tolist(),
                      sampled=True,
                      type='local_explanation',
@@ -682,7 +683,7 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
 
         # Encode foil as 0 and rest as 1
         labelset = self.labelset if self.labelset else model
-        y_ = self.to_fact_foil(y, labelset, foil_fn)
+        y_, foil = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
         self.local_model.fit(perturbed, y_, weights=weights)
@@ -693,7 +694,9 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      rules=self.local_model,
                      labelset=labelset,
                      original_scores=y_orig.tolist(),
+                     labels=[foil],
                      sampled=True,
                      type='local_explanation',
-                     method='local_rules',
+                     subtype='local_rules',
+                     method=str(self.local_model._model.__class__.__name__),
                      callargs=callargs)

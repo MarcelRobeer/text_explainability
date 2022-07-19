@@ -47,6 +47,17 @@ def get_meta_descriptors(meta: dict) -> Tuple[str]:
     return get_from_meta('type'), get_from_meta('subtype'), get_from_meta('method')
 
 
+def original_scores_renderer(original_scores: dict, **renderargs) -> str:
+    """Render predicted output scores of model on an instance."""
+    def format_kv(k, v):
+        return f'<tr><td><kbd>{k}</kbd></td><td>{v:.3f}</td><td style="text-align: left"><div title="{v}", ' + \
+            'style="display: inline-block; background-color: black; height: 1em; ' + \
+            f'width: {min(max(3, v * 100), 100)}px"></div></td></tr>'
+
+    html = [format_kv(k, v) for k, v in original_scores.items()]
+    return '<p>The model predicted the following scores for the instance:</p><table>' + '\n'.join(html) + '</table>'
+
+
 def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
     """Render feature attribution return types."""
     min_value = renderargs.pop('min_value', -1.0)
@@ -56,10 +67,7 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
     def gc(x):
         return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
 
-    original_scores = [f'<kbd>{k}</kbd> {v:.10f}' for k, v in content["original_scores"].items()]
-    original_scores = [f'<b>{score}</b>' if value == max(content["original_scores"].values()) else score
-                       for score, value in zip(original_scores, content["original_scores"].items())]
-    html = f'<p>The model predicted the following scores for the instance:</p> {format_list(original_scores)}'
+    html = original_scores_renderer(content['original_scores']) if 'original_scores' in content else ''
 
     features, scores = content['features'], content['scores']
 
@@ -107,6 +115,14 @@ def featurelist_renderer(meta: dict,
         html += ExpressPlot(df, px.bar, x=x, y=y, color_discrete_sequence=[MAIN_COLOR]).interactive
         return html
     return ''.join(render_one(k, v) for k, v in content.items())
+
+
+def rules_renderer(meta: dict, content: dict, **renderargs) -> str:
+    """Render a set of rules from rule return types."""
+    html = original_scores_renderer(content['original_scores']) if 'original_scores' in content else ''
+    html += format_label(content['label'], label_name='Rules for class')
+    html += '<code>' + '\n'.join(content["rules"]) + '</code>'
+    return html
 
 
 def frequency_renderer(meta: dict, content: dict, **renderargs) -> str:
@@ -188,6 +204,8 @@ class Render(BaseRender):
         elif type == 'local_explanation':
             if subtype == 'feature_attribution':
                 return feature_attribution_renderer
+            if subtype == 'local_rules':
+                return rules_renderer
         return default_renderer
 
     def format_title(self, title: str, h: str = 'h1', **renderargs) -> str:  # noqa: D103

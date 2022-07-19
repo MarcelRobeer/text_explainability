@@ -379,6 +379,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
     @property
     def content(self):
         return {'rules': self.rules,
+                'label': [self.label_by_index(label) for label in self.labels][0],
                 'original_scores': self.original_scores}
 
 

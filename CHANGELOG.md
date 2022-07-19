@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Show predicted scores for each class in feature attribution
+- First version of rule rendering
 
 ### Fixed
 - Rendering of labelwise prototypes
