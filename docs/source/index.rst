@@ -143,15 +143,16 @@ Citation
    :caption: Using text_explainability
    :hidden:
 
+   Home <self>
    installation.rst
    example-usage.rst
-   explanation-methods.rst
 
 .. toctree::
    :maxdepth: 4
    :caption: API reference
    :hidden:
 
+   explanation-methods.rst
    api/text_explainability.rst
 
 .. toctree::
