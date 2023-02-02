@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.6] - 2023-02-02
 ### Fixed
 - Bugfix where tokens are not properly filtered in global explaanations (`TokenFrequency` and `TokenInformation`)
 
@@ -288,6 +290,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[0.6.6]: https://pypi.org/project/text-explainability/0.6.6/
 [0.6.5]: https://pypi.org/project/text-explainability/0.6.5/
 [0.6.4]: https://pypi.org/project/text-explainability/0.6.4/
 [0.6.3]: https://pypi.org/project/text-explainability/0.6.3/
