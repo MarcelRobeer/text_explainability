@@ -133,7 +133,7 @@ class TokenFrequency(GlobalExplanation):
             cv = CountVectorizer(**count_vectorizer_kwargs)
             counts = cv.fit_transform([str.lower(d) for d in instances_to_fit] if lower else instances_to_fit)
             counts = np.ravel(counts.sum(axis=0))
-            return sorted([(w, counts[v]) for w, v in cv.vocabulary_.items() if k not in filter_words],
+            return sorted([(token, counts[v]) for token, v in cv.vocabulary_.items() if token not in filter_words],
                             key=lambda x: x[1], reverse=True)[:k]
 
         if labelwise:  # TO-DO improve beyond classification, e.g. buckets for regression?
@@ -203,7 +203,7 @@ class TokenInformation(GlobalExplanation):
         mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self.seed)
         feature_names = cv.get_feature_names()
         res = list(map(tuple, zip(feature_names, mif)))
-        res_sorted = list(sorted([(w, v) for w, v in res if w not in filter_words],
+        res_sorted = list(sorted([(token, v) for token, v in res if token not in filter_words],
                                  key=lambda x: x[1], reverse=True))[:k]
         used_features, scores = zip(*res_sorted)
         return FeatureList(used_features=used_features,

@@ -26,3 +26,13 @@ def test_return_type(method, explain_model):
                                                                 labelprovider=TEST_ENVIRONMENT.labels,
                                                                 explain_model=explain_model),
                       FeatureList), 'Wrong return type'
+
+@pytest.mark.parametrize('method', METHODS)
+@pytest.mark.parametrize('explain_model', [True, False])
+@pytest.mark.parametrize('filter_words', [['een'], ['een', '']])
+def test_filter_words(method, explain_model, filter_words):
+    res = method(TEST_ENVIRONMENT.dataset).__call__(model=TEST_MODEL,
+                                                    labelprovider=TEST_ENVIRONMENT.labels,
+                                                    explain_model=explain_model,
+                                                    filter_words=filter_words)
+    assert all(token not in filter_words for token in res.scores.values()), 'Tokens not properly filtered'
