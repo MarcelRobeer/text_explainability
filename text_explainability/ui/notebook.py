@@ -12,6 +12,9 @@ MAIN_COLOR = '#1976D2'
 TRANSLATION_DICT = {'lime': ('LIME', 'https://christophm.github.io/interpretable-ml-book/lime.html'),
                     'shap': ('SHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
                     'kernel_shap': ('KernelSHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
+                    'foil_tree': ('Foil Trees', 'https://arxiv.org/abs/1806.07470'),
+                    'local_tree': ('Build your own LIME (tree surrogate)', 'https://arxiv.org/abs/1910.13016'),
+                    'skoperulesclassifier': ('Local Skope Rules classifier', 'https://dropsofai.com/mining-interpretable-rules-from-classification-models/'),  # noqa: E501
                     'mutual_information': ('mutual information', 'https://en.wikipedia.org/wiki/Mutual_information'),
                     'kmedoids': ('KMedoids', 'https://christophm.github.io/interpretable-ml-book/proto.html'),
                     'mmdcritic': ('MMDCritic', 'https://christophm.github.io/interpretable-ml-book/proto.html')}
@@ -120,8 +123,16 @@ def featurelist_renderer(meta: dict,
 def rules_renderer(meta: dict, content: dict, **renderargs) -> str:
     """Render a set of rules from rule return types."""
     html = original_scores_renderer(content['original_scores']) if 'original_scores' in content else ''
-    html += format_label(content['label'], label_name='Rules for class')
-    html += '<code>' + '\n'.join(content["rules"]) + '</code>'
+
+    def render_one(label, rules):
+        return format_label(label, label_name='Rules for class') + \
+            '<code>' + '\n'.join(rules) + '</code>'
+
+    if isinstance(content['rules'], dict):
+        for label, rules in content['rules'].items():
+            html += render_one(label, rules)
+    else:
+        html += render_one(content['label'], content['rules'])
     return html
 
 
@@ -204,7 +215,7 @@ class Render(BaseRender):
         elif type == 'local_explanation':
             if subtype == 'feature_attribution':
                 return feature_attribution_renderer
-            if subtype == 'local_rules':
+            if subtype in ['rules', 'local_rules']:
                 return rules_renderer
         return default_renderer
 

@@ -64,7 +64,7 @@ class LocalExplanation(Readable, SeedMixin):
         super().__init__()
         self.env = default_env(env)
         if augmenter is None:
-            augmenter = LeaveOut(env=self.env, detokenizer=default_detokenizer)
+            augmenter = LeaveOut(detokenizer=default_detokenizer)
         if isinstance(labelset, LabelProvider) and hasattr(labelset, 'labelset'):
             labelset = list(labelset.labelset)
         elif labelset is None and self.env is not None:
@@ -84,6 +84,7 @@ class LocalExplanation(Readable, SeedMixin):
                        add_background_instance: bool = False,
                        predict: bool = True,
                        avoid_proba: bool = False,
+                       seed: Optional[int] = None,
                        **kwargs,
                        ) -> Union[Tuple[InstanceProvider, np.ndarray], 
                                   Tuple[InstanceProvider, np.ndarray, np.ndarray]]:
@@ -102,6 +103,7 @@ class LocalExplanation(Readable, SeedMixin):
             predict (bool, optional):  Defaults to True.
             avoid_proba (bool, optional): Model predictions als labels (True) or probabilities when available (False). 
                 Defaults to False.
+            seed (Optional[int], optional): Seed for reproducibility, uses the init seed if None. Defaults to None.
 
         Returns:
             Union[Tuple[InstanceProvider, np.ndarray], Tuple[InstanceProvider, np.ndarray, np.ndarray, np.ndarray]]:
@@ -110,17 +112,22 @@ class LocalExplanation(Readable, SeedMixin):
         provider = self.env.create_empty_provider()
 
         sample.map_to_original = np.ones(len(sample.tokenized), dtype=int)
+        sample.identifier = hash(sample.data)
         provider.add(sample)
-        original_id = next(iter(provider))
+        provider.discard_children(sample)
 
         # Do sampling
         augmenter = self.augmenter(sample,
                                    sequential=sequential,
                                    contiguous=contiguous,
                                    n_samples=n_samples,
-                                   add_background_instance=add_background_instance)
-        for perturbed_sample in augmenter.bulk_get_all():
-            provider.add(perturbed_sample)
+                                   add_background_instance=add_background_instance,
+                                   seed=seed)
+
+        for perturbed_sample in augmenter:
+            if perturbed_sample.identifier != sample.identifier:
+                provider.add(perturbed_sample)
+                provider.add_child(sample, perturbed_sample)
 
         # Perform prediction
         if predict:
@@ -134,8 +141,8 @@ class LocalExplanation(Readable, SeedMixin):
         perturbed = np.stack([instance.map_to_original for instance in provider.get_all()])
 
         if predict:
-            return provider, original_id, perturbed, y, y_orig
-        return provider, original_id, perturbed
+            return provider, sample.identifier, perturbed, y, y_orig
+        return provider, sample.identifier, perturbed
 
     def explain(self, *args, **kwargs):
         return self(*args, **kwargs)    
@@ -209,7 +216,7 @@ class LIME(LocalExplanation, WeightedExplanation):
                  feature_selection_method: str = 'auto',
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
-                 **kwargs) -> FeatureAttribution:
+                 **sample_kwargs) -> FeatureAttribution:
         """Calculate feature attribution scores using `LIME Text`_.
 
         Args:
@@ -233,6 +240,9 @@ class LIME(LocalExplanation, WeightedExplanation):
         .. _LIME Text:
             https://github.com/marcotcr/lime/blob/master/lime/lime_text.py
         """
+        callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
+
         if labels is not None:
             if isinstance(labels, (int, str)):
                 labels = [labels]
@@ -244,8 +254,13 @@ class LIME(LocalExplanation, WeightedExplanation):
                 labels = [self.labelset.index(label) for label in labels]
 
         # Generate neighborhood samples
-        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample, model, sequential=False,
-                                                                          contiguous=False, n_samples=n_samples)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
+                                                                          model,
+                                                                          sequential=False,
+                                                                          contiguous=False,
+                                                                          n_samples=n_samples,
+                                                                          seed=seed,
+                                                                          **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         if weigh_samples:
@@ -262,13 +277,19 @@ class LIME(LocalExplanation, WeightedExplanation):
             # Look at output for label
             y_label = y[:, label].copy()
 
+            if seed:
+                self.local_model.seed = seed
+
             # Get the most important features
             features = FeatureSelector(self.local_model)(perturbed,
                                                          y_label,
                                                          weights=weights,
                                                          n_features=n_features,
                                                          method=feature_selection_method)
+
             # Fit explanation model
+            if seed:
+                self.local_model.seed = seed
             self.local_model.alpha_reset()
             self.local_model.fit(perturbed[:, features], y_label, weights=weights)
 
@@ -284,7 +305,7 @@ class LIME(LocalExplanation, WeightedExplanation):
                                   labelset=self.labelset,
                                   type='local_explanation',
                                   method='lime',
-                                  callargs=kwargs.pop('__callargs__', None))
+                                  callargs=callargs)
 
 
 class KernelSHAP(LocalExplanation):
@@ -358,7 +379,7 @@ class KernelSHAP(LocalExplanation):
                  model: AbstractClassifier,
                  n_samples: Optional[int] = None,
                  l1_reg: Union[int, float, str] = 'auto',
-                 **kwargs) -> FeatureAttribution:
+                 **sample_kwargs) -> FeatureAttribution:
         """Calculate feature attribution scores using `KernelShap`_.
 
         Args:
@@ -375,14 +396,22 @@ class KernelSHAP(LocalExplanation):
         .. _KernelShap:
             https://github.com/slundberg/shap/blob/master/shap/explainers/_kernel.py
         """
+        callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
+
         sample_len = len(sample.tokenized)
         if n_samples is None:
             n_samples = 2 * sample_len + 2 ** 11
         n_samples = min(n_samples, 2 ** 30)
 
-        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample, model, sequential=True,
-                                                                          contiguous=False, n_samples=n_samples,
-                                                                          add_background_instance=True)
+        provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
+                                                                          model,
+                                                                          sequential=True,
+                                                                          contiguous=False,
+                                                                          n_samples=n_samples,
+                                                                          add_background_instance=True,
+                                                                          seed=seed,
+                                                                          **sample_kwargs)
 
         # TODO: exclude non-varying feature groups
         y_null, y = y[-1], y[1:-1]
@@ -402,7 +431,7 @@ class KernelSHAP(LocalExplanation):
             weight_vector /= np.sum(weight_vector)
             kernel_weights = weight_vector[Z - 1]
 
-            nonzero = KernelSHAP.select_features(perturbed[1:-1], y, default_features=sample_len, l1_reg=l1_reg)
+            nonzero = KernelSHAP.select_features(perturbed[1:-1].astype(float), y, default_features=sample_len, l1_reg=l1_reg)
             used_features = nonzero
             phi_var = np.ones(sample_len)
             if len(used_features) > 0:
@@ -424,7 +453,7 @@ class KernelSHAP(LocalExplanation):
                                   original_scores=y_orig.tolist(),
                                   type='local_explanation',
                                   method='kernel_shap',
-                                  callargs=kwargs.pop('__callargs__', None))
+                                  callargs=callargs)
 
 
 class Anchor(LocalExplanation):
@@ -553,15 +582,19 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
 
         provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
                                                                           model,
                                                                           n_samples=n_samples,
                                                                           avoid_proba=True,
+                                                                          seed=seed,
                                                                           **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
+        if seed:
+            self.local_model.seed = seed
         self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y, weights=weights)
 
@@ -569,6 +602,7 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                      original_id=original_id,
                      rules=self.local_model,
                      labelset=self.labelset,
+                     labels=np.arange(len(self.local_model.classes)),
                      original_scores=y_orig.tolist(),
                      sampled=True,
                      type='local_explanation',
@@ -614,11 +648,13 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  max_rule_size: Optional[int] = None,
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
 
         provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
                                                                           model,
                                                                           n_samples=n_samples,
                                                                           avoid_proba=True,
+                                                                          seed=seed,
                                                                           **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
@@ -627,6 +663,8 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
         y_, foil = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
+        if seed:
+            self.local_model.seed = seed
         self.local_model.max_rule_size = max_rule_size
         self.local_model.fit(perturbed, y_, weights=weights)
 
@@ -640,6 +678,7 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                      sampled=True,
                      type='local_explanation',
                      method='foil_tree',
+                     contrastive=True,
                      callargs=callargs)
 
 
@@ -673,11 +712,13 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  distance_metric: str = 'cosine',
                  **sample_kwargs):
         callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
 
         provider, original_id, perturbed, y, y_orig = self.augment_sample(sample,
                                                                           model,
                                                                           n_samples=n_samples,
                                                                           avoid_proba=True,
+                                                                          seed=seed,
                                                                           **sample_kwargs)
         perturbed = binarize(perturbed)  # flatten all n replacements into one
 
@@ -686,6 +727,8 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
         y_, foil = self.to_fact_foil(y, labelset, foil_fn)
 
         weights = self.weigh_samples(perturbed, metric=distance_metric) if weigh_samples else None
+        if seed:
+            self.local_model.seed = seed
         self.local_model.fit(perturbed, y_, weights=weights)
         self.local_model.feature_names = sample.tokenized
 

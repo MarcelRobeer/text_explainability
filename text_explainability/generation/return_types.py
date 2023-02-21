@@ -328,6 +328,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
                  original_scores: Optional[Sequence[float]] = None,
                  original_id: Optional[LT] = None,
                  sampled: bool = False,
+                 contrastive: bool = False,
                  type: Optional[str] = 'local_explanation',
                  subtype: Optional[str] = 'rules',
                  callargs: Optional[dict] = None,
@@ -345,6 +346,7 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
             original_id (Optional[LT], optional): ID of original instance; picks first if None. Defaults to None.
             sampled (bool, optional): Whether the data in the provider was sampled (True) or generated (False). 
                 Defaults to False.
+            contrastive (bool, optional): If the rules are contrastive. Defaults to False.
             type (Optional[str]): Type description. Defaults to 'base'.
             subtype (Optional[str], optional): Subtype description. Defaults to None.
             callargs (Optional[dict], optional): Call arguments for reproducibility. Defaults to None.
@@ -364,11 +366,21 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
                                 **kwargs)
         if used_features is None:
             used_features = list(range(len(self.original_instance.tokenized)))
+        self._contrastive = contrastive
         self._used_features = copy.deepcopy(used_features)
         self._rules = self._extract_rules(rules)
 
     def _extract_rules(self, rules: Union[Sequence[str], TreeSurrogate, RuleSurrogate]):
         if isinstance(rules, (TreeSurrogate, RuleSurrogate)):
+            if isinstance(rules, TreeSurrogate):
+                if self._contrastive:
+                    cls = self.label_by_index(self.labels[0])
+                    classes = [cls, f'NOT-{cls}']
+                else:
+                    classes = [self.label_by_index(label) for label in self.labels]
+                return rules.to_rules(classes=classes,
+                                      features=self.used_features,
+                                      grouped=True)
             return rules.rules
         raise NotImplementedError('TODO: Support lists of rules')
 
@@ -378,8 +390,11 @@ class Rules(ReadableDataMixin, UsedFeaturesMixin, BaseReturnType, LocalDataExpla
 
     @property
     def content(self):
+        label = [self.label_by_index(label) for label in self.labels]
+        if len(label) == 1 and not isinstance(self.rules, dict):
+            label = label[0]
         return {'rules': self.rules,
-                'label': [self.label_by_index(label) for label in self.labels][0],
+                'label': label,
                 'original_scores': self.original_scores}
 
 

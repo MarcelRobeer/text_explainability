@@ -13,10 +13,7 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tupl
 
 import numpy as np
 from genbase import Readable, SeedMixin
-from instancelib.environment.base import AbstractEnvironment
-from instancelib.environment.text import TextEnvironment
-from instancelib.instances.base import InstanceProvider
-from instancelib.instances.text import TextInstance
+from instancelib.instances.text import MemoryTextInstance, TextInstance
 from instancelib.pertubations.base import ChildGenerator, MultiplePertubator
 
 from text_explainability.decorators import text_instance
@@ -27,7 +24,6 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                            ChildGenerator[TextInstance], 
                            Readable):
     def __init__(self,
-                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer):
         """Perturb a single instance into neighborhood samples.
 
@@ -36,9 +32,6 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                 to a string used in a predictor.
         """
         super().__init__()
-        if env is None:
-            env = TextEnvironment.from_data([], [], [], [], [])
-        self.env = env
         self.detokenizer = detokenizer
 
     @staticmethod
@@ -52,54 +45,38 @@ class LocalTokenPertubator(MultiplePertubator[TextInstance],
                 *args: Any, **kwargs: Any) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         raise NotImplementedError('Implemented in subclasses')
 
-    def discard_children(self, parent: TextInstance) -> None:
-        """Discard the generated children for a given parent."""
-        self.env.discard_children(parent)
-
-    def get_children(self, parent: TextInstance) -> InstanceProvider[TextInstance, Any, Any, Any, Any]:
-        """Get the children of a given parent."""
-        return self.env.get_children(parent)
-
     @text_instance(tokenize=True)
     def __call__(self,
                  instance: TextInstance,
-                 discard_children: bool = True,
                  *args,
                  **kwargs) -> Iterator[TextInstance]:
         """Apply perturbations to an instance to generate neighborhood data.
 
         Args:
             instance (TextInstance): Tokenized instance to perturb.
-            discard_children (bool, optional): Remove children from previous passes. Defaults to True.
             *args: Arguments to be passed on to `perturb()` function.
             **kwargs: Keyword arguments to be passed on to `perturb()` function.
 
         Yields:
             Iterator[Sequence[TextInstance]]: Neighborhood data instances.
         """
-        if instance.data not in self.env.all_instances.all_data():
-            provider = self.env.create_empty_provider()
-            provider.add(instance)
-
-        if discard_children:
-            self.discard_children(instance)
-
+        instances = []
         for new_tokenized, map_to_original in self.perturb(instance.tokenized, *args, **kwargs):
             new_data = self.detokenizer(new_tokenized)
-            new_instance = self.env.create(
+            new_instance = MemoryTextInstance(
+                identifier=hash(new_data),
                 data=new_data,
                 vector=None,
                 map_to_original=map_to_original, 
                 representation=new_data,
                 tokenized=new_tokenized
                 )
-            self.register_child(instance, new_instance)
-        return self.get_children(instance)
+            instances.append(new_instance)
+        return instances
 
 
 class TokenReplacement(LocalTokenPertubator, SeedMixin):
     def __init__(self,
-                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
                  replacement: Optional[Union[str, List[str], Dict[int, Optional[Union[str, List[str]]]]]] = 'UNKWRDZ',
                  seed: int = 0):
@@ -133,7 +110,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
             seed (int, optional): Seed for reproducibility. Defaults to 0.
 
         """
-        super().__init__(env=env, detokenizer=detokenizer)
+        super().__init__(detokenizer=detokenizer)
         self.replacement = replacement
         self.__update_replacement()
         self._seed = self._original_seed = seed
@@ -199,7 +176,8 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                 contiguous: bool = False,
                 min_changes: int = 1,
                 max_changes: int = 10000,
-                add_background_instance: bool = False) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
+                add_background_instance: bool = False,
+                seed: Optional[int] = None) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
         which is assumed not to be part of the original tokens.
 
@@ -221,6 +199,7 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
             max_changes (int, optional): Maximum number of tokens changed. Defaults to 10000.
             add_background_instance (bool, optional): Add an additional instance with all tokens replaced. 
                 Defaults to False.
+            seed (Optional[int], optional): Seed for reproducibility, uses the init seed if None. Defaults to None.
 
         Raises:
             ValueError: min_changes cannot be greater than max_changes.
@@ -229,10 +208,13 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
             Iterator[Sequence[Iterable[str], Iterable[int]]]: Perturbed text instances and indices where
                 perturbation were applied.
         """
+        if seed is None:
+            seed = self.seed
+
         instance_len = sum(1 for _ in tokenized_instance)
         min_changes = min(max(min_changes, 1), instance_len)
         max_changes = min(instance_len, max_changes)
-        self._rand = np.random.RandomState(self.seed)
+        self._rand = np.random.RandomState(seed)
         self.__update_replacement(tokenized_instance)
 
         # avoid duplication in case n_samples >= required_changes
@@ -284,7 +266,6 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
 
 class LeaveOut(TokenReplacement):
     def __init__(self,
-                 env: Optional[AbstractEnvironment[TextInstance, Any, Any, Any, Any, Any]] = None,
                  detokenizer: Optional[Callable[[Iterable[str]], str]] = default_detokenizer,
                  seed: int = 0):
         """Leave tokens out of the tokenized sequence.
@@ -294,4 +275,4 @@ class LeaveOut(TokenReplacement):
                 instance to a string used in a predictor.
             seed (int, optional): Seed for reproducibility. Defaults to 0.
         """
-        super().__init__(env=env, detokenizer=detokenizer, replacement=None, seed=seed)
+        super().__init__(detokenizer=detokenizer, replacement=None, seed=seed)

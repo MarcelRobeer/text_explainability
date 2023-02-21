@@ -100,6 +100,15 @@ class LinearSurrogate(BaseSurrogate):
     def fit_intercept(self, fit_intercept):
         self._model.fit_intercept = fit_intercept
 
+    @property
+    def seed(self):
+        """Model seed."""
+        return self._model.random_state
+
+    @seed.setter
+    def seed(self, seed):
+        self._model.random_state = seed
+
 
 class TreeSurrogate(BaseSurrogate):
     """Wrapper around sklearn tree model for usage in local/global surrogate models."""
@@ -145,12 +154,27 @@ class TreeSurrogate(BaseSurrogate):
         return [self._model.classes_[np.argmax(self._model.tree_.value[i])] if f < 0 else None
                 for i, f in enumerate(self._model.tree_.feature)]
 
-    def to_rules(self):
+    def to_rules(self, classes=None, features=None, grouped: bool = False):
         from imodels.util.convert import tree_to_rules
-        from imodels.util.rule import Rule
-        rules = tree_to_rules(tree=self._model, feature_names=[str(i) for i in range(self._model.n_features_)])
-        # # TODO: add performance metrics and output label
-        self._rules = [tuple(rule) for rule in [Rule(r) for r in rules]]
+
+        if classes is None:
+            classes = self.classes
+        if features is None:
+            features = self._model.tree_.feature
+
+        rules = tree_to_rules(tree=self._model,
+                              feature_names=[f'"{features[i]}"' for i in range(self._model.n_features_in_)],
+                              prediction_values=True)
+
+        # TODO: add performance metrics
+        self._rules = [
+            f'{rule.replace("and", "AND").replace("> 0.5", "present").replace("<= 0.5", "absent")} => ' + 
+            f'{classes[np.argmax(result)]}'
+            for rule, result in rules
+        ]
+
+        if grouped:
+            return {label: [rule for rule in self._rules if rule.endswith(f'=> {label}')] for label in classes}
         return self._rules
 
 
