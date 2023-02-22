@@ -10,6 +10,15 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 `Unreleased <https://git.science.uu.nl/m.j.robeer/text_explainability>`_
 ----------------------------------------------------------------------------
 
+`0.7.0 <https://pypi.org/project/text-explainability/0.7.0/>`_ - 2023-02-22
+-------------------------------------------------------------------------------
+
+Added
+^^^^^
+
+
+* BayLIME for Bayesian local explanations (extension of LIME with more consistency across runs)
+
 `0.6.7 <https://pypi.org/project/text-explainability/0.6.7/>`_ - 2023-02-21
 -------------------------------------------------------------------------------
 

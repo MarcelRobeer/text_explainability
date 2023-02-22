@@ -15,6 +15,7 @@ TRANSLATION_DICT = {'lime': ('LIME', 'https://christophm.github.io/interpretable
                     'foil_tree': ('Foil Trees', 'https://arxiv.org/abs/1806.07470'),
                     'local_tree': ('Build your own LIME (tree surrogate)', 'https://arxiv.org/abs/1910.13016'),
                     'skoperulesclassifier': ('Local Skope Rules classifier', 'https://dropsofai.com/mining-interpretable-rules-from-classification-models/'),  # noqa: E501
+                    'baylime': ('BayLIME', 'https://proceedings.mlr.press/v161/zhao21a.html'),
                     'mutual_information': ('mutual information', 'https://en.wikipedia.org/wiki/Mutual_information'),
                     'kmedoids': ('KMedoids', 'https://christophm.github.io/interpretable-ml-book/proto.html'),
                     'mmdcritic': ('MMDCritic', 'https://christophm.github.io/interpretable-ml-book/proto.html')}
@@ -74,12 +75,20 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
 
     features, scores = content['features'], content['scores']
 
-    def render_one(tokens_and_scores: list):
+    def format_score(score: float, tol: float = 1e-5) -> str:
+        score_value = 'near-zero'
+        if score > tol:
+            score_value = 'positive'
+        elif score < tol:
+            score_value = 'negative'
+        return f'This token has a {score_value} attribution score of {score}'
+
+    def render_one(tokens_and_scores: list) -> str:
         scores_dict = dict(tokens_and_scores)
         scores_ = [(token, scores_dict[token] if token in scores_dict else None) for token in features]
         return ''.join([f'<span class="token" style="background-color: {gc(score) if score else "inherit"};' +
                         (' border-bottom: 3px solid rgba(0, 0, 0, 0.3);' if score is not None else '') + '"' +
-                        (f'title="{score}"' if score is not None else '') +
+                        (f'title="{format_score(score)}"' if score is not None else '') +
                         f'>{token}' +
                         (f'<span class="attribution">{score:.3f}</span>' if score is not None else '') + '</span>'
                         for (token, score) in scores_])

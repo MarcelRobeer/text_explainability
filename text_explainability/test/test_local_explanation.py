@@ -5,7 +5,8 @@ from instancelib import AbstractEnvironment
 from sklearn.exceptions import ConvergenceWarning
 
 from text_explainability.generation.return_types import FeatureAttribution, Rules
-from text_explainability.local_explanation import BayLIME, LIME, FoilTree, KernelSHAP, LocalRules, LocalTree, default_env
+from text_explainability.local_explanation import (LIME, BayLIME, FoilTree, KernelSHAP, LocalRules, LocalTree,
+                                                   default_env)
 from text_explainability.test.__test import TEST_ENVIRONMENT, TEST_MODEL
 
 simplefilter(action='ignore', category=ConvergenceWarning)

@@ -208,44 +208,18 @@ class LIME(LocalExplanation, WeightedExplanation):
             local_model = LinearSurrogate(Ridge(alpha=1, fit_intercept=True, random_state=self.seed))
         self.local_model = local_model
 
-    @add_callargs
-    @text_instance(tokenize=True)
-    def __call__(self,
-                 sample: TextInstance,
-                 model: AbstractClassifier,
-                 labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
-                 n_samples: int = 50,
-                 n_features: int = 10,
-                 feature_selection_method: str = 'auto',
-                 weigh_samples: bool = True,
-                 distance_metric: str = 'cosine',
-                 **sample_kwargs) -> FeatureAttribution:
-        """Calculate feature attribution scores using `LIME Text`_.
-
-        Args:
-            sample (TextInstance): Instance to explain.
-            model (AbstractClassifier): Model to explain.
-            labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
-            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
-            n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
-            feature_selection_method (str, optional): Method for limiting number of features, either
-                `forward_selection`, `highest_weights` or `auto`. Defaults to 'auto'.
-            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
-                instance. Defaults to True.
-            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
-
-        Raises:
-            ValueError: Can only provide labels from labelset if self.labelset is not None
-
-        Returns:
-            FeatureAttribution: [description]
-
-        .. _LIME Text:
-            https://github.com/marcotcr/lime/blob/master/lime/lime_text.py
-        """
-        callargs = sample_kwargs.pop('__callargs__', None)
-        seed = sample_kwargs.pop('seed', None)
-
+    def _lime_inner(self,
+            sample,
+            model,
+            n_features,
+            n_samples,
+            seed: Optional[int] = None,
+            labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
+            feature_selection_method: str = 'auto',
+            weigh_samples: bool = True,
+            distance_metric: str = 'cosine',
+            **sample_kwargs
+        ):
         if labels is not None:
             if isinstance(labels, (int, str)):
                 labels = [labels]
@@ -298,13 +272,65 @@ class LIME(LocalExplanation, WeightedExplanation):
 
             feature_importances.append(self.local_model.feature_importances)
             used_features[label] = features
+        return provider, original_id, feature_importances, labels, used_features, y_orig.tolist()
+
+    @add_callargs
+    @text_instance(tokenize=True)
+    def __call__(self,
+                 sample: TextInstance,
+                 model: AbstractClassifier,
+                 labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
+                 n_samples: int = 50,
+                 n_features: int = 10,
+                 feature_selection_method: str = 'auto',
+                 weigh_samples: bool = True,
+                 distance_metric: str = 'cosine',
+                 **sample_kwargs) -> FeatureAttribution:
+        """Calculate feature attribution scores using `LIME Text`_.
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
+            labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
+            feature_selection_method (str, optional): Method for limiting number of features, either
+                `forward_selection`, `highest_weights` or `auto`. Defaults to 'auto'.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
+        Returns:
+            FeatureAttribution: Feature attribution scores according to `LIME Text`_
+
+        .. _LIME Text:
+            https://github.com/marcotcr/lime/blob/master/lime/lime_text.py
+        """
+        callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
+
+        provider, original_id, feature_importances, labels, used_features, y_orig = self._lime_inner(
+            sample=sample,
+            model=model,
+            n_features=n_features,
+            n_samples=n_samples,
+            labels=labels,
+            feature_selection_method=feature_selection_method,
+            weigh_samples=weigh_samples,
+            distance_metric=distance_metric,
+            seed=seed,
+            **sample_kwargs,
+        )
 
         return FeatureAttribution(provider=provider,
                                   original_id=original_id,
                                   scores=feature_importances,
                                   used_features=used_features,
                                   labels=labels,
-                                  original_scores=y_orig.tolist(),
+                                  original_scores=y_orig,
                                   labelset=self.labelset,
                                   type='local_explanation',
                                   method='lime',
@@ -356,6 +382,68 @@ class BayLIME(LIME):
 
         super().__init__(env=env, local_model=local_model, kernel=kernel, kernel_width=kernel_width,
                          augmenter=augmenter, labelset=labelset, seed=seed)
+
+    @add_callargs
+    @text_instance(tokenize=True)
+    def __call__(self,
+                 sample: TextInstance,
+                 model: AbstractClassifier,
+                 labels: Optional[Union[Sequence[int], Sequence[str]]] = None,
+                 n_samples: int = 50,
+                 n_features: int = 10,
+                 feature_selection_method: str = 'auto',
+                 weigh_samples: bool = True,
+                 distance_metric: str = 'cosine',
+                 **sample_kwargs) -> FeatureAttribution:
+        """Calculate feature attribution scores using `BayLIME`_.
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
+            labels (Optional[Union[Sequence[int], Sequence[str]]], optional): [description]. Defaults to None.
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            n_features (int, optional): Maximum number of features to include (explanation length). Defaults to 10.
+            feature_selection_method (str, optional): Method for limiting number of features, either
+                `forward_selection`, `highest_weights` or `auto`. Defaults to 'auto'.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
+        Returns:
+            FeatureAttribution: Feature attribution scores according to `BayLIME`_
+
+        .. _BayLIME:
+            https://github.com/x-y-zhao/BayLime
+        """
+        callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
+
+        provider, original_id, feature_importances, labels, used_features, y_orig = self._lime_inner(
+            sample=sample,
+            model=model,
+            n_features=n_features,
+            n_samples=n_samples,
+            labels=labels,
+            feature_selection_method=feature_selection_method,
+            weigh_samples=weigh_samples,
+            distance_metric=distance_metric,
+            seed=seed,
+            **sample_kwargs,
+        )
+
+        return FeatureAttribution(provider=provider,
+                                  original_id=original_id,
+                                  scores=feature_importances,
+                                  used_features=used_features,
+                                  labels=labels,
+                                  original_scores=y_orig,
+                                  labelset=self.labelset,
+                                  type='local_explanation',
+                                  method='baylime',
+                                  callargs=callargs)
 
 
 class KernelSHAP(LocalExplanation):
@@ -441,7 +529,7 @@ class KernelSHAP(LocalExplanation):
                 either `auto`, `n_features({int})`, `{int}`, `{float}`, `aic` or `bic`. Defaults to 'auto'.
 
         Returns:
-            FeatureAttribution: [description]
+            FeatureAttribution: Feature attribution scores and standard deviations according to `KernelSHAP`_
 
         .. _KernelShap:
             https://github.com/slundberg/shap/blob/master/shap/explainers/_kernel.py
@@ -630,7 +718,42 @@ class LocalTree(LocalExplanation, WeightedExplanation):
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
-                 **sample_kwargs):
+                 **sample_kwargs) -> Rules:
+        """_summary_
+
+        Args:
+            sample (TextInstance): _description_
+            model (AbstractClassifier): _description_
+            n_samples (int, optional): _description_. Defaults to 50.
+            weigh_samples (bool, optional): _description_. Defaults to True.
+            distance_metric (str, optional): _description_. Defaults to 'cosine'.
+            max_rule_size (Optional[int], optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+
+        """
+        """Calculate local rules with a tree-based local model like `LORE`_
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+            max_rule_size (Optional[int], optional): Maximum size of rules (tree depth). Defaults to None.
+
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
+        Returns:
+            Rules: Local rules
+
+        .. _LORE:
+            https://github.com/riccotti/LORE
+        """
+
         callargs = sample_kwargs.pop('__callargs__', None)
         seed = sample_kwargs.pop('seed', None)
 
@@ -696,7 +819,28 @@ class FoilTree(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
                  max_rule_size: Optional[int] = None,
-                 **sample_kwargs):
+                 **sample_kwargs) -> Rules:
+        """Calculate local contrastive rules with `Foil Trees`_
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
+            foil_fn (Union[FactFoilEncoder, int, str], optional): Which class is the foil. Defaults to 0 (first class).
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+            max_rule_size (Optional[int], optional): Maximum size of rules (tree depth). Defaults to None.
+
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
+        Returns:
+            Rules: Local contrastive rules for foil-vs-rest using `Foil Trees`_
+
+        .. _Foil Trees:
+            https://github.com/MarcelRobeer/ContrastiveExplanation
+        """
         callargs = sample_kwargs.pop('__callargs__', None)
         seed = sample_kwargs.pop('seed', None)
 
@@ -760,7 +904,27 @@ class LocalRules(FactFoilMixin, LocalExplanation, WeightedExplanation):
                  n_samples: int = 50,
                  weigh_samples: bool = True,
                  distance_metric: str = 'cosine',
-                 **sample_kwargs):
+                 **sample_kwargs) -> Rules:
+        """Calculate local contrastive rules with a rule surrogate like `Skope-Rules`_
+
+        Args:
+            sample (TextInstance): Instance to explain.
+            model (AbstractClassifier): Model to explain.
+            foil_fn (Union[FactFoilEncoder, int, str], optional): Which class is the foil. Defaults to 0 (first class).
+            n_samples (int, optional): Number of neighborhood samples to generate. Defaults to 50.
+            weigh_samples (bool, optional): Whether to locally weigh samples based on their similarity to the original 
+                instance. Defaults to True.
+            distance_metric (str, optional): Distance metric for local weighting. Defaults to 'cosine'.
+
+        Raises:
+            ValueError: Can only provide labels from labelset if self.labelset is not None
+
+        Returns:
+            Rules: Local rules for foil-vs-rest using `Skope-Rules`_
+
+        .. _Skope-Rules:
+            https://github.com/scikit-learn-contrib/skope-rules
+        """
         callargs = sample_kwargs.pop('__callargs__', None)
         seed = sample_kwargs.pop('seed', None)
 
