@@ -22,7 +22,7 @@ from text_explainability.data import from_string
 from text_explainability.data.augmentation import LeaveOut, TokenReplacement
 from text_explainability.global_explanation import (KMedoids, LabelwiseMMDCritic, MMDCritic, TokenFrequency,
                                                     TokenInformation)
-from text_explainability.local_explanation import LIME, Anchor, FoilTree, KernelSHAP, LocalRules, LocalTree
+from text_explainability.local_explanation import BayLIME, LIME, Anchor, FoilTree, KernelSHAP, LocalRules, LocalTree
 from text_explainability.utils import PUNCTUATION, default_detokenizer
 
 # %% Create example instance
@@ -52,6 +52,9 @@ LocalTree()(sample, model, weigh_samples=False).rules
 
 # %% SHAP explanation for `sample` on `model`, limited to 4 features
 KernelSHAP(labelset=env.labels)(sample, model, n_samples=100, l1_reg=4)
+
+# %% Bayesian extension of LIME with 1000 samples
+BayLIME()(sample, model, n_samples=1000)
 
 # %% Anchor explanation for `sample` on `model`
 #Anchor(label_names=['neg', 'net', 'pos'])(sample, model)

@@ -3,6 +3,8 @@
 Todo:
 
     * Implement Anchors
+    * Add prior information to BayLIME
+    * Return variance for BayLIME
 """
 
 import math
@@ -14,7 +16,7 @@ from imodels import SkopeRulesClassifier
 from instancelib import AbstractEnvironment, InstanceProvider, LabelProvider, MemoryLabelProvider, TextEnvironment
 from instancelib.instances.text import TextInstance, TextInstanceProvider
 from instancelib.machinelearning import AbstractClassifier
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import BayesianRidge, Ridge
 from sklearn.tree import DecisionTreeClassifier
 
 from ..data.augmentation import LeaveOut, LocalTokenPertubator
@@ -184,7 +186,8 @@ class LIME(LocalExplanation, WeightedExplanation):
 
         Args:
             env (Optional[AbstractEnvironment]): Environment to save local perturbations in. Defaults to None.
-            local_model (Optional[LinearSurrogate], optional): Local linear model. Defaults to None.
+            local_model (Optional[LinearSurrogate], optional): Local linear model. If None defaults to Ridge regression 
+                with alpha 1.0. Defaults to None.
             kernel (Optional[Callable], optional):
                 Kernel to determine similarity of perturbed instances to original instance. Defaults to None.
             kernel_width (Union[int, float], optional):
@@ -306,6 +309,53 @@ class LIME(LocalExplanation, WeightedExplanation):
                                   type='local_explanation',
                                   method='lime',
                                   callargs=callargs)
+
+
+class BayLIME(LIME):
+    def __init__(self,
+                 env: Optional[AbstractEnvironment] = None,
+                 local_model: Optional[LinearSurrogate] = None,
+                 kernel: Optional[Callable] = None,
+                 kernel_width: Union[int, float] = 25,
+                 augmenter: Optional[LocalTokenPertubator] = None,
+                 labelset: Optional[Union[Sequence[str], LabelProvider]] = None,
+                 seed: int = 0):
+        """Bayesian Local Interpretable Model-Agnostic Explanations (`BayLIME`_).
+
+        Bayesian modification of LIME, which can exploit prior knowledge and Bayesian reasoning to improve the 
+        consistency in repeated explanations of a single prediction and the robustness to kernel settings.
+
+        Args:
+            env (Optional[AbstractEnvironment]): Environment to save local perturbations in. Defaults to None.
+            local_model (Optional[LinearSurrogate], optional): Local Bayesian linear model. If None defaults to Bayesian
+                Ridge regression. Defaults to None.
+            kernel (Optional[Callable], optional):
+                Kernel to determine similarity of perturbed instances to original instance. Defaults to None.
+            kernel_width (Union[int, float], optional):
+                Hyperparameter for similarity function of kernel. Defaults to 25.
+            augmenter (Optional[LocalTokenPertubator], optional):
+                Function to augment data with perturbations, to generate neighborhood data. Defaults to None.
+            labelset (Optional[Union[Sequence[str], LabelProvider]], optional): 
+                Sequence of label names or LabelProvider containing named labels. When not supplied, it uses 
+                identifiers for labels. Defaults to None.
+            seed (int, optional): Seed for reproducibility. Defaults to 0.
+
+        .. _BayLIME:
+            https://github.com/x-y-zhao/BayLime
+        """
+        if local_model is None:
+            local_model = LinearSurrogate(BayesianRidge(fit_intercept=True,
+                                                        n_iter=1000,
+                                                        tol=0.0001,
+                                                        alpha_1=1e-06,
+                                                        alpha_2=1e-06, 
+                                                        lambda_1=1e-06,
+                                                        lambda_2=1e-06, 
+                                                        alpha_init=None,
+                                                        lambda_init=None))
+
+        super().__init__(env=env, local_model=local_model, kernel=kernel, kernel_width=kernel_width,
+                         augmenter=augmenter, labelset=labelset, seed=seed)
 
 
 class KernelSHAP(LocalExplanation):

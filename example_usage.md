@@ -31,7 +31,7 @@ model = import_model(pipeline, environment=env)
 Text Explainability is used for _local explanations_ (explaining a single prediction) or _global explanations_ (explaining general dataset/model behavior).
 
 ### Local explanations
-Popular local explanations include `LIME`, `KernelSHAP` , local decion trees (`LocalTree`), local decision rules (`LocalRules`) and `FoilTree`. First, let us create a sample to explain:
+Popular local explanations include `LIME`, `KernelSHAP`, local decion trees (`LocalTree`), local decision rules (`LocalRules`) and `FoilTree`. First, let us create a sample to explain:
 
 ```python
 from text_explainability.data import from_string
@@ -39,10 +39,10 @@ from text_explainability.data import from_string
 sample = from_string('Dit is zeer positieve of negatieve proef... Of toch negatief?')
 ```
 
-Next, the prediction of `model` on `sample` can be explained by generating neighborhood data (`text_explainability.data.augmentation.TokenReplacement`), used by `LIME`, `LocalTree`, `FoilTree` and `KernelSHAP`:
+Next, the prediction of `model` on `sample` can be explained by generating neighborhood data (`text_explainability.data.augmentation.TokenReplacement`), used by `LIME` (and its extension `BayLIME`), `LocalTree`, `FoilTree` and `KernelSHAP`:
 
 ```python
-from text_explainability import LIME, LocalTree, FoilTree, KernelSHAP
+from text_explainability import BayLIME, LIME, LocalTree, FoilTree, KernelSHAP
 
 # LIME explainer for `sample` on `model`
 explainer = LIME(env)
@@ -50,6 +50,9 @@ explainer(sample, model, labels=['neutraal', 'positief']).scores
 
 # SHAP explanation for `sample` on `model`, limited to 4 features
 KernelSHAP(label_names=labelprovider)(sample, model, n_samples=50, l1_reg=4)
+
+# Bayesian extension of LIME with 1000 samples
+BayLIME()(sample, model, n_samples=1000)
 
 # Local tree explainer for `sample` on `model` (non-weighted neighborhood data)
 LocalTree()(sample, model, weigh_samples=False)

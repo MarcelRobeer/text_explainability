@@ -20,7 +20,7 @@ A generic explainability architecture for explaining text machine learning model
 
 Several example methods are included, which provide **local explanations** (_explaining the prediction of a single instance_, e.g. `LIME` and `SHAP`) or **global explanations** (_explaining the dataset, or model behavior on the dataset_, e.g. `TokenFrequency` and `MMDCritic`). By replacing the default modules (e.g. local data generation, global data sampling or improved embedding methods), these methods can be improved upon or new methods can be introduced.
 
-&copy; Marcel Robeer, 2021-2022
+&copy; Marcel Robeer, 2021
 
 ## Quick tour
 **Local explanation**: explain a models' prediction on a given sample, self-provided or from a dataset.
@@ -75,6 +75,7 @@ See [example usage](example_usage.md) to see an example of how the package can b
 | |  `LocalTree` | Fit a local decision tree around a single decision. | [[Guidotti2018](https://paperswithcode.com/paper/local-rule-based-explanations-of-black-box)] |
 | | `LocalRules` | Fit a local sparse set of label-specific rules using `SkopeRules`. | [github/skope-rules](https://github.com/scikit-learn-contrib/skope-rules) |
 | |  `FoilTree` | Fit a local contrastive/counterfactual decision tree around a single decision. | [[Robeer2018](https://github.com/MarcelRobeer/ContrastiveExplanation)] |
+| | `BayLIME` | Bayesian extension of LIME for include prior knowledge and more consistent explanations. | [[Zhao201](https://paperswithcode.com/paper/baylime-bayesian-local-interpretable-model)] |
 | *Global explanation* | `TokenFrequency` | Show the top-_k_ number of tokens for each ground-truth or predicted label. |
 | |  `TokenInformation` | Show the top-_k_ token mutual information for a dataset or model. | [wikipedia/mutual_information](https://en.wikipedia.org/wiki/Mutual_information) |
 | | `KMedoids` | Embed instances and find top-_n_ prototypes (can also be performed for each label using `LabelwiseKMedoids`). | [interpretable-ml/prototypes](https://christophm.github.io/interpretable-ml-book/proto.html) |

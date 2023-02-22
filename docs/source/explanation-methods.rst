@@ -30,6 +30,10 @@ Explanation Methods Included
      - ``FoilTree``
      - Fit a local contrastive/counterfactual decision tree around a single decision.
      - [\ `Robeer2018 <https://github.com/MarcelRobeer/ContrastiveExplanation>`_\ ]
+   * -
+     - ``BayLIME``
+     - Bayesian extension of LIME for include prior knowledge and more consistent explanations.
+     - [\ `Zhao201 <https://paperswithcode.com/paper/baylime-bayesian-local-interpretable-model>`_ \]
    * - *Global explanation*
      - ``TokenFrequency``
      - Show the top-*k* number of tokens for each ground-truth or predicted label.
