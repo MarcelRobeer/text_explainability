@@ -2,13 +2,19 @@
 
 from typing import Optional, Tuple
 
+import numpy as np
 import pandas as pd
 from genbase.ui import format_instances, get_color
 from genbase.ui.notebook import Render as BaseRender
 from genbase.ui.notebook import format_label
 from genbase.ui.plot import plotly_available
+from genbase.utils import package_available
 
 MAIN_COLOR = '#1976D2'
+POSITIVE_COLOR = '#4DAE52'
+POSITIVE_COLOR_L = '#81C784'
+NEGATIVE_COLOR = '#D93232'
+NEGATIVE_COLOR_L = '#E57373'
 TRANSLATION_DICT = {'lime': ('LIME', 'https://christophm.github.io/interpretable-ml-book/lime.html'),
                     'shap': ('SHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
                     'kernel_shap': ('KernelSHAP', 'https://christophm.github.io/interpretable-ml-book/shap.html'),
@@ -64,18 +70,55 @@ def original_scores_renderer(original_scores: dict, **renderargs) -> str:
 
 def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
     """Render feature attribution return types."""
+    import uuid
+
     min_value = renderargs.pop('min_value', -1.0)
     max_value = renderargs.pop('max_value', 1.0)
-    colorscale = renderargs.pop('colorscale', [(0.0, '#e57373'), (0.5, '#eee'), (1.0, '#81c784')])
+    colorscale = renderargs.pop('colorscale', [(0.0, NEGATIVE_COLOR_L), (0.5, '#eee'), (1.0, POSITIVE_COLOR_L)])
+
+    id = 'id' + str(uuid.uuid4())
+    shap_bool, plotly_bool = plotly_available(), package_available('shap')
+
+    if plotly_bool:
+        import plotly.express as px
+        from genbase.ui.plot import ExpressPlot
+    if shap_bool:
+        import shap
+        shap.getjs()        
 
     def gc(x):
         return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
 
-    html = original_scores_renderer(content['original_scores']) if 'original_scores' in content else ''
+    html = ''
 
-    features, scores = content['features'], content['scores']
+    if shap_bool or plotly_bool:
+        def get_radio(id_type: str, description: str):
+            def jl_line(name, value):
+                return f'document.querySelectorAll(\'.{id}-{name}\')' + \
+                    f'.forEach(function(el){{ el.style.display = \'{value}\'; }});'
+            states = {'default': ['inherit', 'none', 'none'],
+                      'plotly': ['none', 'inherit', 'none'],
+                      'shap': ['none', 'none', 'inherit']}
+            onclick = jl_line('default', states[id_type][0]) + \
+                jl_line('plotly', states[id_type][1]) + \
+                jl_line('shap', states[id_type][2])
+            return f'<input type="radio" name="{id}" id="{id}-{id_type}" ' + \
+                f'{"checked " if id_type == "default" else ""}' + \
+                f'onclick="{onclick}"></input><label for="{id}-{id_type}">{description}</label>'
 
-    def format_score(score: float, tol: float = 1e-5) -> str:
+        html += f'<form id="{id}"><div class="radio-group">'
+        html += get_radio('default', 'Word highlight')
+        if plotly_bool:
+            html += get_radio('plotly', 'Bar chart')
+        if shap_bool:
+            html += get_radio('shap', 'SHAP')
+        html += '</div></form>'
+
+    html += original_scores_renderer(content['original_scores']) if 'original_scores' in content else ''
+
+    features, scores, original_scores = content['features'], content['scores'], content['original_scores']
+
+    def format_score(score: float, tol: float = 1e-3) -> str:
         score_value = 'near-zero'
         if score > tol:
             score_value = 'positive'
@@ -83,20 +126,39 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
             score_value = 'negative'
         return f'This token has a {score_value} attribution score of {score}'
 
-    def render_one(tokens_and_scores: list) -> str:
+    def render_one(tokens_and_scores: list, original_score: float, class_name: Optional[str] = None) -> str:
         scores_dict = dict(tokens_and_scores)
         scores_ = [(token, scores_dict[token] if token in scores_dict else None) for token in features]
-        return ''.join([f'<span class="token" style="background-color: {gc(score) if score else "inherit"};' +
+
+        renders = []
+
+        html = ''.join([f'<span class="token" style="background-color: {gc(score) if score else "inherit"};' +
                         (' border-bottom: 3px solid rgba(0, 0, 0, 0.3);' if score is not None else '') + '"' +
                         (f'title="{format_score(score)}"' if score is not None else '') +
                         f'>{token}' +
                         (f'<span class="attribution">{score:.3f}</span>' if score is not None else '') + '</span>'
                         for (token, score) in scores_])
+        renders.append(f'<div class="{id}-default" style="display: inherit;">{html}</div>')
+        if plotly_bool:
+            first_element, second_element = 'token', 'attribution'
+            df = pd.DataFrame(scores_dict.items(), columns=[first_element, second_element])
+            df = df.sort_values(by=second_element)
+            html = ExpressPlot(df, px.bar, x=second_element, y=first_element) \
+                .update_traces(marker_color=np.where(df[second_element] >= 0, POSITIVE_COLOR, NEGATIVE_COLOR)) \
+                .interactive
+            renders.append(f'<div class="{id}-plotly" style="display: none;">{html}</div>')
+        if shap_bool:
+            html = shap.force_plot(base_value=original_score,
+                                   shap_values=np.array([score for _, score in scores_dict.items()]),
+                                   feature_names=[token for token, _ in scores_dict.items()],
+                                   out_names=class_name).html()
+            renders.append(f'<div class="{id}-shap" style="display: none;">{html}</div>')
+        return ''.join(renders)
 
     if isinstance(scores, dict):
         for class_name, score in scores.items():
             html += format_label(class_name, label_name='Class')
-            html += render_one(score)
+            html += render_one(score, original_scores[class_name], class_name)
         return html
     return html + render_one(scores)
 
@@ -209,7 +271,42 @@ class Render(BaseRender):
             .token > .attribution::after {
                 content: "]";
             }
-        """
+
+            .radio-group input[type=radio] {
+                position: absolute;
+                visibility: hidden;
+                display: none;
+            }
+
+            .radio-group label {
+                color: #fff !important;
+                display: inline-block !important;
+                cursor: pointer !important;
+                padding: 5px 20px !important;
+                opacity: 0.75 !important;
+                -webkit-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                margin: 0px;
+            }
+
+            .radio-group input[type=radio]:checked + label {
+                color: #fff !important;
+                background: #000 !important;
+                border-top: none !important;
+            }
+
+            .radio-group label + input[type=radio] + label {
+                border-left: solid 2px var(--maincolor);
+                border-top: none !important;
+            }
+
+            .radio-group {
+                display: inline-block !important;
+                border-radius: 20px;
+                overflow: hidden;
+            }
+        """.replace('var(--maincolor)', self.main_color)
 
     def get_renderer(self, meta: dict):  # noqa: D103
         type, subtype, _ = get_meta_descriptors(meta)
