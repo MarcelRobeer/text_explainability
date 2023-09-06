@@ -29,7 +29,7 @@ setuptools.setup( # type: ignore
     packages = setuptools.find_packages(), # type : ignore
     include_package_data = True,
     install_requires = [
-        'genbase_test_helpers',
+        'shap',
         'instancelib>=0.4.4.1',
         'genbase>=0.3.5',
         'scikit-learn>=1.0.2',
