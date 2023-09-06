@@ -158,7 +158,6 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
                                            data=data,
                                            feature_names=data,
                                            output_names=output_names)
-            breakpoint()
             html = shap.plots.text(shap_values=shap_values, separator=' ', display=False)
             renders.append(f'<div class="{id}-shap" style="display: none;">{html}</div>')
         return ''.join(renders)
