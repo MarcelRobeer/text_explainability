@@ -8,10 +8,10 @@ Todo:
 """
 
 import math
+import warnings
 from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
-import warnings
 from genbase import Readable, SeedMixin, add_callargs
 from imodels import SkopeRulesClassifier
 from instancelib import AbstractEnvironment, InstanceProvider, LabelProvider, MemoryLabelProvider, TextEnvironment
