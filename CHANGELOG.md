@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2023-09-06
+### Fixed
+- Bugfix with updated `sklearn` version
+
 ## [0.7.0] - 2023-02-22
 ### Added
 - BayLIME for Bayesian local explanations (extension of LIME with more consistency across runs)

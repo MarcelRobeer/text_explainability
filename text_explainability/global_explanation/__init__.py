@@ -201,7 +201,8 @@ class TokenInformation(GlobalExplanation):
         # see https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html
         # #sklearn.feature_selection.mutual_info_regression
         mif = mutual_info_classif(counts, labels, discrete_features=True, random_state=self.seed)
-        feature_names = cv.get_feature_names()
+        feature_names = cv.get_feature_names_out() if hasattr(cv, 'get_feature_names_out') \
+            else cv.get_feature_names()
         res = list(map(tuple, zip(feature_names, mif)))
         res_sorted = list(sorted([(token, v) for token, v in res if token not in filter_words],
                                  key=lambda x: x[1], reverse=True))[:k]

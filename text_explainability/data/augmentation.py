@@ -177,7 +177,8 @@ class TokenReplacement(LocalTokenPertubator, SeedMixin):
                 min_changes: int = 1,
                 max_changes: int = 10000,
                 add_background_instance: bool = False,
-                seed: Optional[int] = None) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
+                seed: Optional[int] = None,
+                **kwargs) -> Iterator[Tuple[Iterable[str], Iterable[int]]]:
         """Perturb a tokenized instance by replacing it with a single replacement token (e.g. 'UNKWRDZ'), 
         which is assumed not to be part of the original tokens.
 

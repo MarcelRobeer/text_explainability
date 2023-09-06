@@ -11,6 +11,7 @@ import math
 from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
+import warnings
 from genbase import Readable, SeedMixin, add_callargs
 from imodels import SkopeRulesClassifier
 from instancelib import AbstractEnvironment, InstanceProvider, LabelProvider, MemoryLabelProvider, TextEnvironment
@@ -124,7 +125,8 @@ class LocalExplanation(Readable, SeedMixin):
                                    contiguous=contiguous,
                                    n_samples=n_samples,
                                    add_background_instance=add_background_instance,
-                                   seed=seed)
+                                   seed=seed,
+                                   **kwargs)
 
         for perturbed_sample in augmenter:
             if perturbed_sample.identifier != sample.identifier:
@@ -139,7 +141,7 @@ class LocalExplanation(Readable, SeedMixin):
             if avoid_proba:
                 y = np.argmax(y, axis=1)
 
-        # Mapping to which instances were perturbed
+        # Mapping to how instances were perturbed
         perturbed = np.stack([instance.map_to_original for instance in provider.get_all()])
 
         if predict:
@@ -658,19 +660,94 @@ class Anchor(LocalExplanation):
 
         raise NotImplementedError('[WIP] Implementing anchor/anchor_base.py')
 
+    def _anchor_exhaustive_inner(self,
+        sample,
+        model,
+        n_samples,
+        max_anchor_size,
+        min_confidence,
+        seed,
+        **sample_kwargs,
+    ) -> Tuple[TextInstance, float]:
+        n_candidates = max(len(sample.tokenized), math.ceil(math.sqrt(n_samples)))
+
+        def precision(y, cls):
+            return 1.0 / len(y) * np.sum(y == cls)
+
+        anchor = None
+        anchor_neighbhorhood = None
+        confidence_best = 0.0
+
+        for anchor_length in range(1, max_anchor_size):
+            # Generate n_samples candidates (random if there are more n_samples than)
+            candidates = self.augmenter(sample,
+                                        sequential=False,
+                                        contiguous=False,
+                                        min_changes=anchor_length,
+                                        max_changes=anchor_length + 1,
+                                        n_samples=n_candidates,
+                                        add_background_instance=False,
+                                        seed=seed,
+                                        **sample_kwargs)
+
+            # For each, generate another n_samples neighborhood instances and predict y_hat
+            for candidate in candidates:
+                provider, original_id, _, y, y_orig = self.augment_sample(candidate,
+                                                                          model,
+                                                                          sequential=False,
+                                                                          contiguous=False,
+                                                                          n_samples=n_samples,
+                                                                          avoid_proba=True,
+                                                                          seed=seed,
+                                                                          **sample_kwargs)
+                confidence = precision(y, np.argmax(y_orig))
+
+                # Confidence >= threshold?
+                if confidence >= min_confidence:
+                    return candidate, (provider, original_id), confidence
+
+                # Best candidate so far, close to confidence
+                if confidence > confidence_best:
+                    confidence_best = confidence
+                    anchor = candidate
+                    anchor_neighbhorhood = (provider, original_id)
+        warnings.warn(f'Could not find an anchor with confidence >= {min_confidence}, ',
+                        'returning the highest confidence one')
+        return anchor, anchor_neighbhorhood, confidence_best
+
     @add_callargs
     @text_instance
     def __call__(self,
                  sample: TextInstance,
                  model: AbstractClassifier,
-                 n_samples: int = 100,
+                 n_samples: int = 50,
                  beam_size: int = 1,
                  min_confidence: float = 0.95,
                  delta: float = 0.05,
                  epsilon: float = 0.1,
                  max_anchor_size: Optional[int] = None,
-                 **kwargs):
-        raise NotImplementedError('Only partially implemented')
+                 exhaustive: bool = True,
+                 **sample_kwargs):
+        callargs = sample_kwargs.pop('__callargs__', None)
+        seed = sample_kwargs.pop('seed', None)
+        if max_anchor_size is None:
+            max_anchor_size = sample_kwargs.pop('max_rule_size', None)
+
+        if exhaustive:  # https://github.com/gianluigilopardo/anchors_text_theory
+            if max_anchor_size is None:
+                max_anchor_size = len(sample.tokenized) - 1
+
+            anchor, (provider, original_id), confidence = self._anchor_exhaustive_inner(
+                sample=sample,
+                model=model,
+                n_samples=n_samples,
+                max_anchor_size=max_anchor_size,
+                min_confidence=min_confidence,
+                seed=seed,
+                **sample_kwargs,
+            )
+        else:
+            raise NotImplementedError('Only partially implemented')
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_text.py
         # https://github.com/marcotcr/anchor/blob/master/anchor/anchor_base.py
         provider, original_id, perturbed = self.augment_sample(sample, None, sequential=False,
@@ -753,7 +830,6 @@ class LocalTree(LocalExplanation, WeightedExplanation):
         .. _LORE:
             https://github.com/riccotti/LORE
         """
-
         callargs = sample_kwargs.pop('__callargs__', None)
         seed = sample_kwargs.pop('seed', None)
 

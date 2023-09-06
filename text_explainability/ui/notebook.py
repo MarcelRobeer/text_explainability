@@ -78,18 +78,14 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
 
     id = 'id' + str(uuid.uuid4())
     shap_bool, plotly_bool = plotly_available(), package_available('shap')
+    html = ''
 
     if plotly_bool:
         import plotly.express as px
         from genbase.ui.plot import ExpressPlot
     if shap_bool:
         import shap
-        shap.getjs()        
-
-    def gc(x):
-        return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
-
-    html = ''
+        html += shap.getjs()
 
     if shap_bool or plotly_bool:
         def get_radio(id_type: str, description: str):
@@ -118,6 +114,9 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
 
     features, scores, original_scores = content['features'], content['scores'], content['original_scores']
 
+    def gc(x):
+        return get_color(x, min_value=min_value, max_value=max_value, colorscale=colorscale, format='hex')
+
     def format_score(score: float, tol: float = 1e-3) -> str:
         score_value = 'near-zero'
         if score > tol:
@@ -126,7 +125,7 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
             score_value = 'negative'
         return f'This token has a {score_value} attribution score of {score}'
 
-    def render_one(tokens_and_scores: list, original_score: float, class_name: Optional[str] = None) -> str:
+    def render_one(tokens_and_scores: list, original_scores: dict, class_name: Optional[str] = None) -> str:
         scores_dict = dict(tokens_and_scores)
         scores_ = [(token, scores_dict[token] if token in scores_dict else None) for token in features]
 
@@ -148,19 +147,28 @@ def feature_attribution_renderer(meta: dict, content, **renderargs) -> str:
                 .interactive
             renders.append(f'<div class="{id}-plotly" style="display: none;">{html}</div>')
         if shap_bool:
-            html = shap.force_plot(base_value=original_score,
-                                   shap_values=np.array([score for _, score in scores_dict.items()]),
-                                   feature_names=[token for token, _ in scores_dict.items()],
-                                   out_names=class_name).html()
+            original_score = original_scores[class_name]
+            values = np.expand_dims(np.array(list(scores_dict.values())), axis=1)
+            values = np.expand_dims(np.concatenate((values, -values), axis=1), axis=0)
+            base_values = np.array([[original_score, 1 - original_score]] * len(scores_dict.keys()))
+            data = list(scores_dict.keys()),
+            output_names = [class_name, f'not-{class_name}']
+            shap_values = shap.Explanation(base_values=base_values,
+                                           values=values,
+                                           data=data,
+                                           feature_names=data,
+                                           output_names=output_names)
+            breakpoint()
+            html = shap.plots.text(shap_values=shap_values, separator=' ', display=False)
             renders.append(f'<div class="{id}-shap" style="display: none;">{html}</div>')
         return ''.join(renders)
 
     if isinstance(scores, dict):
         for class_name, score in scores.items():
             html += format_label(class_name, label_name='Class')
-            html += render_one(score, original_scores[class_name], class_name)
+            html += render_one(score, original_scores, class_name)
         return html
-    return html + render_one(scores)
+    return html + render_one(scores, original_scores)
 
 
 @plotly_fallback
