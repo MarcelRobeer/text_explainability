@@ -30,8 +30,8 @@ setuptools.setup( # type: ignore
     include_package_data = True,
     install_requires = [
         'shap',
-        'instancelib>=0.4.4.1',
-        'genbase>=0.3.5',
+        'instancelib>=0.5.0',
+        'genbase>=0.3.6',
         'scikit-learn>=1.0.2',
         'plotly>=5.4.0',
         'sentence-transformers',  # optional in future
