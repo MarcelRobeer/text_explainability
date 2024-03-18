@@ -69,10 +69,12 @@ class LocalExplanation(Readable, SeedMixin):
         if augmenter is None:
             augmenter = LeaveOut(detokenizer=default_detokenizer)
         if isinstance(labelset, LabelProvider) and hasattr(labelset, 'labelset'):
-            labelset = list(labelset.labelset)
+            labelset = labelset.labelset
         elif labelset is None and self.env is not None:
             if hasattr(self.env.labels, 'labelset'):
-                labelset = list(self.env.labels.labelset)
+                labelset = self.env.labels.labelset
+        if not isinstance(labelset, dict):
+            labelset = list(labelset)
         self.labelset = labelset
         self.augmenter = augmenter
         self._seed = self._original_seed = seed
