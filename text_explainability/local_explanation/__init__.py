@@ -73,7 +73,9 @@ class LocalExplanation(Readable, SeedMixin):
         elif labelset is None and self.env is not None:
             if hasattr(self.env.labels, 'labelset'):
                 labelset = self.env.labels.labelset
-        if not isinstance(labelset, dict):
+        if isinstance(labelset, dict):
+            labelset = [v for _, v in sorted(labelset.items())]
+        else:
             labelset = list(labelset)
         self.labelset = labelset
         self.augmenter = augmenter
