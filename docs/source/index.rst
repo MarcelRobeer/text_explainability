@@ -17,7 +17,7 @@ A generic explainability architecture for explaining text machine learning model
    :alt: Downloads
 
 
-.. image:: https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue
+.. image:: https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue
    :target: https://pypi.org/project/text-explainability/
    :alt: Python_version
 

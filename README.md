@@ -8,7 +8,7 @@ A generic explainability architecture for explaining text machine learning model
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
 [![Downloads](https://pepy.tech/badge/text-explainability)](https://pepy.tech/project/text-explainability)
-[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://pypi.org/project/text-explainability/)
+[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.org/project/text-explainability/)
 [![Build_passing](https://img.shields.io/badge/build-passing-brightgreen)](https://git.science.uu.nl/m.j.robeer/text_explainability/-/pipelines)
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Documentation Status](https://readthedocs.org/projects/text-explainability/badge/?version=latest)](https://text-explainability.readthedocs.io/en/latest/?badge=latest)
