@@ -7,7 +7,7 @@ All notable changes to ``text_explainability`` will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_\ ,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-`Unreleased <https://git.science.uu.nl/m.j.robeer/text_explainability>`_
+`Unreleased <https://github.com/MarcelRobeer/text_explainability>`_
 ----------------------------------------------------------------------------
 
 `0.7.0 <https://pypi.org/project/text-explainability/0.7.0/>`_ - 2023-02-22

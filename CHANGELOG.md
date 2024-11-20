@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Moved to GitHub
+- New logo
 
 ## [0.7.1] - 2023-09-06
 ### Fixed
@@ -304,7 +307,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `git` setup
 
 
-[Unreleased]: https://git.science.uu.nl/m.j.robeer/text_explainability
+[Unreleased]: https://github.com/MarcelRobeer/text_explainability
+[0.7.1]: https://pypi.org/project/text-explainability/0.7.1/
 [0.7.0]: https://pypi.org/project/text-explainability/0.7.0/
 [0.6.7]: https://pypi.org/project/text-explainability/0.6.7/
 [0.6.6]: https://pypi.org/project/text-explainability/0.6.6/

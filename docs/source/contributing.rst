@@ -8,8 +8,8 @@ Contributors
 ^^^^^^^^^^^^
 
 
-* `Marcel Robeer <https://www.uu.nl/staff/MJRobeer>`_ (\ ``@m.j.robeer``\ )
-* `Michiel Bron <https://www.uu.nl/staff/MPBron>`_ (\ ``@mpbron-phd``\ )
+* `Marcel Robeer <https://www.uu.nl/staff/MJRobeer>`_ (\ ``@MarcelRobeer``\ )
+* `Michiel Bron <https://www.uu.nl/staff/MPBron>`_ (\ ``@mpbron``\ )
 
 Todo
 ^^^^

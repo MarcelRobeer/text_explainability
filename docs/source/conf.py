@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "text_explainability"
-copyright = "2021-2022, Marcel Robeer"
+copyright = "2021, Marcel Robeer"
 author = "Marcel Robeer"
 
 
@@ -51,19 +51,16 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-html_logo = "_static/TextLogo.png"
+html_logo = "_static/te-logo.png"
 html_theme_options = {
     "display_version": True,
     "style_external_links": True,
     "logo_only": True,
 }
 html_context = {
-    "display_gitlab": True,
-    "gitlab_host": "git.science.uu.nl",
-    "gitlab_user": "m.j.robeer",
-    "gitlab_repo": "text_explainability",
-    "gitlab_version": "main",
-    "conf_py_path": "/docs/source/",
+    "display_github": True,
+    "github_user": "MarcelRobeer",
+    "github_repo": "text_explainability",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -79,7 +76,7 @@ autoclass_content = "both"
 # -- External documentation --------------------------------------------------
 
 intersphinx_mapping = {
-    "genbase": ("https://git.science.uu.nl/m.j.robeer/genbase/", None),
+    "genbase": ("https://github.com/MarcelRobeer/genbase/", None),
     "instancelib": ("https://instancelib.readthedocs.io/en/latest/", None),
     "sklearn": ('http://scikit-learn.org/stable', (None, './_intersphinx/sklearn-objects.inv')),
 }

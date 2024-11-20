@@ -1,5 +1,5 @@
-.. image:: https://git.science.uu.nl/m.j.robeer/text_explainability/-/raw/main/img/TextLogo-Logo%20large.png
-    :alt: T_xt Explainability logo
+.. image:: https://github.com/MarcelRobeer/text_explainability/-/raw/main/img/te-logo_large.png
+    :alt: Text Explainability logo
     :align: center
 
 
@@ -23,7 +23,7 @@ A generic explainability architecture for explaining text machine learning model
 
 
 .. image:: https://img.shields.io/badge/build-passing-brightgreen
-   :target: https://git.science.uu.nl/m.j.robeer/text_explainability/-/pipelines
+   :target: https://github.com/MarcelRobeer/text_explainability/-/pipelines
    :alt: Build_passing
 
 
@@ -114,7 +114,7 @@ Development
 Extensions
 ----------
 
-.. image:: https://git.science.uu.nl/m.j.robeer/text_sensitivity/-/raw/main/img/TextLogo-Logo_large_sensitivity.png
+.. image:: https://github.com/MarcelRobeer/text_sensitivity/-/raw/main/img/te-logoLogo_large_sensitivity.png
     :alt: text_sensitivity logo
     :target: https://text-sensitivity.readthedocs.io
     
@@ -128,15 +128,15 @@ Citation
    @misc{text_explainability,
      title = {Python package text\_explainability},
      author = {Marcel Robeer},
-     howpublished = {\url{https://git.science.uu.nl/m.j.robeer/text_explainability}},
+     howpublished = {\url{https://github.com/MarcelRobeer/text_explainability}},
      year = {2021}
    }
 
 
 .. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 .. _pip: https://pypi.org/project/text_explainability/
-.. _git: https://git.science.uu.nl/m.j.robeer/text_sensitivity
-.. _`text_explainability @ GIT`: https://git.science.uu.nl/m.j.robeer/text_sensitivity
+.. _git: https://github.com/MarcelRobeer/text_sensitivity
+.. _`text_explainability @ GIT`: https://github.com/MarcelRobeer/text_sensitivity
 
 .. toctree::
    :maxdepth: 1
