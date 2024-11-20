@@ -22,8 +22,8 @@ A generic explainability architecture for explaining text machine learning model
    :alt: Python_version
 
 
-.. image:: https://img.shields.io/badge/build-passing-brightgreen
-   :target: https://github.com/MarcelRobeer/text_explainability/-/pipelines
+.. image:: https://github.com/MarcelRobeer/text_explainability/actions/workflows/check.yml/badge.svg
+   :target: https://github.com/MarcelRobeer/text_explainability/actions/workflows/check.yml
    :alt: Build_passing
 
 
