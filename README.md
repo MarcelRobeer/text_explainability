@@ -95,7 +95,8 @@ See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each ver
 @misc{text_explainability,
   title = {Python package text\_explainability},
   author = {Marcel Robeer},
-  howpublished = {\url{https://github.com/MarcelRobeer/text_explainability}},
+  howpublished = {\url{https://github.com/MarcelRobeer/text_explainability}}
+  doi = {10.5281/zenodo.14192126},
   year = {2021}
 }
 ```

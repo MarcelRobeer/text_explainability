@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        linter: [flake8, black, doc8, check-manifest]
+        linter: [flake8, doc8, check-manifest]
     steps:
     - uses: actions/checkout@v4
     - name: Get changed files

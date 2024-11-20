@@ -8,8 +8,9 @@ exclude =
     .eggs
     build
     docs
-    text_explainability/test
+    datasets
     text_explainability/locale
+    text_explainability/test
 extend-ignore =
     D101
     D102
