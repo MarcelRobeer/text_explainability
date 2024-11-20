@@ -3,4 +3,5 @@ include tox.ini
 include *.md
 exclude *.bat
 exclude .shortlicense
+exclude example_usage.py
 recursive-exclude text_explainability/test *.py
