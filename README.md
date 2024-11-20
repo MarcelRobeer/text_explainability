@@ -1,5 +1,5 @@
 *<p align="center">
-  <img src="https://github.com/MarcelRobeer/text_explainability/-/raw/main/img/te-logo_large.png" alt="Text Explainability logo" width="70%">*
+  <img src="https://github.com/MarcelRobeer/text_explainability/raw/main/img/te-logo_large.png" alt="Text Explainability logo" width="70%">*
 </p>
 
 **<h3 align="center">
@@ -8,7 +8,7 @@ A generic explainability architecture for explaining text machine learning model
 
 [![PyPI](https://img.shields.io/pypi/v/text_explainability)](https://pypi.org/project/text-explainability/)
 [![Downloads](https://pepy.tech/badge/text-explainability)](https://pepy.tech/project/text-explainability)
-[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.org/project/text-explainability/)
+[![Python_version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/text-explainability/)
 [![Build_passing](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MarcelRobeer/text_explainability/-/pipelines)
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Documentation Status](https://readthedocs.org/projects/text-explainability/badge/?version=latest)](https://text-explainability.readthedocs.io/en/latest/?badge=latest)
@@ -87,7 +87,7 @@ See [example usage](example_usage.md) to see an example of how the package can b
 See [CHANGELOG.md](CHANGELOG.md) for a full overview of the changes for each version.
 
 ## Extensions
-<a href="https://marcelrobeer.github.io/text_sensitivity/" target="_blank"><img src="https://github.com/MarcelRobeer/text_sensitivity/-/raw/main/img/te-logoLogo_large_sensitivity.png" alt="Text sensitivity logo" width="200px"></a><p>`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://text-sensitivity.rtfd.io/](https://text-sensitivity.rtfd.io/).</p>
+<a href="https://marcelrobeer.github.io/text_sensitivity/" target="_blank"><img src="https://github.com/MarcelRobeer/text_sensitivity/raw/main/img/ts-logo-large.png" alt="Text sensitivity logo" width="200px"></a><p>`text_explainability` can be extended to also perform _sensitivity testing_, checking for machine learning model robustness and fairness. The `text_sensitivity` package is available through [PyPI](https://pypi.org/project/text-sensitivity/) and fully documented at [https://text-sensitivity.rtfd.io/](https://text-sensitivity.rtfd.io/).</p>
 
 ## Citation
 ```bibtex

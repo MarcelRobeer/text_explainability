@@ -1,4 +1,4 @@
-.. image:: https://github.com/MarcelRobeer/text_explainability/-/raw/main/img/te-logo_large.png
+.. image:: https://github.com/MarcelRobeer/text_explainability/raw/main/img/te-logo_large.png
     :alt: Text Explainability logo
     :align: center
 
@@ -17,7 +17,7 @@ A generic explainability architecture for explaining text machine learning model
    :alt: Downloads
 
 
-.. image:: https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue
+.. image:: https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue
    :target: https://pypi.org/project/text-explainability/
    :alt: Python_version
 
@@ -114,7 +114,7 @@ Development
 Extensions
 ----------
 
-.. image:: https://github.com/MarcelRobeer/text_sensitivity/-/raw/main/img/te-logoLogo_large_sensitivity.png
+.. image:: https://github.com/MarcelRobeer/text_sensitivity/raw/main/img/ts-logo_large.png
     :alt: text_sensitivity logo
     :target: https://text-sensitivity.readthedocs.io
     
