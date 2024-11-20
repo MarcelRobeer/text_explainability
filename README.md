@@ -52,7 +52,7 @@ MMDCritic(env.dataset)(n_prototypes=2, n_criticisms=1)
 ```
 
 ## Installation
-See the [installation](docs/INSTALLATION.md) instructions for an extended installation guide.
+See the [installation](INSTALLATION.md) instructions for an extended installation guide.
 
 | Method | Instructions |
 |--------|--------------|
