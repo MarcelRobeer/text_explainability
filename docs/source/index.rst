@@ -41,6 +41,8 @@ A generic explainability architecture for explaining text machine learning model
    :target: https://github.com/PyCQA/flake8
    :alt: Code style: black
 
+.. image:: https://zenodo.org/badge/890958354.svg
+   :target: https://doi.org/10.5281/zenodo.14192125
 
 ----
 
@@ -129,6 +131,7 @@ Citation
      title = {Python package text\_explainability},
      author = {Marcel Robeer},
      howpublished = {\url{https://github.com/MarcelRobeer/text_explainability}},
+     doi = {10.5281/zenodo.14192126}
      year = {2021}
    }
 

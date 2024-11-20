@@ -13,6 +13,7 @@ A generic explainability architecture for explaining text machine learning model
 [![License](https://img.shields.io/pypi/l/text_explainability)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Documentation Status](https://readthedocs.org/projects/text-explainability/badge/?version=latest)](https://text-explainability.readthedocs.io/en/latest/?badge=latest)
 [![Code style: black](https://img.shields.io/badge/code%20style-flake8-aa0000)](https://github.com/PyCQA/flake8)
+[![DOI](https://zenodo.org/badge/890958354.svg)](https://doi.org/10.5281/zenodo.14192125)
 
 ---
 
