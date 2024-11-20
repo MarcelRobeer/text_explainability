@@ -61,6 +61,7 @@ html_context = {
     "display_github": True,
     "github_user": "MarcelRobeer",
     "github_repo": "text_explainability",
+    "github_version": "main/docs/source/",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
