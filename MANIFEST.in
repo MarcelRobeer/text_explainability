@@ -5,4 +5,5 @@ include *.cff
 exclude *.bat
 exclude .shortlicense
 exclude example_usage.py
+recursive-exclude datasets *.csv
 recursive-exclude text_explainability/test *.py
