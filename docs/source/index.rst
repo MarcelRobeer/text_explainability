@@ -116,7 +116,7 @@ Development
 Extensions
 ----------
 
-.. image:: https://github.com/MarcelRobeer/text_sensitivity/raw/main/img/ts-logo_large.png
+.. image:: https://github.com/MarcelRobeer/text_sensitivity/raw/master/img/ts-logo_large.png
     :alt: text_sensitivity logo
     :target: https://text-sensitivity.readthedocs.io
     
