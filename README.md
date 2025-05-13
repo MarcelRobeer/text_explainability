@@ -76,7 +76,7 @@ See [example usage](example_usage.md) to see an example of how the package can b
 | |  `LocalTree` | Fit a local decision tree around a single decision. | [[Guidotti2018](https://paperswithcode.com/paper/local-rule-based-explanations-of-black-box)] |
 | | `LocalRules` | Fit a local sparse set of label-specific rules using `SkopeRules`. | [github/skope-rules](https://github.com/scikit-learn-contrib/skope-rules) |
 | |  `FoilTree` | Fit a local contrastive/counterfactual decision tree around a single decision. | [[Robeer2018](https://github.com/MarcelRobeer/ContrastiveExplanation)] |
-| | `BayLIME` | Bayesian extension of LIME for include prior knowledge and more consistent explanations. | [[Zhao201](https://paperswithcode.com/paper/baylime-bayesian-local-interpretable-model)] |
+| | `BayLIME` | Bayesian extension of LIME for include prior knowledge and more consistent explanations. | [[Zhao2021](https://paperswithcode.com/paper/baylime-bayesian-local-interpretable-model)] |
 | *Global explanation* | `TokenFrequency` | Show the top-_k_ number of tokens for each ground-truth or predicted label. |
 | |  `TokenInformation` | Show the top-_k_ token mutual information for a dataset or model. | [wikipedia/mutual_information](https://en.wikipedia.org/wiki/Mutual_information) |
 | | `KMedoids` | Embed instances and find top-_n_ prototypes (can also be performed for each label using `LabelwiseKMedoids`). | [interpretable-ml/prototypes](https://christophm.github.io/interpretable-ml-book/proto.html) |
